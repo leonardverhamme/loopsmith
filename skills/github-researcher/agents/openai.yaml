@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Researcher"
+  short_description: "Search GitHub for code, repos, issues, and PRs."
+  default_prompt: "Use this skill to research GitHub repositories, code, issues, and pull requests, then summarize the strongest patterns with links."

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Refactor Orchestrator"
+  short_description: "Wide-scope refactor orchestration"
+  default_prompt: "Use $refactor-orchestrator to plan, partition, execute, and validate a broad refactor across this repo."
+  brand_color: "#6A4C3C"

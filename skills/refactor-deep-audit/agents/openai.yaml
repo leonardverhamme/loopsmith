@@ -1,0 +1,5 @@
+interface:
+  display_name: "Refactor Deep Audit"
+  short_description: "Broad refactor audit and checklist execution"
+  default_prompt: "Use $refactor-deep-audit with no extra instructions to run its default full-cycle workflow: refresh the structural audit, execute the checklist in the same run, keep iterating, and only stop when complete or blocked."
+  brand_color: "#6B4E46"

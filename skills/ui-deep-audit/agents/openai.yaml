@@ -1,0 +1,7 @@
+interface:
+  display_name: "UI Deep Audit"
+  short_description: "Full-app UI audit and checklist execution"
+  default_prompt: "Use $ui-deep-audit with no extra instructions to run its default full-cycle workflow: refresh the audit, execute the checklist in the same run, keep iterating, and only stop when complete or blocked."
+
+policy:
+  allow_implicit_invocation: false

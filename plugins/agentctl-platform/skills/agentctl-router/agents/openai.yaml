@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agentctl Router"
+  short_description: "Route work through the agentctl control plane"
+  default_prompt: "Use $agentctl-router to pick the right agentctl command or workflow."

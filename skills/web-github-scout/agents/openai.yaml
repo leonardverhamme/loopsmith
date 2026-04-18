@@ -1,0 +1,4 @@
+interface:
+  display_name: "Web GitHub Scout"
+  short_description: "Combine web and GitHub research into a shortlist."
+  default_prompt: "Use this skill to combine internet and GitHub research, compare sources, and return a compact shortlist of the best references and tradeoffs."

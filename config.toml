@@ -1,0 +1,2 @@
+[plugins."agentctl-platform"]
+enabled = true

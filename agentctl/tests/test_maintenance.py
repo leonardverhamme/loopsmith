@@ -1,0 +1,146 @@
+from __future__ import annotations
+
+import json
+import sys
+import tempfile
+import unittest
+from contextlib import ExitStack
+from pathlib import Path
+from unittest import mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from lib import maintenance
+
+
+class MaintenanceTests(unittest.TestCase):
+    def _patch_paths(self, root: Path) -> list[mock._patch]:
+        agentctl_home = root / "agentctl"
+        docs_dir = root / "docs" / "agentctl"
+        refs_dir = agentctl_home / "references"
+        plugin_dir = root / "plugins" / "agentctl-platform"
+        patches = [
+            mock.patch.object(maintenance, "AGENTCTL_HOME", agentctl_home),
+            mock.patch.object(maintenance, "AGENTCTL_DOCS_DIR", docs_dir),
+            mock.patch.object(maintenance, "CAPABILITIES_PATH", agentctl_home / "state" / "capabilities.json"),
+            mock.patch.object(maintenance, "DOCTOR_REPORT_PATH", agentctl_home / "state" / "doctor-report.json"),
+            mock.patch.object(maintenance, "MAINTENANCE_REPORT_PATH", docs_dir / "maintenance-report.json"),
+            mock.patch.object(maintenance, "MAINTENANCE_STATE_PATH", root / ".codex-workflows" / "agentctl-maintenance" / "state.json"),
+            mock.patch.object(maintenance, "STATE_SCHEMA_REFERENCE_PATH", refs_dir / "state-schema.md"),
+            mock.patch.object(maintenance, "CAPABILITY_REGISTRY_REFERENCE_PATH", refs_dir / "capability-registry.md"),
+            mock.patch.object(maintenance, "MAINTENANCE_CONTRACT_REFERENCE_PATH", refs_dir / "maintenance-contract.md"),
+            mock.patch.object(maintenance, "CLOUD_READINESS_REFERENCE_PATH", refs_dir / "cloud-readiness.md"),
+            mock.patch.object(maintenance, "CONFIG_PATH", root / "config.toml"),
+            mock.patch.object(maintenance, "WORKFLOW_REGISTRY_PATH", root / "workflow-state" / "registry.json"),
+            mock.patch.object(maintenance, "AGENTCTL_PLUGIN_DIR", plugin_dir),
+            mock.patch.object(maintenance, "AGENTCTL_PLUGIN_MANIFEST_PATH", plugin_dir / ".codex-plugin" / "plugin.json"),
+            mock.patch.object(maintenance, "AGENTCTL_PLUGIN_ROUTER_SKILL_DIR", plugin_dir / "skills" / "agentctl-router"),
+            mock.patch.object(maintenance, "AGENTCTL_MAINTENANCE_SKILL_DIR", root / "skills" / "agentctl-maintenance-engineer"),
+            mock.patch.dict(
+                maintenance.MAINTENANCE_DOCS,
+                {
+                    "overview": docs_dir / "overview.md",
+                    "command-map": docs_dir / "command-map.md",
+                    "state-schema": docs_dir / "state-schema.md",
+                    "capability-registry": docs_dir / "capability-registry.md",
+                    "cloud-readiness": docs_dir / "cloud-readiness.md",
+                    "maintenance": docs_dir / "maintenance.md",
+                },
+                clear=True,
+            ),
+            mock.patch.dict(
+                maintenance.REFERENCE_DOCS,
+                {
+                    "state-schema": refs_dir / "state-schema.md",
+                    "capability-registry": refs_dir / "capability-registry.md",
+                    "maintenance-contract": refs_dir / "maintenance-contract.md",
+                    "cloud-readiness": refs_dir / "cloud-readiness.md",
+                },
+                clear=True,
+            ),
+        ]
+        return patches
+
+    def _capabilities_report(self, *, status: str = "ok") -> dict:
+        return {
+            "summary": {"status": status},
+            "tools": {
+                "gh": {"installed": True, "skill_supported": True},
+                "playwright": {"status": "ok"},
+            },
+            "capabilities": [
+                {"key": "browser-automation", "status": "ok", "front_door": "$playwright", "overlap_policy": "test"},
+                {"key": "research", "status": "ok", "front_door": "agentctl research", "overlap_policy": "test"},
+            ],
+            "overlap_analysis": [],
+            "detect_only_tools": [],
+        }
+
+    def test_build_report_surfaces_missing_docs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            refs_dir = root / "agentctl" / "references"
+            refs_dir.mkdir(parents=True, exist_ok=True)
+            for name in ("state-schema.md", "capability-registry.md", "maintenance-contract.md", "cloud-readiness.md"):
+                (refs_dir / name).write_text("reference\n", encoding="utf-8")
+            skill_dir = root / "skills" / "agentctl-maintenance-engineer"
+            skill_dir.mkdir(parents=True, exist_ok=True)
+
+            patches = self._patch_paths(root)
+            with ExitStack() as stack:
+                stack.enter_context(mock.patch.object(maintenance, "build_capabilities_report", return_value=self._capabilities_report()))
+                for patcher in patches:
+                    stack.enter_context(patcher)
+                report = maintenance.build_maintenance_report()
+
+            finding_ids = {finding["id"] for finding in report["findings"]}
+            self.assertIn("doc-missing-overview", finding_ids)
+            self.assertIn("plugin-missing", finding_ids)
+            self.assertEqual(report["summary"]["status"], "error")
+
+    def test_fix_docs_writes_docs_and_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            refs_dir = root / "agentctl" / "references"
+            refs_dir.mkdir(parents=True, exist_ok=True)
+            for name in ("state-schema.md", "capability-registry.md", "maintenance-contract.md", "cloud-readiness.md"):
+                (refs_dir / name).write_text("reference\n", encoding="utf-8")
+
+            skill_dir = root / "skills" / "agentctl-maintenance-engineer"
+            skill_dir.mkdir(parents=True, exist_ok=True)
+            plugin_manifest = root / "plugins" / "agentctl-platform" / ".codex-plugin" / "plugin.json"
+            plugin_manifest.parent.mkdir(parents=True, exist_ok=True)
+            plugin_manifest.write_text(json.dumps({"name": "agentctl-platform"}), encoding="utf-8")
+            tests_dir = root / "agentctl" / "tests"
+            tests_dir.mkdir(parents=True, exist_ok=True)
+            for name in (
+                "test_capabilities.py",
+                "test_research.py",
+                "test_skills_ops.py",
+                "test_workflows.py",
+                "test_maintenance.py",
+            ):
+                (tests_dir / name).write_text("pass\n", encoding="utf-8")
+            router_skill = root / "plugins" / "agentctl-platform" / "skills" / "agentctl-router" / "SKILL.md"
+            router_skill.parent.mkdir(parents=True, exist_ok=True)
+            router_skill.write_text("---\nname: agentctl-router\ndescription: test\n---\n", encoding="utf-8")
+            (root / "config.toml").write_text('[plugins."agentctl-platform"]\nenabled = true\n', encoding="utf-8")
+
+            patches = self._patch_paths(root)
+            with ExitStack() as stack:
+                stack.enter_context(mock.patch.object(maintenance, "build_capabilities_report", return_value=self._capabilities_report()))
+                for patcher in patches:
+                    stack.enter_context(patcher)
+                report = maintenance.maintenance_fix_docs()
+
+                overview = (root / "docs" / "agentctl" / "overview.md").read_text(encoding="utf-8")
+                state = json.loads((root / ".codex-workflows" / "agentctl-maintenance" / "state.json").read_text(encoding="utf-8"))
+
+            self.assertIn("agentctl:auto-generated", overview)
+            self.assertEqual(report["summary"]["status"], "ok")
+            self.assertTrue(state["ready_allowed"])
+            self.assertEqual(state["status"], "complete")
+
+
+if __name__ == "__main__":
+    unittest.main()

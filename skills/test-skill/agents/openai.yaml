@@ -1,0 +1,5 @@
+interface:
+  display_name: "Test Skill"
+  short_description: "General cross-repo testing workflow"
+  default_prompt: "Use $test-skill to add all needed tests for this change, run them, and keep iterating until the relevant suites are green without weakening correct tests."
+  brand_color: "#1E3A5F"

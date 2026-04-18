@@ -1,0 +1,149 @@
+from __future__ import annotations
+
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from lib.capabilities import _playwright_browser_binaries, build_capabilities_report
+
+
+class CapabilitiesTests(unittest.TestCase):
+    @mock.patch("lib.capabilities._local_skill_names")
+    @mock.patch("lib.capabilities._mcp_servers_map")
+    @mock.patch("lib.capabilities._enabled_plugins_map")
+    @mock.patch("lib.capabilities._config_payload")
+    @mock.patch("lib.capabilities._installed_skills")
+    @mock.patch("lib.capabilities._detect_playwright")
+    @mock.patch("lib.capabilities._detect_gh")
+    @mock.patch("lib.capabilities._detect_skills_cli")
+    @mock.patch("lib.capabilities._tool_record")
+    def test_report_contains_expected_capabilities(
+        self,
+        tool_record: mock.Mock,
+        detect_skills: mock.Mock,
+        detect_gh: mock.Mock,
+        detect_playwright: mock.Mock,
+        installed_skills: mock.Mock,
+        config_payload: mock.Mock,
+        enabled_plugins: mock.Mock,
+        mcp_servers: mock.Mock,
+        local_skill_names: mock.Mock,
+    ) -> None:
+        tool_record.return_value = {"installed": True, "status": "ok", "version": "1.0.0"}
+        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
+        detect_gh.return_value = {"installed": True, "status": "ok", "version": "gh 1.0", "skill_supported": False}
+        detect_playwright.return_value = {"installed": True, "status": "degraded", "wrapper_ready": False}
+        installed_skills.return_value = {"status": "ok", "items": [{"name": "ui-skill"}]}
+        config_payload.return_value = {}
+        enabled_plugins.return_value = {
+            "github@openai-curated": {"name": "github@openai-curated", "enabled": True, "status": "ok"},
+            "agentctl-platform": {"name": "agentctl-platform", "enabled": True, "status": "ok"},
+        }
+        mcp_servers.return_value = {
+            "playwright": {"name": "playwright", "status": "configured", "configured": True, "transport": "mcp"},
+            "supabase": {"name": "supabase", "status": "configured", "configured": True, "transport": "mcp"},
+        }
+        local_skill_names.return_value = {
+            "ui-skill",
+            "ui-deep-audit",
+            "test-skill",
+            "test-deep-audit",
+            "internet-researcher",
+            "github-researcher",
+            "web-github-scout",
+            "agentctl-maintenance-engineer",
+        }
+
+        report = build_capabilities_report()
+        capability_keys = {item["key"] for item in report["capabilities"]}
+        self.assertEqual(report["schema_version"], 2)
+        self.assertIn("research", capability_keys)
+        self.assertIn("browser-automation", capability_keys)
+        self.assertIn("supabase-data", capability_keys)
+        self.assertEqual(report["summary"]["installed_skill_count"], 1)
+
+    @mock.patch("lib.capabilities._local_skill_names")
+    @mock.patch("lib.capabilities._mcp_servers_map")
+    @mock.patch("lib.capabilities._enabled_plugins_map")
+    @mock.patch("lib.capabilities._config_payload")
+    @mock.patch("lib.capabilities._installed_skills")
+    @mock.patch("lib.capabilities._detect_playwright")
+    @mock.patch("lib.capabilities._detect_gh")
+    @mock.patch("lib.capabilities._detect_skills_cli")
+    @mock.patch("lib.capabilities._tool_record")
+    def test_optional_integrations_do_not_degrade_baseline_summary(
+        self,
+        tool_record: mock.Mock,
+        detect_skills: mock.Mock,
+        detect_gh: mock.Mock,
+        detect_playwright: mock.Mock,
+        installed_skills: mock.Mock,
+        config_payload: mock.Mock,
+        enabled_plugins: mock.Mock,
+        mcp_servers: mock.Mock,
+        local_skill_names: mock.Mock,
+    ) -> None:
+        tool_record.return_value = {"installed": True, "status": "ok", "version": "1.0.0"}
+        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
+        detect_gh.return_value = {"installed": False, "status": "missing", "skill_supported": False}
+        detect_playwright.return_value = {"installed": False, "status": "missing", "wrapper_ready": False}
+        installed_skills.return_value = {"status": "ok", "items": []}
+        config_payload.return_value = {}
+        enabled_plugins.return_value = {"agentctl-platform": {"name": "agentctl-platform", "enabled": True, "status": "ok"}}
+        mcp_servers.return_value = {}
+        local_skill_names.return_value = {
+            "context-skill",
+            "ui-skill",
+            "ui-deep-audit",
+            "test-skill",
+            "test-deep-audit",
+            "docs-skill",
+            "docs-deep-audit",
+            "refactor-skill",
+            "refactor-deep-audit",
+            "refactor-orchestrator",
+            "cicd-skill",
+            "cicd-deep-audit",
+            "internet-researcher",
+            "github-researcher",
+            "web-github-scout",
+            "agentctl-maintenance-engineer",
+        }
+
+        report = build_capabilities_report()
+        self.assertEqual(report["summary"]["status"], "ok")
+        self.assertGreater(report["summary"]["optional_attention_count"], 0)
+
+    def test_playwright_browser_binaries_detects_standard_and_cached_windows_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            program_files = root / "Program Files"
+            local_app_data = root / "AppData" / "Local"
+            chrome_path = program_files / "Google" / "Chrome" / "Application" / "chrome.exe"
+            chromium_path = local_app_data / "ms-playwright" / "chromium-1208" / "chrome-win64" / "chrome.exe"
+            chrome_path.parent.mkdir(parents=True, exist_ok=True)
+            chromium_path.parent.mkdir(parents=True, exist_ok=True)
+            chrome_path.write_text("", encoding="utf-8")
+            chromium_path.write_text("", encoding="utf-8")
+
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "ProgramFiles": str(program_files),
+                    "ProgramFiles(x86)": str(root / "Program Files (x86)"),
+                    "LOCALAPPDATA": str(local_app_data),
+                },
+                clear=False,
+            ), mock.patch("lib.capabilities.command_path", return_value=None):
+                browsers = _playwright_browser_binaries()
+
+        self.assertEqual(browsers["chrome"], str(chrome_path))
+        self.assertEqual(browsers["chromium"], str(chromium_path))
+
+
+if __name__ == "__main__":
+    unittest.main()
