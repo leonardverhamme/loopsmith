@@ -3,10 +3,10 @@
 
 ## Last Run
 
-- Generated: `2026-04-18T13:28:44.689431+00:00`
-- Status: `degraded`
-- Checks passed: 18 / 19
-- Open findings: 1
+- Generated: `2026-04-18T14:21:15.986767+00:00`
+- Status: `ok`
+- Checks passed: 19 / 19
+- Open findings: 0
 - Blocked findings: 0
 
 ## When to Run Maintenance
@@ -29,7 +29,15 @@
 - Refresh `docs/agentctl/*.md` from machine state.
 - Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.
 - Re-run tests for `agentctl` and the shared workflow tools.
+- Re-run at least one CLI-level deep-workflow smoke after changing runner/state/guard behavior.
 - Keep `AGENTS.md` aligned with the intended front door.
+
+## Verification Expectations
+
+- `python -m unittest discover -s agentctl/tests -p "test_*.py"` passes.
+- `python -m unittest discover -s workflow-tools/tests -p "test_*.py"` passes.
+- A temp-repo `agentctl run <workflow>` smoke can reach a correct terminal state with a real or explicit worker command.
+- Fresh bundle install smoke keeps `bootstrap-report.json` truthful and does not fail purely on documented degraded capabilities.
 
 ## Clean State Expectations
 
@@ -41,13 +49,11 @@
 
 ## Maintenance Checklist
 
-- [ ] Capability report is degraded
-  - Severity: `warn`
-  - Detail: At least one tool or browser route is degraded. Keep the limitation documented and explicit.
-  - Path: `C:\Users\leona\Documents\Playground\agentctl\agentctl\state\capabilities.json`
+- [x] No open maintenance findings remain.
 
 ## Known Limitations
 
 - `gh skill` is not available locally, so publish/preview wrappers remain disabled.
+- The default local Codex runtime is not callable here. Use `agentctl run --worker-command ...` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs.
 - `firebase` is detected but intentionally remains detect-only in v1.
 - `gcloud` is detected but intentionally remains detect-only in v1.

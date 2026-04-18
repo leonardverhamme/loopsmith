@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -10,6 +12,11 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib.workflows import run_workflow, workflow_status
+
+
+CLI_ENTRY = Path(__file__).resolve().parents[1] / "agentctl.py"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FAKE_WORKER = REPO_ROOT / "workflow-tools" / "tests" / "fake_worker.py"
 
 
 class WorkflowStatusTests(unittest.TestCase):
@@ -201,6 +208,54 @@ class WorkflowStatusTests(unittest.TestCase):
         command = run_mock.call_args.args[0]
         self.assertIn("explicit-worker", command)
         self.assertNotIn("ignored-template", command)
+
+    def test_cli_run_completes_end_to_end_with_fake_worker(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            worker_command = f'"{sys.executable}" "{FAKE_WORKER}" complete_after_two'
+
+            run_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "run",
+                    "ui-deep-audit",
+                    "--repo",
+                    str(repo_root),
+                    "--worker-command",
+                    worker_command,
+                    "--worker-mode",
+                    "explicit",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr or run_result.stdout)
+
+            status_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "status",
+                    "--repo",
+                    str(repo_root),
+                    "--json",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(status_result.returncode, 0, status_result.stderr or status_result.stdout)
+            payload = json.loads(status_result.stdout)
+            self.assertEqual(payload["workflows"][0]["status"], "complete")
+            self.assertTrue(payload["workflows"][0]["ready_allowed"])
 
 
 if __name__ == "__main__":

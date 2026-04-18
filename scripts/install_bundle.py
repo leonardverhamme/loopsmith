@@ -21,6 +21,8 @@ BUNDLE_ITEMS = [
 ]
 
 PLUGIN_SNIPPET = '\n[plugins."agentctl"]\nenabled = true\n'
+LEGACY_PLUGIN_KEYS = ('[plugins."agentctl-platform"]', "[plugins.agentctl-platform]")
+LEGACY_PLUGIN_DIR = "plugins/agentctl-platform"
 
 
 def repo_root() -> Path:
@@ -44,10 +46,20 @@ def copy_item(source_root: Path, target_root: Path, relative: str) -> None:
 
 def ensure_plugin_enabled(config_path: Path) -> None:
     existing = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
+    for legacy_key in LEGACY_PLUGIN_KEYS:
+        existing = existing.replace(legacy_key, '[plugins."agentctl"]')
     if '[plugins."agentctl"]' in existing or "[plugins.agentctl]" in existing:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path.write_text(existing, encoding="utf-8")
         return
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(existing.rstrip() + PLUGIN_SNIPPET, encoding="utf-8")
+
+
+def cleanup_legacy_plugin(target_root: Path) -> None:
+    legacy_path = target_root / LEGACY_PLUGIN_DIR
+    if legacy_path.exists():
+        shutil.rmtree(legacy_path)
 
 
 def evaluate_post_check(command_name: str, result: subprocess.CompletedProcess[str]) -> tuple[bool, str | None]:
@@ -121,6 +133,7 @@ def main() -> int:
     for relative in BUNDLE_ITEMS:
         copy_item(source_root, target_root, relative)
 
+    cleanup_legacy_plugin(target_root)
     ensure_plugin_enabled(target_root / "config.toml")
 
     print(f"Installed agentctl into {target_root}")

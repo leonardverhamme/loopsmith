@@ -33,6 +33,7 @@ Top-level report fields:
 - `ready_allowed` is the completion gate. A workflow must not claim `complete` unless this is `true`.
 - `remaining_items` and `blocked_items` should always be derivable from the current checklist, not chat memory.
 - `last_validation` should capture the smallest real validation that supports the last completed batch.
+- Shared-registry writes must remain concurrency-safe because multiple deep workflows may update the registry at the same time.
 
 ## Status Meanings
 
@@ -85,9 +86,9 @@ Required top-level fields:
 ```json
 {
   "blocked_findings": 0,
-  "open_findings": 1,
-  "passed_checks": 18,
-  "status": "degraded",
+  "open_findings": 0,
+  "passed_checks": 19,
+  "status": "ok",
   "total_checks": 19
 }
 ```

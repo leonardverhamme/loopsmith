@@ -14,9 +14,9 @@
 
 ## Current Status
 
-- Maintenance status: `degraded`
-- Checks passed: 18 / 19
-- Open findings: 1
+- Maintenance status: `ok`
+- Checks passed: 19 / 19
+- Open findings: 0
 - Blocked findings: 0
 
 ## Authoritative Interfaces
@@ -40,6 +40,15 @@
 - Deep remediation: `agentctl run <workflow>` and trust `.codex-workflows/<workflow>/state.json` over chat history.
 - Autonomous deep remediation only counts when a real worker command exists. The runner loop is deterministic; the worker must be real.
 - Control-plane upkeep: `$agentctl-maintenance-engineer` or `agentctl maintenance audit`.
+
+## Verified Workflow Guarantees
+
+- The shared runner is covered for `complete`, `stalled`, and `blocked` terminal states.
+- The CLI front door is covered end-to-end with `agentctl run ...` plus `agentctl status --json` in a temp repo.
+- Explicit worker-command execution is a supported and tested path for unattended deep runs.
+- Registry writes are protected against transient Windows rename contention and against parallel shared-registry updates.
+- Fresh bundle installs are smoke-tested and allowed to finish `ok` when only degraded-but-documented capabilities remain.
+- The remaining environment-specific limitation is the default local Codex runtime on this machine; if that runtime is unavailable, use an explicit worker command or `AGENTCTL_CODEX_WORKER_TEMPLATE`.
 
 ## Capability-First Rule
 
@@ -67,5 +76,6 @@ The capability registry exists to collapse those overlaps into one stable route.
 ## Known Limitations
 
 - `gh skill` is not available locally, so publish/preview wrappers remain disabled.
+- The default local Codex runtime is not callable here. Use `agentctl run --worker-command ...` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs.
 - `firebase` is detected but intentionally remains detect-only in v1.
 - `gcloud` is detected but intentionally remains detect-only in v1.

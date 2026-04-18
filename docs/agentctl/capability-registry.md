@@ -14,8 +14,9 @@ The machine-readable registry lives at `agentctl/state/capabilities.json`.
 
 ### Control Plane
 
-- `autonomous-deep-runs` uses `agentctl run` and is currently `degraded`.
+- `autonomous-deep-runs` uses `agentctl run` and is currently `ok`.
   - Overlap policy: The outer execute-until-done loop must use a real worker command, not chat memory. Prefer Codex runtime when it is callable or explicitly templated.
+  - Advisory: Default Codex runtime is not callable in this environment. Use `--worker-command` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs.
 - `skills-management` uses `agentctl skills` and is currently `ok`.
   - Overlap policy: Wrap official skills tooling rather than reimplementing it.
 - `agentctl-maintenance` uses `$agentctl-maintenance-engineer` and is currently `ok`.
@@ -91,7 +92,7 @@ The machine-readable registry lives at `agentctl/state/capabilities.json`.
   "optional_attention_count": 8,
   "optional_capability_count": 11,
   "required_capability_count": 10,
-  "status": "degraded"
+  "status": "ok"
 }
 ```
 

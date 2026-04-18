@@ -16,3 +16,5 @@ docs/agentctl/maintenance-report.json
 docs/*-checklist.md
 docs/*-progress.md
 dist/
+node_modules/
+automation-core/

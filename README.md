@@ -149,6 +149,18 @@ The runner owns repetition, retries, and stop conditions. The skill remains the 
 
 Unattended execution only counts when a real worker runtime exists. Use `--worker-command`, `CODEX_WORKFLOW_WORKER_COMMAND`, or `AGENTCTL_CODEX_WORKER_TEMPLATE` instead of relying on chat repetition.
 
+## Verified Loop Behavior
+
+The deep-workflow loop is verified in the repo, not just described:
+
+- the shared runner reaches `complete` with `ready_allowed=true` when the checklist is fully cleared
+- repeated no-progress runs end as `stalled`
+- all-blocked checklists end as `blocked`
+- `agentctl run ...` is covered end-to-end against the fake worker in a temp repo
+- shared registry updates are covered for concurrent deep runs so parallel workflows do not lose entries
+
+The remaining environment-dependent part is a real unattended Codex worker route on the local machine. The deterministic loop is covered; the worker runtime still depends on the machine or cloud environment.
+
 ## Optional Integrations
 
 This repo is intentionally capability-first. Optional integrations are surfaced as capabilities, but they are not treated as baseline failures when missing.

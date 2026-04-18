@@ -61,6 +61,6 @@ Cloud support is explicit, not assumed. A plugin install is not enough without a
 
 ## Current Local Signals
 
-- Capability summary: `degraded`
+- Capability summary: `ok`
 - Browser route: `ok`
 - GitHub CLI skill support: `false`

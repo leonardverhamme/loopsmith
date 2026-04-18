@@ -257,6 +257,17 @@ def _known_limitations(capabilities: dict[str, Any]) -> list[str]:
     gh = capabilities.get("tools", {}).get("gh", {})
     if gh.get("installed") and not gh.get("skill_supported"):
         limitations.append("`gh skill` is not available locally, so publish/preview wrappers remain disabled.")
+    codex = capabilities.get("tools", {}).get("codex", {})
+    if codex.get("installed") and not codex.get("worker_runtime_ready"):
+        limitations.append(
+            "The default local Codex runtime is not callable here. "
+            "Use `agentctl run --worker-command ...` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs."
+        )
+    elif not codex.get("installed"):
+        limitations.append(
+            "Codex CLI is not detected locally. Unattended deep runs still work through explicit worker commands, "
+            "but there is no auto-resolved Codex runtime."
+        )
     browser = capabilities.get("tools", {}).get("playwright", {})
     if browser.get("status") != "ok":
         limitations.append("Playwright is available, but browser readiness is degraded until a Chromium or compatible browser binary is present.")
@@ -560,6 +571,15 @@ def _render_overview(report: dict[str, Any]) -> str:
         "- Autonomous deep remediation only counts when a real worker command exists. The runner loop is deterministic; the worker must be real.",
         "- Control-plane upkeep: `$agentctl-maintenance-engineer` or `agentctl maintenance audit`.",
         "",
+        "## Verified Workflow Guarantees",
+        "",
+        "- The shared runner is covered for `complete`, `stalled`, and `blocked` terminal states.",
+        "- The CLI front door is covered end-to-end with `agentctl run ...` plus `agentctl status --json` in a temp repo.",
+        "- Explicit worker-command execution is a supported and tested path for unattended deep runs.",
+        "- Registry writes are protected against transient Windows rename contention and against parallel shared-registry updates.",
+        "- Fresh bundle installs are smoke-tested and allowed to finish `ok` when only degraded-but-documented capabilities remain.",
+        "- The remaining environment-specific limitation is the default local Codex runtime on this machine; if that runtime is unavailable, use an explicit worker command or `AGENTCTL_CODEX_WORKER_TEMPLATE`.",
+        "",
         "## Capability-First Rule",
         "",
         "Agents should choose a capability front door first and ignore transport details unless the capability itself is degraded.",
@@ -609,6 +629,12 @@ def _render_command_map() -> str:
         "- `research` is for evidence creation, not implementation.",
         "- `skills` wraps official install/update tooling and provenance checks.",
         "- `maintenance` is only for the control plane itself.",
+        "",
+        "## Verification Notes",
+        "",
+        "- `run` is tested at two levels: the shared workflow runner directly and the public `agentctl run` CLI path.",
+        "- Shared state transitions are expected to end as `complete`, `blocked`, or `stalled`; `ready_allowed` must gate any `complete` state.",
+        "- Shared-registry updates are expected to tolerate concurrent deep workflows without losing entries.",
         "",
     ]
     for group in COMMAND_GROUPS:
@@ -704,6 +730,7 @@ def _render_state_schema(report: dict[str, Any]) -> str:
         "- `ready_allowed` is the completion gate. A workflow must not claim `complete` unless this is `true`.",
         "- `remaining_items` and `blocked_items` should always be derivable from the current checklist, not chat memory.",
         "- `last_validation` should capture the smallest real validation that supports the last completed batch.",
+        "- Shared-registry writes must remain concurrency-safe because multiple deep workflows may update the registry at the same time.",
         "",
         "## Status Meanings",
         "",
@@ -763,6 +790,8 @@ def _render_capability_registry(report: dict[str, Any]) -> str:
         for payload in items:
             lines.append(f"- `{payload.get('key', 'unknown')}` uses `{payload.get('front_door', 'unknown')}` and is currently `{payload.get('status', 'unknown')}`.")
             lines.append(f"  - Overlap policy: {payload.get('overlap_policy', 'Not documented.')}")
+            if payload.get("advisory"):
+                lines.append(f"  - Advisory: {payload['advisory']}")
         lines.append("")
     lines.extend(
         [
@@ -892,7 +921,15 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "- Refresh `docs/agentctl/*.md` from machine state.",
         "- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.",
         "- Re-run tests for `agentctl` and the shared workflow tools.",
+        "- Re-run at least one CLI-level deep-workflow smoke after changing runner/state/guard behavior.",
         "- Keep `AGENTS.md` aligned with the intended front door.",
+        "",
+        "## Verification Expectations",
+        "",
+        "- `python -m unittest discover -s agentctl/tests -p \"test_*.py\"` passes.",
+        "- `python -m unittest discover -s workflow-tools/tests -p \"test_*.py\"` passes.",
+        "- A temp-repo `agentctl run <workflow>` smoke can reach a correct terminal state with a real or explicit worker command.",
+        "- Fresh bundle install smoke keeps `bootstrap-report.json` truthful and does not fail purely on documented degraded capabilities.",
         "",
         "## Clean State Expectations",
         "",

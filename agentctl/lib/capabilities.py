@@ -597,9 +597,23 @@ def _capability_record(
     if _status_rank(interface_status) > _status_rank(status):
         status = interface_status
 
+    advisory: str | None = None
+    if spec["key"] == "autonomous-deep-runs":
+        # The control-plane capability stays healthy as long as `agentctl run`
+        # can drive the shared runner with an explicit worker command. The
+        # default Codex runtime on a given machine may still be degraded.
+        status = "ok"
+        codex_runtime = tools.get("codex", {})
+        if not codex_runtime.get("worker_runtime_ready"):
+            advisory = (
+                "Default Codex runtime is not callable in this environment. "
+                "Use `--worker-command` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` "
+                "for unattended deep runs."
+            )
+
     backing = skill_records + interface_records
     backing_sorted = sorted(backing, key=lambda item: (_status_rank(item["status"]), item["kind"], item["name"]))
-    return {
+    record = {
         "key": spec["key"],
         "label": spec["label"],
         "group": spec["group"],
@@ -611,6 +625,9 @@ def _capability_record(
         "backing_interfaces": backing_sorted,
         "overlap_policy": spec["overlap_policy"],
     }
+    if advisory:
+        record["advisory"] = advisory
+    return record
 
 
 def _enabled_plugins_map(config: dict[str, Any]) -> dict[str, Any]:

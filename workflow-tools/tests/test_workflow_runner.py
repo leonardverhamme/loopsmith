@@ -59,6 +59,58 @@ class WorkflowRunnerTests(unittest.TestCase):
             state = load_json(repo_root / ".codex-workflows" / "cicd-deep-audit" / "state.json")
             self.assertEqual(state["status"], "blocked")
 
+    def test_parallel_runners_share_registry_without_losing_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            registry = root / "workflow-state" / "registry.json"
+            repo_a = root / "repo-a"
+            repo_b = root / "repo-b"
+
+            command_a = [
+                sys.executable,
+                str(RUNNER),
+                "--skill",
+                "docs-deep-audit",
+                "--repo",
+                str(repo_a),
+                "--worker-command",
+                f'"{sys.executable}" "{FAKE_WORKER}" stall',
+                "--max-iterations",
+                "5",
+                "--max-stagnant",
+                "2",
+                "--registry",
+                str(registry),
+            ]
+            command_b = [
+                sys.executable,
+                str(RUNNER),
+                "--skill",
+                "cicd-deep-audit",
+                "--repo",
+                str(repo_b),
+                "--worker-command",
+                f'"{sys.executable}" "{FAKE_WORKER}" blocked',
+                "--max-iterations",
+                "5",
+                "--max-stagnant",
+                "2",
+                "--registry",
+                str(registry),
+            ]
+
+            proc_a = subprocess.Popen(command_a, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            proc_b = subprocess.Popen(command_b, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            out_a, err_a = proc_a.communicate(timeout=20)
+            out_b, err_b = proc_b.communicate(timeout=20)
+
+            self.assertEqual(proc_a.returncode, 2, err_a or out_a)
+            self.assertEqual(proc_b.returncode, 2, err_b or out_b)
+
+            registry_payload = load_json(registry)
+            self.assertIn(f"{repo_a.resolve()}::docs-deep-audit", registry_payload)
+            self.assertIn(f"{repo_b.resolve()}::cicd-deep-audit", registry_payload)
+
 
 if __name__ == "__main__":
     unittest.main()

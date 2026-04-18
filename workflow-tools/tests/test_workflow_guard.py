@@ -5,14 +5,34 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import workflow_common
 from workflow_common import default_state, save_json
 from workflow_guard import evaluate_guard
 
 
 class WorkflowGuardTests(unittest.TestCase):
+    def test_save_json_retries_after_permission_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir) / "state.json"
+            payload = {"ok": True}
+            real_replace = workflow_common.os.replace
+            calls = {"count": 0}
+
+            def flaky_replace(src: Path, dst: Path) -> None:
+                if calls["count"] == 0:
+                    calls["count"] += 1
+                    raise PermissionError("file locked")
+                real_replace(src, dst)
+
+            with mock.patch.object(workflow_common.os, "replace", side_effect=flaky_replace):
+                save_json(target, payload)
+
+            self.assertEqual(json.loads(target.read_text(encoding="utf-8")), payload)
+
     def test_complete_when_all_items_checked(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_root = Path(temp_dir)

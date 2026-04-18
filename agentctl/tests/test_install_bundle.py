@@ -28,6 +28,28 @@ class InstallBundleTests(unittest.TestCase):
         self.assertIn('[plugins."agentctl"]', first)
         self.assertEqual(first, second)
 
+    def test_ensure_plugin_enabled_migrates_legacy_plugin_key(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text('[plugins."agentctl-platform"]\nenabled = true\n', encoding="utf-8")
+
+            install_bundle.ensure_plugin_enabled(config_path)
+            updated = config_path.read_text(encoding="utf-8")
+
+        self.assertIn('[plugins."agentctl"]', updated)
+        self.assertNotIn('agentctl-platform', updated)
+
+    def test_cleanup_legacy_plugin_removes_old_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target_root = Path(temp_dir)
+            legacy = target_root / "plugins" / "agentctl-platform"
+            legacy.mkdir(parents=True, exist_ok=True)
+            (legacy / "placeholder.txt").write_text("x", encoding="utf-8")
+
+            install_bundle.cleanup_legacy_plugin(target_root)
+
+            self.assertFalse(legacy.exists())
+
     @mock.patch.object(install_bundle.subprocess, "run")
     def test_run_post_install_checks_writes_bootstrap_report(self, run_mock: mock.Mock) -> None:
         run_mock.return_value = mock.Mock(returncode=0, stdout='{"status":"ok"}', stderr="")

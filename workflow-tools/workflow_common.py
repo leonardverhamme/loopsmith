@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import time
+import uuid
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
@@ -78,10 +82,44 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 def save_json(path: str | Path, payload: dict[str, Any]) -> Path:
     resolved = ensure_parent(path)
-    temp_path = resolved.with_suffix(resolved.suffix + ".tmp")
+    temp_path = resolved.with_name(f"{resolved.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
     temp_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    temp_path.replace(resolved)
+    last_error: OSError | None = None
+    for _ in range(5):
+        try:
+            os.replace(temp_path, resolved)
+            return resolved
+        except PermissionError as exc:
+            last_error = exc
+            time.sleep(0.05)
+    if last_error is not None:
+        raise last_error
     return resolved
+
+
+@contextmanager
+def exclusive_lock(path: str | Path, *, timeout_seconds: float = 5.0, poll_seconds: float = 0.05):
+    resolved = ensure_parent(path)
+    deadline = time.monotonic() + timeout_seconds
+    fd: int | None = None
+    while True:
+        try:
+            fd = os.open(resolved, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode("utf-8"))
+            break
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"timed out waiting for lock: {resolved}")
+            time.sleep(poll_seconds)
+    try:
+        yield resolved
+    finally:
+        if fd is not None:
+            os.close(fd)
+        try:
+            os.unlink(resolved)
+        except FileNotFoundError:
+            pass
 
 
 def slugify(text: str) -> str:
@@ -387,25 +425,27 @@ def load_or_initialize_state(
 
 def update_registry(registry_path: str | Path, payload: dict[str, Any]) -> None:
     resolved = ensure_parent(registry_path)
-    if resolved.exists():
-        registry = load_json(resolved)
-    else:
-        registry = {}
-    registry_key = f"{payload['repo_root']}::{payload['workflow_name']}"
-    registry[registry_key] = {
-        "schema_version": payload.get("schema_version", STATE_VERSION),
-        "workflow_name": payload["workflow_name"],
-        "skill_name": payload["skill_name"],
-        "repo_root": payload["repo_root"],
-        "checklist_path": payload["checklist_path"],
-        "progress_path": payload["progress_path"],
-        "status": payload["status"],
-        "iteration": payload["iteration"],
-        "tasks_total": payload["tasks_total"],
-        "tasks_done": payload["tasks_done"],
-        "tasks_open": payload["tasks_open"],
-        "tasks_blocked": payload["tasks_blocked"],
-        "ready_allowed": payload.get("ready_allowed", False),
-        "updated_at": payload["updated_at"],
-    }
-    save_json(resolved, registry)
+    lock_path = resolved.with_name(f"{resolved.name}.lock")
+    with exclusive_lock(lock_path):
+        if resolved.exists():
+            registry = load_json(resolved)
+        else:
+            registry = {}
+        registry_key = f"{payload['repo_root']}::{payload['workflow_name']}"
+        registry[registry_key] = {
+            "schema_version": payload.get("schema_version", STATE_VERSION),
+            "workflow_name": payload["workflow_name"],
+            "skill_name": payload["skill_name"],
+            "repo_root": payload["repo_root"],
+            "checklist_path": payload["checklist_path"],
+            "progress_path": payload["progress_path"],
+            "status": payload["status"],
+            "iteration": payload["iteration"],
+            "tasks_total": payload["tasks_total"],
+            "tasks_done": payload["tasks_done"],
+            "tasks_open": payload["tasks_open"],
+            "tasks_blocked": payload["tasks_blocked"],
+            "ready_allowed": payload.get("ready_allowed", False),
+            "updated_at": payload["updated_at"],
+        }
+        save_json(resolved, registry)

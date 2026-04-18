@@ -125,6 +125,69 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(report["summary"]["status"], "ok")
         self.assertGreater(report["summary"]["optional_attention_count"], 0)
 
+    @mock.patch("lib.capabilities._local_skill_names")
+    @mock.patch("lib.capabilities._mcp_servers_map")
+    @mock.patch("lib.capabilities._enabled_plugins_map")
+    @mock.patch("lib.capabilities._config_payload")
+    @mock.patch("lib.capabilities._installed_skills")
+    @mock.patch("lib.capabilities.detect_codex_runtime")
+    @mock.patch("lib.capabilities._detect_playwright")
+    @mock.patch("lib.capabilities._detect_gh")
+    @mock.patch("lib.capabilities._detect_skills_cli")
+    @mock.patch("lib.capabilities._tool_record")
+    def test_autonomous_deep_runs_stays_ok_when_default_codex_runtime_is_unavailable(
+        self,
+        tool_record: mock.Mock,
+        detect_skills: mock.Mock,
+        detect_gh: mock.Mock,
+        detect_playwright: mock.Mock,
+        detect_codex: mock.Mock,
+        installed_skills: mock.Mock,
+        config_payload: mock.Mock,
+        enabled_plugins: mock.Mock,
+        mcp_servers: mock.Mock,
+        local_skill_names: mock.Mock,
+    ) -> None:
+        tool_record.return_value = {"installed": True, "status": "ok", "version": "1.0.0"}
+        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
+        detect_gh.return_value = {"installed": True, "status": "ok", "version": "gh 1.0", "skill_supported": False}
+        detect_playwright.return_value = {"installed": True, "status": "ok", "wrapper_ready": True}
+        detect_codex.return_value = {
+            "installed": True,
+            "status": "degraded",
+            "callable": False,
+            "worker_runtime_ready": False,
+        }
+        installed_skills.return_value = {"status": "ok", "items": []}
+        config_payload.return_value = {}
+        enabled_plugins.return_value = {"agentctl": {"name": "agentctl", "enabled": True, "status": "ok"}}
+        mcp_servers.return_value = {}
+        local_skill_names.return_value = {
+            "context-skill",
+            "ui-skill",
+            "ui-deep-audit",
+            "test-skill",
+            "test-deep-audit",
+            "docs-skill",
+            "docs-deep-audit",
+            "refactor-skill",
+            "refactor-deep-audit",
+            "refactor-orchestrator",
+            "cicd-skill",
+            "cicd-deep-audit",
+            "internet-researcher",
+            "github-researcher",
+            "web-github-scout",
+            "agentctl-maintenance-engineer",
+        }
+
+        report = build_capabilities_report()
+        capability = next(item for item in report["capabilities"] if item["key"] == "autonomous-deep-runs")
+
+        self.assertEqual(report["summary"]["status"], "ok")
+        self.assertEqual(capability["status"], "ok")
+        self.assertIn("AGENTCTL_CODEX_WORKER_TEMPLATE", capability["advisory"])
+
     def test_playwright_browser_binaries_detects_standard_and_cached_windows_paths(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

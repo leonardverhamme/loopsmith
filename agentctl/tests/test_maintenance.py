@@ -66,6 +66,7 @@ class MaintenanceTests(unittest.TestCase):
             "summary": {"status": status},
             "tools": {
                 "gh": {"installed": True, "skill_supported": True},
+                "codex": {"installed": True, "worker_runtime_ready": False},
                 "playwright": {"status": "ok"},
             },
             "capabilities": [
@@ -140,6 +141,7 @@ class MaintenanceTests(unittest.TestCase):
             self.assertEqual(report["summary"]["status"], "ok")
             self.assertTrue(state["ready_allowed"])
             self.assertEqual(state["status"], "complete")
+            self.assertTrue(any("AGENTCTL_CODEX_WORKER_TEMPLATE" in item for item in report["known_limitations"]))
 
 
 if __name__ == "__main__":

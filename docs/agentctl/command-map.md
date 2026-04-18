@@ -14,6 +14,12 @@ This is the frozen v1 command surface that maintenance checks expect.
 - `skills` wraps official install/update tooling and provenance checks.
 - `maintenance` is only for the control plane itself.
 
+## Verification Notes
+
+- `run` is tested at two levels: the shared workflow runner directly and the public `agentctl run` CLI path.
+- Shared state transitions are expected to end as `complete`, `blocked`, or `stalled`; `ready_allowed` must gate any `complete` state.
+- Shared-registry updates are expected to tolerate concurrent deep workflows without losing entries.
+
 ## Core
 
 - `agentctl doctor [--json]`
