@@ -9,6 +9,7 @@ This is the frozen v1 command surface that maintenance checks expect.
 - `capabilities` is the full menu for capability discovery.
 - `status` is for workflow progress, not general health.
 - `run` is only for deep workflows that use the shared runner/state contract.
+- `run` should prefer a real worker runtime such as Codex CLI or an explicit worker command, not chat-only repetition.
 - `research` is for evidence creation, not implementation.
 - `skills` wraps official install/update tooling and provenance checks.
 - `maintenance` is only for the control plane itself.
@@ -30,6 +31,7 @@ Typical sequence:
 - `agentctl capabilities` if you need the full menu
 - `agentctl status --all` if you need workflow progress
 - `agentctl run <workflow>` only when a deep workflow is the right shape
+- If no worker runtime is healthy, configure `--worker-command` or `AGENTCTL_CODEX_WORKER_TEMPLATE` before treating the run as unattended
 
 ## Research
 

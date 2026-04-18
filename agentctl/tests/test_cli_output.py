@@ -49,7 +49,7 @@ class CliOutputTests(unittest.TestCase):
                     "tasks_open": 0,
                     "tasks_blocked": 0,
                     "iteration": 1,
-                    "repo_root": r"C:\repo\agentctl-platform",
+                    "repo_root": r"C:\repo\agentctl",
                     "checklist_path": r"docs/agentctl/maintenance.md",
                 }
             ],

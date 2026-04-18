@@ -45,7 +45,7 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
         "front_door": "$agentctl-maintenance-engineer",
         "entrypoints": ["agentctl maintenance check", "agentctl maintenance audit", "agentctl maintenance fix-docs"],
         "skills": ["agentctl-maintenance-engineer"],
-        "interfaces": ["plugin:agentctl-platform"],
+        "interfaces": ["plugin:agentctl"],
         "availability_mode": "all",
         "overlap_policy": "Keep maintenance as one capability surface for docs, packaging, registry health, and platform drift.",
     },

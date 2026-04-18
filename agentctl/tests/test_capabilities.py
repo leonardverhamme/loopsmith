@@ -44,7 +44,7 @@ class CapabilitiesTests(unittest.TestCase):
         config_payload.return_value = {}
         enabled_plugins.return_value = {
             "github@openai-curated": {"name": "github@openai-curated", "enabled": True, "status": "ok"},
-            "agentctl-platform": {"name": "agentctl-platform", "enabled": True, "status": "ok"},
+            "agentctl": {"name": "agentctl", "enabled": True, "status": "ok"},
         }
         mcp_servers.return_value = {
             "playwright": {"name": "playwright", "status": "configured", "configured": True, "transport": "mcp"},
@@ -100,7 +100,7 @@ class CapabilitiesTests(unittest.TestCase):
         detect_codex.return_value = {"installed": True, "status": "ok", "callable": True, "worker_runtime_ready": True}
         installed_skills.return_value = {"status": "ok", "items": []}
         config_payload.return_value = {}
-        enabled_plugins.return_value = {"agentctl-platform": {"name": "agentctl-platform", "enabled": True, "status": "ok"}}
+        enabled_plugins.return_value = {"agentctl": {"name": "agentctl", "enabled": True, "status": "ok"}}
         mcp_servers.return_value = {}
         local_skill_names.return_value = {
             "context-skill",

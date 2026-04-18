@@ -13,7 +13,7 @@ python .\scripts\install_bundle.py
 That command:
 
 - installs the bundle into `$CODEX_HOME` or `~/.codex`
-- enables the `agentctl-platform` plugin in `config.toml`
+- enables the `agentctl` plugin in `config.toml`
 - runs the post-install checks against that exact target `CODEX_HOME`
 - runs:
   - `agentctl doctor --json`
@@ -55,7 +55,7 @@ The runner loop, checklist, state file, and guard are already deterministic. The
 When an installed skill or workflow needs to create helper scripts for a user task, those scripts belong in the target repo being worked on, not in:
 
 - `$CODEX_HOME`
-- the `agentctl-platform` bundle repo
+- the `agentctl` bundle repo
 - any skill directory under `skills/`
 - any plugin skill directory under `plugins/*/skills/`
 

@@ -25,7 +25,7 @@ class InstallBundleTests(unittest.TestCase):
             install_bundle.ensure_plugin_enabled(config_path)
             second = config_path.read_text(encoding="utf-8")
 
-        self.assertIn('[plugins."agentctl-platform"]', first)
+        self.assertIn('[plugins."agentctl"]', first)
         self.assertEqual(first, second)
 
     @mock.patch.object(install_bundle.subprocess, "run")
@@ -42,6 +42,18 @@ class InstallBundleTests(unittest.TestCase):
             self.assertEqual(run_mock.call_count, 3)
             called_env = run_mock.call_args.kwargs["env"]
             self.assertEqual(called_env["CODEX_HOME"], str(target_root))
+
+    def test_evaluate_post_check_accepts_degraded_json(self) -> None:
+        result = mock.Mock(returncode=1, stdout='{"summary":{"status":"degraded","blocked_findings":0}}', stderr="")
+        ok, reported_status = install_bundle.evaluate_post_check("maintenance", result)
+        self.assertTrue(ok)
+        self.assertEqual(reported_status, "degraded")
+
+    def test_evaluate_post_check_rejects_blocked_maintenance(self) -> None:
+        result = mock.Mock(returncode=1, stdout='{"summary":{"status":"error","blocked_findings":1}}', stderr="")
+        ok, reported_status = install_bundle.evaluate_post_check("maintenance", result)
+        self.assertFalse(ok)
+        self.assertIsNone(reported_status)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 {
-  "name": "agentctl-platform",
+  "name": "agentctl",
   "version": "0.1.0",
   "description": "Codex plugin for the agentctl control plane, maintenance skill, and routing guidance.",
   "author": {
@@ -15,7 +15,7 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Agentctl Platform",
+    "displayName": "Agentctl",
     "shortDescription": "Control-plane plugin for agentctl workflows",
     "longDescription": "Expose agentctl as the front door for capability discovery, maintenance, research routing, and deep workflow launch, while keeping skills, vendor CLIs, Playwright, and Codex as the authoritative execution layers.",
     "developerName": "Leona",

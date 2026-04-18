@@ -3,10 +3,10 @@
 
 ## Last Run
 
-- Generated: `2026-04-18T12:47:01.623783+00:00`
-- Status: `ok`
-- Checks passed: 19 / 19
-- Open findings: 0
+- Generated: `2026-04-18T13:28:44.689431+00:00`
+- Status: `degraded`
+- Checks passed: 18 / 19
+- Open findings: 1
 - Blocked findings: 0
 
 ## When to Run Maintenance
@@ -41,7 +41,10 @@
 
 ## Maintenance Checklist
 
-- [x] No open maintenance findings remain.
+- [ ] Capability report is degraded
+  - Severity: `warn`
+  - Detail: At least one tool or browser route is degraded. Keep the limitation documented and explicit.
+  - Path: `C:\Users\leona\Documents\Playground\agentctl\agentctl\state\capabilities.json`
 
 ## Known Limitations
 

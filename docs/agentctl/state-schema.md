@@ -85,9 +85,9 @@ Required top-level fields:
 ```json
 {
   "blocked_findings": 0,
-  "open_findings": 0,
-  "passed_checks": 19,
-  "status": "ok",
+  "open_findings": 1,
+  "passed_checks": 18,
+  "status": "degraded",
   "total_checks": 19
 }
 ```

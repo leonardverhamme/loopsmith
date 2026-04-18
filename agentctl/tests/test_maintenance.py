@@ -18,7 +18,7 @@ class MaintenanceTests(unittest.TestCase):
         agentctl_home = root / "agentctl"
         docs_dir = root / "docs" / "agentctl"
         refs_dir = agentctl_home / "references"
-        plugin_dir = root / "plugins" / "agentctl-platform"
+        plugin_dir = root / "plugins" / "agentctl"
         patches = [
             mock.patch.object(maintenance, "AGENTCTL_HOME", agentctl_home),
             mock.patch.object(maintenance, "AGENTCTL_DOCS_DIR", docs_dir),
@@ -108,9 +108,9 @@ class MaintenanceTests(unittest.TestCase):
 
             skill_dir = root / "skills" / "agentctl-maintenance-engineer"
             skill_dir.mkdir(parents=True, exist_ok=True)
-            plugin_manifest = root / "plugins" / "agentctl-platform" / ".codex-plugin" / "plugin.json"
+            plugin_manifest = root / "plugins" / "agentctl" / ".codex-plugin" / "plugin.json"
             plugin_manifest.parent.mkdir(parents=True, exist_ok=True)
-            plugin_manifest.write_text(json.dumps({"name": "agentctl-platform"}), encoding="utf-8")
+            plugin_manifest.write_text(json.dumps({"name": "agentctl"}), encoding="utf-8")
             tests_dir = root / "agentctl" / "tests"
             tests_dir.mkdir(parents=True, exist_ok=True)
             for name in (
@@ -121,10 +121,10 @@ class MaintenanceTests(unittest.TestCase):
                 "test_maintenance.py",
             ):
                 (tests_dir / name).write_text("pass\n", encoding="utf-8")
-            router_skill = root / "plugins" / "agentctl-platform" / "skills" / "agentctl-router" / "SKILL.md"
+            router_skill = root / "plugins" / "agentctl" / "skills" / "agentctl-router" / "SKILL.md"
             router_skill.parent.mkdir(parents=True, exist_ok=True)
             router_skill.write_text("---\nname: agentctl-router\ndescription: test\n---\n", encoding="utf-8")
-            (root / "config.toml").write_text('[plugins."agentctl-platform"]\nenabled = true\n', encoding="utf-8")
+            (root / "config.toml").write_text('[plugins."agentctl"]\nenabled = true\n', encoding="utf-8")
 
             patches = self._patch_paths(root)
             with ExitStack() as stack:

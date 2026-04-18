@@ -14,9 +14,9 @@
 
 ## Current Status
 
-- Maintenance status: `ok`
-- Checks passed: 19 / 19
-- Open findings: 0
+- Maintenance status: `degraded`
+- Checks passed: 18 / 19
+- Open findings: 1
 - Blocked findings: 0
 
 ## Authoritative Interfaces
@@ -38,6 +38,7 @@
 - Capability discovery: `agentctl doctor` then `agentctl capabilities` if a broader inventory is needed.
 - External research: `agentctl research web|github|scout <query>` and carry the JSON evidence + brief into implementation.
 - Deep remediation: `agentctl run <workflow>` and trust `.codex-workflows/<workflow>/state.json` over chat history.
+- Autonomous deep remediation only counts when a real worker command exists. The runner loop is deterministic; the worker must be real.
 - Control-plane upkeep: `$agentctl-maintenance-engineer` or `agentctl maintenance audit`.
 
 ## Capability-First Rule

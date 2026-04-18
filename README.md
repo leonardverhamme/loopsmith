@@ -1,6 +1,6 @@
-# agentctl-platform
+# agentctl
 
-`agentctl-platform` is a public, capability-first Codex bundle for long-running agent workflows.
+`agentctl` is a public, capability-first Codex bundle for long-running agent workflows.
 
 It packages:
 
@@ -35,7 +35,7 @@ This repository is structured as a portable `$CODEX_HOME` bundle:
 - `agentctl/`
 - `workflow-tools/`
 - `skills/`
-- `plugins/agentctl-platform/`
+- `plugins/agentctl/`
 - `docs/agentctl/`
 - `AGENTS.md`
 - `config.toml`
@@ -212,7 +212,7 @@ This repo also ships a tag-driven release workflow.
 The release workflow:
 
 - reruns the core verification gates
-- builds a reproducible `agentctl-platform-<version>.zip` bundle
+- builds a reproducible `agentctl-<version>.zip` bundle
 - writes a matching SHA-256 file
 - uploads both as workflow artifacts
 - publishes them to the matching GitHub release

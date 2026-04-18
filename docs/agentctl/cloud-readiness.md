@@ -56,10 +56,11 @@ Cloud support is explicit, not assumed. A plugin install is not enough without a
 - Verify `agentctl doctor` is healthy in the cloud environment itself.
 - Verify vendor CLI auth before relying on GitHub-, Vercel-, or Supabase-backed flows.
 - Verify the browser route before relying on research, UI, or test workflows that need runtime inspection.
+- Verify the deep-run worker route before relying on unattended checklist completion. A checklist alone is not a worker.
 - Treat any capability not explicitly marked healthy in cloud as unsupported until proven otherwise.
 
 ## Current Local Signals
 
-- Capability summary: `ok`
+- Capability summary: `degraded`
 - Browser route: `ok`
 - GitHub CLI skill support: `false`

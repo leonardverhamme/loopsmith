@@ -20,7 +20,7 @@ BUNDLE_ITEMS = [
     "agentctl.sh",
 ]
 
-PLUGIN_SNIPPET = '\n[plugins."agentctl-platform"]\nenabled = true\n'
+PLUGIN_SNIPPET = '\n[plugins."agentctl"]\nenabled = true\n'
 
 
 def repo_root() -> Path:
@@ -44,10 +44,34 @@ def copy_item(source_root: Path, target_root: Path, relative: str) -> None:
 
 def ensure_plugin_enabled(config_path: Path) -> None:
     existing = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
-    if '[plugins."agentctl-platform"]' in existing or "[plugins.agentctl-platform]" in existing:
+    if '[plugins."agentctl"]' in existing or "[plugins.agentctl]" in existing:
         return
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(existing.rstrip() + PLUGIN_SNIPPET, encoding="utf-8")
+
+
+def evaluate_post_check(command_name: str, result: subprocess.CompletedProcess[str]) -> tuple[bool, str | None]:
+    if result.returncode == 0:
+        try:
+            payload = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return True, None
+        return payload.get("status") != "error", payload.get("status")
+
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return False, None
+
+    status = payload.get("status")
+    if status in {"ok", "degraded"}:
+        return True, status
+    if command_name == "maintenance":
+        summary = payload.get("summary") or {}
+        summary_status = summary.get("status")
+        if summary.get("blocked_findings", 0) == 0 and summary_status in {"ok", "degraded"}:
+            return True, summary_status
+    return False, status
 
 
 def run_post_install_checks(target_root: Path) -> dict[str, object]:
@@ -61,11 +85,13 @@ def run_post_install_checks(target_root: Path) -> dict[str, object]:
             command.append("audit")
         command.append("--json")
         result = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+        ok, reported_status = evaluate_post_check(command_name, result)
         checks.append(
             {
                 "command": " ".join(command[2:-1]),
                 "returncode": result.returncode,
-                "ok": result.returncode == 0,
+                "ok": ok,
+                "reported_status": reported_status,
                 "stdout_tail": result.stdout[-2000:],
                 "stderr_tail": result.stderr[-2000:],
             }
@@ -83,7 +109,7 @@ def run_post_install_checks(target_root: Path) -> dict[str, object]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Install the agentctl-platform bundle into a CODEX_HOME directory.")
+    parser = argparse.ArgumentParser(description="Install the agentctl bundle into a CODEX_HOME directory.")
     parser.add_argument("--codex-home", help="Target CODEX_HOME. Defaults to $CODEX_HOME or ~/.codex")
     parser.add_argument("--skip-post-checks", action="store_true", help="Skip post-install doctor/capabilities/maintenance checks")
     args = parser.parse_args()
@@ -97,7 +123,7 @@ def main() -> int:
 
     ensure_plugin_enabled(target_root / "config.toml")
 
-    print(f"Installed agentctl-platform into {target_root}")
+    print(f"Installed agentctl into {target_root}")
     print(f"Run: python {target_root / 'agentctl' / 'agentctl.py'} doctor")
 
     if args.skip_post_checks:
