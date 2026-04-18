@@ -1,123 +1,25 @@
 from __future__ import annotations
 
 import argparse
-import json
-import os
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
 
-BUNDLE_ITEMS = [
-    "agentctl",
-    "workflow-tools",
-    "skills",
-    "plugins",
-    "docs/agentctl",
-    "AGENTS.md",
-    "agentctl.cmd",
-    "agentctl.sh",
-]
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-PLUGIN_SNIPPET = '\n[plugins."agentctl"]\nenabled = true\n'
-LEGACY_PLUGIN_KEYS = ('[plugins."agentctl-platform"]', "[plugins.agentctl-platform]")
-LEGACY_PLUGIN_DIR = "plugins/agentctl-platform"
-
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[1]
-
-
-def default_codex_home() -> Path:
-    return Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex")).resolve()
-
-
-def copy_item(source_root: Path, target_root: Path, relative: str) -> None:
-    source = source_root / relative
-    target = target_root / relative
-    if source.is_dir():
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(source, target, dirs_exist_ok=True)
-    else:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
-
-
-def ensure_plugin_enabled(config_path: Path) -> None:
-    existing = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
-    for legacy_key in LEGACY_PLUGIN_KEYS:
-        existing = existing.replace(legacy_key, '[plugins."agentctl"]')
-    if '[plugins."agentctl"]' in existing or "[plugins.agentctl]" in existing:
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        config_path.write_text(existing, encoding="utf-8")
-        return
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.write_text(existing.rstrip() + PLUGIN_SNIPPET, encoding="utf-8")
-
-
-def cleanup_legacy_plugin(target_root: Path) -> None:
-    legacy_path = target_root / LEGACY_PLUGIN_DIR
-    if legacy_path.exists():
-        shutil.rmtree(legacy_path)
-
-
-def evaluate_post_check(command_name: str, result: subprocess.CompletedProcess[str]) -> tuple[bool, str | None]:
-    if result.returncode == 0:
-        try:
-            payload = json.loads(result.stdout)
-        except json.JSONDecodeError:
-            return True, None
-        return payload.get("status") != "error", payload.get("status")
-
-    try:
-        payload = json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return False, None
-
-    status = payload.get("status")
-    if status in {"ok", "degraded"}:
-        return True, status
-    if command_name == "maintenance":
-        summary = payload.get("summary") or {}
-        summary_status = summary.get("status")
-        if summary.get("blocked_findings", 0) == 0 and summary_status in {"ok", "degraded"}:
-            return True, summary_status
-    return False, status
-
-
-def run_post_install_checks(target_root: Path) -> dict[str, object]:
-    agentctl_entry = target_root / "agentctl" / "agentctl.py"
-    checks: list[dict[str, object]] = []
-    env = os.environ.copy()
-    env["CODEX_HOME"] = str(target_root)
-    for command_name in ("doctor", "capabilities", "maintenance"):
-        command = [sys.executable, str(agentctl_entry), command_name]
-        if command_name == "maintenance":
-            command.append("audit")
-        command.append("--json")
-        result = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
-        ok, reported_status = evaluate_post_check(command_name, result)
-        checks.append(
-            {
-                "command": " ".join(command[2:-1]),
-                "returncode": result.returncode,
-                "ok": ok,
-                "reported_status": reported_status,
-                "stdout_tail": result.stdout[-2000:],
-                "stderr_tail": result.stderr[-2000:],
-            }
-        )
-
-    summary = {
-        "status": "ok" if all(check["ok"] for check in checks) else "error",
-        "checks": checks,
-        "target_codex_home": str(target_root),
-    }
-    report_path = target_root / "agentctl" / "state" / "bootstrap-report.json"
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-    return summary
+from agentctl.bundle_install import (  # noqa: E402
+    BUNDLE_ITEMS,
+    cleanup_legacy_plugin,
+    copy_item,
+    default_codex_home,
+    ensure_plugin_enabled,
+    evaluate_post_check,
+    install_bundle,
+    repo_root,
+    run_post_install_checks,
+)
 
 
 def main() -> int:
@@ -128,21 +30,13 @@ def main() -> int:
 
     source_root = repo_root()
     target_root = Path(args.codex_home).resolve() if args.codex_home else default_codex_home()
-    target_root.mkdir(parents=True, exist_ok=True)
-
-    for relative in BUNDLE_ITEMS:
-        copy_item(source_root, target_root, relative)
-
-    cleanup_legacy_plugin(target_root)
-    ensure_plugin_enabled(target_root / "config.toml")
+    summary = install_bundle(source_root=source_root, target_root=target_root, skip_post_checks=args.skip_post_checks)
 
     print(f"Installed agentctl into {target_root}")
     print(f"Run: python {target_root / 'agentctl' / 'agentctl.py'} doctor")
-
     if args.skip_post_checks:
+        print("Post-install checks: skipped")
         return 0
-
-    summary = run_post_install_checks(target_root)
     print(f"Post-install checks: {summary['status']}")
     print(f"Bootstrap report: {target_root / 'agentctl' / 'state' / 'bootstrap-report.json'}")
     return 0 if summary["status"] == "ok" else 1

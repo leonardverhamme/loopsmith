@@ -4,28 +4,52 @@ from __future__ import annotations
 import argparse
 import sys
 
-from lib.capabilities import (
-    build_capabilities_report,
-    capability_detail,
-    print_capabilities_human,
-    print_capability_human,
-    print_doctor_human,
-    print_research_human,
-    print_skills_human,
-    print_status_human,
-)
-from lib.common import save_json
-from lib.maintenance import (
-    maintenance_audit,
-    maintenance_check,
-    maintenance_fix_docs,
-    maintenance_render_report,
-    print_maintenance_human,
-)
-from lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
-from lib.research import run_research
-from lib.skills_ops import add_skill, check_skills, list_skills, update_skills
-from lib.workflows import run_workflow, workflow_status
+try:
+    from .lib.capabilities import (
+        build_capabilities_report,
+        capability_detail,
+        print_capabilities_human,
+        print_capability_human,
+        print_doctor_human,
+        print_research_human,
+        print_skills_human,
+        print_status_human,
+    )
+    from .lib.common import save_json
+    from .lib.maintenance import (
+        maintenance_audit,
+        maintenance_check,
+        maintenance_fix_docs,
+        maintenance_render_report,
+        print_maintenance_human,
+    )
+    from .lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
+    from .lib.research import run_research
+    from .lib.skills_ops import add_skill, check_skills, list_skills, update_skills
+    from .lib.workflows import run_workflow, workflow_status
+except ImportError:
+    from lib.capabilities import (
+        build_capabilities_report,
+        capability_detail,
+        print_capabilities_human,
+        print_capability_human,
+        print_doctor_human,
+        print_research_human,
+        print_skills_human,
+        print_status_human,
+    )
+    from lib.common import save_json
+    from lib.maintenance import (
+        maintenance_audit,
+        maintenance_check,
+        maintenance_fix_docs,
+        maintenance_render_report,
+        print_maintenance_human,
+    )
+    from lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
+    from lib.research import run_research
+    from lib.skills_ops import add_skill, check_skills, list_skills, update_skills
+    from lib.workflows import run_workflow, workflow_status
 
 
 def add_skills_subcommands(skills_parser: argparse.ArgumentParser) -> None:

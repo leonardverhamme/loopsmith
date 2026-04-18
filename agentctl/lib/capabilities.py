@@ -506,7 +506,7 @@ def _detect_ghas_cli() -> dict[str, Any]:
     if not path:
         return record
 
-    help_result = run_command([path, "-h"], timeout=20)
+    help_result = run_command([path, "--help"], timeout=20)
     if help_result["ok"]:
         record["status"] = "ok"
         record["callable"] = True

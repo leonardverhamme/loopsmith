@@ -15,7 +15,7 @@
 ## Current Status
 
 - Maintenance status: `ok`
-- Checks passed: 41 / 41
+- Checks passed: 45 / 45
 - Open findings: 0
 - Blocked findings: 0
 
@@ -33,6 +33,13 @@
 - Use `agentctl capability <key>` when you need the drill-down page for a specific capability or vendor surface.
 - Use `agentctl status --all` to see which durable deep workflows are active now.
 - Use `agentctl maintenance audit` after changing command surface, packaging, state contracts, or docs generators.
+
+## Manual Guides
+
+- [Zero-touch setup](zero-touch-setup.md) for one-command bootstrap and bootstrap-report expectations.
+- [Install on another computer](install-on-another-computer.md) for moving the bundle to a new machine.
+- [Unattended worker setup](unattended-worker-setup.md) for getting deep workflow loops to keep running with a real worker.
+- [Maintainer guide](maintainer-guide.md) for generated-vs-manual docs, release hygiene, and validation expectations.
 
 ## Common Agent Flows
 
@@ -77,7 +84,6 @@ The capability registry exists to collapse those overlaps into one stable route.
 ## Known Limitations
 
 - `gh skill` is not available locally, so publish/preview wrappers remain disabled.
-- `ghas-cli` is installed but not callable in this environment; prefer `gh api` and `gh codeql` until the GHAS CLI route is repaired or wrapped.
 - The default local Codex runtime is not callable here. Use `agentctl run --worker-command ...` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs.
 - `firebase` is detected but intentionally remains detect-only in v1.
 - `gcloud` is detected but intentionally remains detect-only in v1.

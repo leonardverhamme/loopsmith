@@ -253,7 +253,11 @@ def _skills_status() -> list[dict[str, Any]]:
 
 def _tests_status() -> list[dict[str, Any]]:
     tests = [
+        AGENTCTL_HOME / "tests" / "test_browser_smoke.py",
         AGENTCTL_HOME / "tests" / "test_capabilities.py",
+        AGENTCTL_HOME / "tests" / "test_cli_output.py",
+        AGENTCTL_HOME / "tests" / "test_codex_runtime.py",
+        AGENTCTL_HOME / "tests" / "test_install_bundle.py",
         AGENTCTL_HOME / "tests" / "test_research.py",
         AGENTCTL_HOME / "tests" / "test_skills_ops.py",
         AGENTCTL_HOME / "tests" / "test_workflows.py",
@@ -589,6 +593,13 @@ def _render_overview(report: dict[str, Any]) -> str:
         "- Use `agentctl capability <key>` when you need the drill-down page for a specific capability or vendor surface.",
         "- Use `agentctl status --all` to see which durable deep workflows are active now.",
         "- Use `agentctl maintenance audit` after changing command surface, packaging, state contracts, or docs generators.",
+        "",
+        "## Manual Guides",
+        "",
+        "- [Zero-touch setup](zero-touch-setup.md) for one-command bootstrap and bootstrap-report expectations.",
+        "- [Install on another computer](install-on-another-computer.md) for moving the bundle to a new machine.",
+        "- [Unattended worker setup](unattended-worker-setup.md) for getting deep workflow loops to keep running with a real worker.",
+        "- [Maintainer guide](maintainer-guide.md) for generated-vs-manual docs, release hygiene, and validation expectations.",
         "",
         "## Common Agent Flows",
         "",
@@ -1013,6 +1024,7 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "## What Must Be Updated After Changes",
         "",
         "- Refresh `docs/agentctl/*.md` from machine state.",
+        "- Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, and `maintainer-guide.md` when behavior or setup expectations change.",
         "- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.",
         "- Re-run tests for `agentctl` and the shared workflow tools.",
         "- Re-run at least one CLI-level deep-workflow smoke after changing runner/state/guard behavior.",

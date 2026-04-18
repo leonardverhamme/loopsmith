@@ -17,6 +17,13 @@ from lib.workflows import run_workflow, workflow_status
 CLI_ENTRY = Path(__file__).resolve().parents[1] / "agentctl.py"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FAKE_WORKER = REPO_ROOT / "workflow-tools" / "tests" / "fake_worker.py"
+DEEP_WORKFLOWS = [
+    "ui-deep-audit",
+    "test-deep-audit",
+    "docs-deep-audit",
+    "cicd-deep-audit",
+    "refactor-deep-audit",
+]
 
 
 class WorkflowStatusTests(unittest.TestCase):
@@ -256,6 +263,224 @@ class WorkflowStatusTests(unittest.TestCase):
             payload = json.loads(status_result.stdout)
             self.assertEqual(payload["workflows"][0]["status"], "complete")
             self.assertTrue(payload["workflows"][0]["ready_allowed"])
+
+    def test_cli_run_stalls_end_to_end_with_fake_worker(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            worker_command = f'"{sys.executable}" "{FAKE_WORKER}" stall'
+
+            run_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "run",
+                    "docs-deep-audit",
+                    "--repo",
+                    str(repo_root),
+                    "--worker-command",
+                    worker_command,
+                    "--worker-mode",
+                    "explicit",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(run_result.returncode, 2, run_result.stderr or run_result.stdout)
+
+            status_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "status",
+                    "--repo",
+                    str(repo_root),
+                    "--json",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(status_result.returncode, 0, status_result.stderr or status_result.stdout)
+            payload = json.loads(status_result.stdout)
+            self.assertEqual(payload["workflows"][0]["status"], "stalled")
+            self.assertFalse(payload["workflows"][0]["ready_allowed"])
+
+    def test_cli_run_blocks_end_to_end_with_fake_worker(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            worker_command = f'"{sys.executable}" "{FAKE_WORKER}" blocked'
+
+            run_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "run",
+                    "cicd-deep-audit",
+                    "--repo",
+                    str(repo_root),
+                    "--worker-command",
+                    worker_command,
+                    "--worker-mode",
+                    "explicit",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(run_result.returncode, 2, run_result.stderr or run_result.stdout)
+
+            status_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "status",
+                    "--repo",
+                    str(repo_root),
+                    "--json",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(status_result.returncode, 0, status_result.stderr or status_result.stdout)
+            payload = json.loads(status_result.stdout)
+            self.assertEqual(payload["workflows"][0]["status"], "blocked")
+            self.assertFalse(payload["workflows"][0]["ready_allowed"])
+
+    def test_cli_run_completes_all_supported_deep_workflows_with_fake_worker(self) -> None:
+        env = os.environ.copy()
+        env["CODEX_HOME"] = str(REPO_ROOT)
+        worker_command = f'"{sys.executable}" "{FAKE_WORKER}" complete_after_two'
+
+        for workflow in DEEP_WORKFLOWS:
+            with self.subTest(workflow=workflow), tempfile.TemporaryDirectory() as temp_dir:
+                repo_root = Path(temp_dir)
+                run_result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(CLI_ENTRY),
+                        "run",
+                        workflow,
+                        "--repo",
+                        str(repo_root),
+                        "--worker-command",
+                        worker_command,
+                        "--worker-mode",
+                        "explicit",
+                    ],
+                    cwd=str(REPO_ROOT),
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=env,
+                )
+                self.assertEqual(run_result.returncode, 0, run_result.stderr or run_result.stdout)
+
+                status_result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(CLI_ENTRY),
+                        "status",
+                        "--repo",
+                        str(repo_root),
+                        "--json",
+                    ],
+                    cwd=str(REPO_ROOT),
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=env,
+                )
+                self.assertEqual(status_result.returncode, 0, status_result.stderr or status_result.stdout)
+                payload = json.loads(status_result.stdout)
+                workflow_record = payload["workflows"][0]
+                self.assertEqual(workflow_record["workflow_name"], workflow)
+                self.assertEqual(workflow_record["status"], "complete")
+                self.assertTrue(workflow_record["ready_allowed"])
+                self.assertTrue(Path(workflow_record["state_path"]).exists())
+                self.assertTrue(Path(workflow_record["checklist_path"]).exists())
+                self.assertTrue(
+                    str(workflow_record["checklist_path"]).endswith(f"docs\\{workflow}-checklist.md")
+                    or str(workflow_record["checklist_path"]).endswith(f"docs/{workflow}-checklist.md")
+                )
+
+    def test_cli_run_uses_template_worker_end_to_end(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            env["AGENTCTL_CODEX_WORKER_TEMPLATE"] = f'"{sys.executable}" "{FAKE_WORKER}" complete_after_two'
+
+            run_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "run",
+                    "ui-deep-audit",
+                    "--repo",
+                    str(repo_root),
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr or run_result.stdout)
+
+            state = json.loads(
+                (repo_root / ".codex-workflows" / "ui-deep-audit" / "state.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(state["status"], "complete")
+            self.assertTrue(state["ready_allowed"])
+            self.assertEqual(state["worker_mode"], "auto")
+            self.assertIn("complete_after_two", state["worker_command"])
+
+    def test_cli_run_without_worker_command_fails_safely(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            env.pop("CODEX_WORKFLOW_WORKER_COMMAND", None)
+            env.pop("AGENTCTL_CODEX_WORKER_TEMPLATE", None)
+
+            run_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "run",
+                    "ui-deep-audit",
+                    "--repo",
+                    str(repo_root),
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(run_result.returncode, 2, run_result.stderr or run_result.stdout)
+            self.assertIn("no worker command configured", run_result.stdout + run_result.stderr)
+
+            state = json.loads(
+                (repo_root / ".codex-workflows" / "ui-deep-audit" / "state.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(state["status"], "blocked")
+            self.assertFalse(state["ready_allowed"])
+            self.assertEqual(state["worker_mode"], "auto")
 
 
 if __name__ == "__main__":

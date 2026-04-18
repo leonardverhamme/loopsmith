@@ -12,12 +12,14 @@ BUNDLE_ITEMS = [
     "skills",
     "plugins",
     "docs/agentctl",
+    "scripts",
     "AGENTS.md",
     "agentctl.cmd",
     "agentctl.sh",
     "README.md",
     "LICENSE",
     "config.toml",
+    "pyproject.toml",
 ]
 
 

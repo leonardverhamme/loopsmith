@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentctl"
+version = "0.1.0"
+description = "Bootstrap wrapper for the public capability-first Codex control plane."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+  { name = "Leonard Verhamme" }
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent",
+  "Environment :: Console",
+  "Topic :: Software Development :: Build Tools",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/leonardverhamme/agentctl"
+Repository = "https://github.com/leonardverhamme/agentctl"
+Issues = "https://github.com/leonardverhamme/agentctl/issues"
+
+[project.scripts]
+agentctl = "agentctl.bootstrap:main"
+agentctl-bootstrap = "agentctl.bootstrap:main"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["agentctl", "agentctl.lib"]

@@ -50,7 +50,7 @@ class InstallBundleTests(unittest.TestCase):
 
             self.assertFalse(legacy.exists())
 
-    @mock.patch.object(install_bundle.subprocess, "run")
+    @mock.patch("agentctl.bundle_install.subprocess.run")
     def test_run_post_install_checks_writes_bootstrap_report(self, run_mock: mock.Mock) -> None:
         run_mock.return_value = mock.Mock(returncode=0, stdout='{"status":"ok"}', stderr="")
         with tempfile.TemporaryDirectory() as temp_dir:

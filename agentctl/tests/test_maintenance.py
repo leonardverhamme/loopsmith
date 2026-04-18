@@ -117,7 +117,11 @@ class MaintenanceTests(unittest.TestCase):
             tests_dir = root / "agentctl" / "tests"
             tests_dir.mkdir(parents=True, exist_ok=True)
             for name in (
+                "test_browser_smoke.py",
                 "test_capabilities.py",
+                "test_cli_output.py",
+                "test_codex_runtime.py",
+                "test_install_bundle.py",
                 "test_research.py",
                 "test_skills_ops.py",
                 "test_workflows.py",

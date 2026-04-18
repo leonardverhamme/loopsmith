@@ -3,9 +3,9 @@
 
 ## Last Run
 
-- Generated: `2026-04-18T15:08:07.109998+00:00`
+- Generated: `2026-04-18T16:18:47.569499+00:00`
 - Status: `ok`
-- Checks passed: 41 / 41
+- Checks passed: 45 / 45
 - Open findings: 0
 - Blocked findings: 0
 
@@ -27,6 +27,7 @@
 ## What Must Be Updated After Changes
 
 - Refresh `docs/agentctl/*.md` from machine state.
+- Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, and `maintainer-guide.md` when behavior or setup expectations change.
 - Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.
 - Re-run tests for `agentctl` and the shared workflow tools.
 - Re-run at least one CLI-level deep-workflow smoke after changing runner/state/guard behavior.
@@ -54,7 +55,6 @@
 ## Known Limitations
 
 - `gh skill` is not available locally, so publish/preview wrappers remain disabled.
-- `ghas-cli` is installed but not callable in this environment; prefer `gh api` and `gh codeql` until the GHAS CLI route is repaired or wrapped.
 - The default local Codex runtime is not callable here. Use `agentctl run --worker-command ...` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs.
 - `firebase` is detected but intentionally remains detect-only in v1.
 - `gcloud` is detected but intentionally remains detect-only in v1.

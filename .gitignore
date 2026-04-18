@@ -4,9 +4,13 @@ __pycache__/
 .coverage
 .venv/
 venv/
+build/
+*.egg-info/
 
 .codex-workflows/
 workflow-state/
+.playwright-cli/
+output/
 
 agentctl/state/capabilities.json
 agentctl/state/doctor-report.json

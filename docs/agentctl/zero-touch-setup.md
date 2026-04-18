@@ -10,6 +10,13 @@ From a clone or extracted release bundle:
 python .\scripts\install_bundle.py
 ```
 
+From a clean machine where you want a PATH command first:
+
+```powershell
+pipx install git+https://github.com/leonardverhamme/agentctl.git
+agentctl bootstrap
+```
+
 That command:
 
 - installs the bundle into `$CODEX_HOME` or `~/.codex`
@@ -28,6 +35,22 @@ If you want to target a specific Codex home:
 python .\scripts\install_bundle.py --codex-home C:\Users\you\.codex
 ```
 
+Or through the package wrapper:
+
+```powershell
+agentctl bootstrap --codex-home C:\Users\you\.codex
+```
+
+## Recommended Prerequisites
+
+For a fully healthy setup, the machine should have:
+
+- Python 3.12 or later
+- Node.js and `npx`
+- a Chromium-compatible browser route if browser-backed verification matters
+
+Optional vendor CLIs such as `gh`, `vercel`, and `supabase` can be added later. `agentctl` will discover them when present and report them honestly when missing.
+
 ## What The Agent Should Do After Bootstrap
 
 1. Run `agentctl doctor`
@@ -37,6 +60,11 @@ python .\scripts\install_bundle.py --codex-home C:\Users\you\.codex
    - research routing
    - deep workflow launch
    - maintenance checks
+
+If this is a brand-new workstation, also read:
+
+- [install-on-another-computer.md](install-on-another-computer.md)
+- [unattended-worker-setup.md](unattended-worker-setup.md)
 
 ## Unattended Deep Workflows
 
@@ -49,6 +77,8 @@ Use one of these:
 - `AGENTCTL_CODEX_WORKER_TEMPLATE`
 
 The runner loop, checklist, state file, and guard are already deterministic. The missing piece in some environments is the worker runtime. If `agentctl doctor` reports that Codex is installed but not callable, keep the workflow explicit until a real worker command is configured.
+
+For the full operator explanation of that loop, use [unattended-worker-setup.md](unattended-worker-setup.md).
 
 ## Script Placement Rule
 
@@ -74,3 +104,13 @@ It looks across:
 - workflow state already present in the repo
 
 and then surfaces those as capabilities.
+
+## After A Successful Bootstrap
+
+You should end up with:
+
+- `agentctl/state/bootstrap-report.json`
+- `docs/agentctl/maintenance-report.json`
+- `.codex-workflows/agentctl-maintenance/state.json`
+
+Those files are the fastest way to confirm that the installed control plane is healthy on that machine.

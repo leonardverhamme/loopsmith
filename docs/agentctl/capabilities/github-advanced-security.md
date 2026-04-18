@@ -35,7 +35,7 @@ Use for GHAS rollout, CodeQL, code scanning alerts, secret scanning alerts, Depe
 - `skill` `github-security-capability` [ok]
 - `tool` `gh` [ok]
 - `tool` `gh-codeql` [ok]
-- `tool` `ghas-cli` [degraded]
+- `tool` `ghas-cli` [ok]
 - `plugin` `github@openai-curated` [missing] (enabled=false)
 
 ## Overlap Policy

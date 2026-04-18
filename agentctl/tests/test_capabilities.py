@@ -8,7 +8,13 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from lib.capabilities import _playwright_browser_binaries, _python_user_script_candidates, build_capabilities_report, capability_detail
+from lib.capabilities import (
+    _detect_ghas_cli,
+    _playwright_browser_binaries,
+    _python_user_script_candidates,
+    build_capabilities_report,
+    capability_detail,
+)
 
 
 class CapabilitiesTests(unittest.TestCase):
@@ -369,6 +375,24 @@ class CapabilitiesTests(unittest.TestCase):
         candidate_paths = {str(path) for path in candidates}
         self.assertIn(str(userbase / "Scripts" / "ghas-cli.exe"), candidate_paths)
         self.assertIn(str(userbase / "Python312" / "Scripts" / "ghas-cli.exe"), candidate_paths)
+
+    @mock.patch("lib.capabilities.run_command")
+    @mock.patch("lib.capabilities.command_path")
+    def test_detect_ghas_cli_uses_help_long_flag(self, command_path: mock.Mock, run_command: mock.Mock) -> None:
+        command_path.return_value = r"C:\Users\leona\AppData\Roaming\npm\ghas-cli.CMD"
+        run_command.return_value = {
+            "ok": True,
+            "returncode": 0,
+            "stdout": "Usage: cli.py [OPTIONS] COMMAND [ARGS]...",
+            "stderr": "",
+        }
+
+        record = _detect_ghas_cli()
+
+        run_command.assert_called_once_with([r"C:\Users\leona\AppData\Roaming\npm\ghas-cli.CMD", "--help"], timeout=20)
+        self.assertEqual(record["status"], "ok")
+        self.assertTrue(record["callable"])
+        self.assertEqual(record["version"], "Usage: cli.py [OPTIONS] COMMAND [ARGS]...")
 
 
 if __name__ == "__main__":

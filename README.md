@@ -49,6 +49,30 @@ Operational docs for the automation bridge live in:
 
 ## Quick Start
 
+### Option 0: Install as a package
+
+If you want a terminal-installable front door first, install the bootstrap wrapper:
+
+```powershell
+pipx install git+https://github.com/leonardverhamme/agentctl.git
+agentctl bootstrap
+agentctl doctor
+```
+
+You can also use `pip` instead of `pipx`, but `pipx` is the cleaner default for a user-facing CLI.
+
+What this does:
+
+- installs a small `agentctl` wrapper on your PATH
+- bootstraps the real bundle into your `CODEX_HOME`
+- keeps the same `agentctl` command as the public front door after bootstrap
+
+If you already have a local checkout and want to bootstrap from it instead of downloading the public archive:
+
+```powershell
+agentctl bootstrap --source-root C:\path\to\agentctl
+```
+
 ### Option 1: Run from the clone
 
 If you want to work on the bundle directly, set `CODEX_HOME` to the repository root and run `agentctl` from there.
@@ -107,6 +131,17 @@ On macOS or Linux:
 sh ./agentctl.sh doctor
 ```
 
+## Documentation Map
+
+Start here when you need the docs by job instead of by filename:
+
+- [docs/agentctl/overview.md](docs/agentctl/overview.md) for the generated control-plane summary
+- [docs/agentctl/zero-touch-setup.md](docs/agentctl/zero-touch-setup.md) for one-command bootstrap
+- [docs/agentctl/install-on-another-computer.md](docs/agentctl/install-on-another-computer.md) for moving the bundle to a new machine
+- [docs/agentctl/unattended-worker-setup.md](docs/agentctl/unattended-worker-setup.md) for making deep workflow loops actually run unattended
+- [docs/agentctl/maintainer-guide.md](docs/agentctl/maintainer-guide.md) for operator and maintainer responsibilities
+- [docs/automation-core.md](docs/automation-core.md) for the workstation automation bridge
+
 ## Zero-Touch Agent Setup
 
 If you want to hand this bundle to an agent and let it set itself up, use the installer as the single bootstrap command:
@@ -118,6 +153,7 @@ python .\scripts\install_bundle.py
 The installed bundle then discovers the already-present skills, plugins, MCP servers, and CLIs on the machine and exposes them through `agentctl` as capabilities.
 
 See [docs/agentctl/zero-touch-setup.md](docs/agentctl/zero-touch-setup.md) for the full bootstrap and script-placement rules.
+For a full move to a fresh machine, including release-bundle and wrapper expectations, also see [docs/agentctl/install-on-another-computer.md](docs/agentctl/install-on-another-computer.md).
 
 ## Core Commands
 
@@ -191,6 +227,8 @@ The runner owns repetition, retries, and stop conditions. The skill remains the 
 
 Unattended execution only counts when a real worker runtime exists. Use `--worker-command`, `CODEX_WORKFLOW_WORKER_COMMAND`, or `AGENTCTL_CODEX_WORKER_TEMPLATE` instead of relying on chat repetition.
 
+The operator guide for worker routing, guard behavior, and loop troubleshooting lives at [docs/agentctl/unattended-worker-setup.md](docs/agentctl/unattended-worker-setup.md).
+
 ## Verified Loop Behavior
 
 The deep-workflow loop is verified in the repo, not just described:
@@ -234,6 +272,8 @@ That refreshes:
 - `docs/agentctl/maintenance-report.json`
 - `.codex-workflows/agentctl-maintenance/state.json`
 
+For the full maintainer playbook, including which docs are generated and which stay hand-maintained, see [docs/agentctl/maintainer-guide.md](docs/agentctl/maintainer-guide.md).
+
 ## Browser Support
 
 `agentctl` keeps Playwright as the browser authority. For full browser-backed verification, ensure a Chromium-compatible browser route is available.
@@ -244,24 +284,32 @@ Typical fix:
 npx playwright install chromium
 ```
 
+Local browser smoke regression:
+
+```powershell
+$env:AGENTCTL_RUN_BROWSER_SMOKE="1"
+$env:AGENTCTL_BROWSER="msedge"
+python -m unittest discover -s agentctl/tests -p "test_browser_smoke.py"
+```
+
 ## CI
 
-This repo ships with a GitHub Actions workflow that runs:
+This repo ships with a reusable GitHub Actions verification workflow at `.github/workflows/verify.yml`.
+
+The main `CI` workflow is just the repo-facing trigger layer. It calls the shared verification workflow on push, pull request, and manual dispatch so the verification surface stays identical everywhere.
+
+The shared verification workflow runs:
 
 - Python source compilation for `agentctl/`, `workflow-tools/`, and `scripts/`
 - `agentctl` unit tests
+- a real Playwright browser smoke regression on Windows using the agent-facing wrapper
 - `workflow-tools` unit tests
+- `automation-core` dependency install, typecheck, build, and test
 - a maintenance audit smoke test in repo-local mode
 - an isolated bundle-install smoke test that runs the installed `agentctl`
+- a maintenance artifact upload from the bundle-smoke path
 
-The CI workflow is manually runnable with `workflow_dispatch` and uses workflow-level concurrency to cancel stale in-progress runs for the same branch or pull request.
-
-It now also verifies the `automation-core` subproject by running:
-
-- `npm --prefix automation-core ci`
-- `npm --prefix automation-core run typecheck`
-- `npm --prefix automation-core run build`
-- `npm --prefix automation-core test`
+The `CI` trigger workflow is manually runnable with `workflow_dispatch` and uses workflow-level concurrency to cancel stale in-progress runs for the same branch or pull request.
 
 ## Releases
 
@@ -272,8 +320,9 @@ This repo also ships a tag-driven release workflow.
 
 The release workflow:
 
-- reruns the core verification gates
+- reruns the same shared verification workflow used by normal CI
 - builds a reproducible `agentctl-<version>.zip` bundle
+- builds a Python package (`sdist` and `wheel`) for terminal installation
 - writes a matching SHA-256 file
 - uploads both as workflow artifacts
 - publishes them to the matching GitHub release
