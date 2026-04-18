@@ -13,6 +13,11 @@ description: General cross-repo testing implementation and refactoring workflow 
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If this workflow needs helper scripts, fixtures, or generated test helpers, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `scripts/`, `tools/`, `test/helpers/`, `tests/helpers/`, or `.github/scripts/`.
+
 Use this skill for normal testing work across repos. It should make everyday testing decisions consistent, fast, and less brittle, while keeping frontend and backend coverage aligned with the actual risk in the code.
 
 If you cannot load the supporting references for some reason, still follow the defaults in this file.
@@ -29,7 +34,7 @@ If you cannot load the supporting references for some reason, still follow the d
 
 ## Use The Companion Audit Skill When Needed
 
-If the request is any of the following, use `C:\Users\leona\.codex\skills\test-deep-audit\SKILL.md` instead:
+If the request is any of the following, use `$test-deep-audit` instead:
 
 - Full-repo test audit
 - Writing or refreshing a checkbox backlog of test gaps

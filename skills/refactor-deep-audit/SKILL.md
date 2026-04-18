@@ -13,9 +13,14 @@ description: "Broad refactor audit and checklist-driven remediation workflow for
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If this workflow needs helper scripts, codemods, or generated migration helpers, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `scripts/`, `tools/`, `codemods/`, `bin/`, or `.codex-workflows/`.
+
 Use this skill for the heavy refactor workflow that `$refactor-skill` should not absorb: broad structural audit, canonical checklist creation, tracked execution, and final closeout.
 
-For implementation decisions while working the checklist, load `C:\Users\leona\.codex\skills\refactor-skill\SKILL.md` and use it as the base refactor skill. If you need additional migration and phasing guidance, also load `C:\Users\leona\.codex\skills\refactor-orchestrator\SKILL.md`.
+For implementation decisions while working the checklist, load `$refactor-skill` and use it as the base refactor skill. If you need additional migration and phasing guidance, also load `$refactor-orchestrator`.
 
 ## Core Modes
 
@@ -47,9 +52,9 @@ If the user explicitly invokes `$refactor-deep-audit` with no meaningful extra i
 ## Shared Runtime Contract
 
 - When `.codex-workflows/refactor-deep-audit/state.json` exists or should be created, load or initialize it and keep it in sync with the checklist.
-- Use `C:\Users\leona\.codex\workflow-tools\workflow_schema.md` as the shared runtime schema.
+- Use the bundle-local `workflow-tools/workflow_schema.md` as the shared runtime schema.
 - Update the checklist and the workflow state after each meaningful batch.
-- Never self-certify `ready`; only do so when `python C:\Users\leona\.codex\workflow-tools\workflow_guard.py --state <state.json>` would pass.
+- Never self-certify `ready`; only do so when the bundle-local `workflow-tools/workflow_guard.py --state <state.json>` check would pass.
 
 ## Required Workflow
 
@@ -60,7 +65,7 @@ If the user explicitly invokes `$refactor-deep-audit` with no meaningful extra i
 2. Load the references you need from this skill:
    - Always: `references/audit-scope.md`, `references/checklist-format.md`, `references/execution-loop.md`, `references/closeout.md`
    - Short reusable prompts: `references/prompt-shortcuts.md`
-3. Load `C:\Users\leona\.codex\skills\refactor-skill\SKILL.md` before implementing checklist items so fixes stay behavior-preserving and scoped.
+3. Load `$refactor-skill` before implementing checklist items so fixes stay behavior-preserving and scoped.
 4. Create or refresh the checklist file from a fresh audit pass unless the user explicitly asked for audit-only behavior.
 5. Group findings by subsystem, then by structural issue or migration wave.
 6. Use markdown checkboxes:

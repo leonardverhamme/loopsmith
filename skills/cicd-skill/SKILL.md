@@ -13,6 +13,11 @@ description: CI/CD and release workflow engineering for repo-native pipelines su
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If this workflow needs helper scripts, workflow helpers, or release tooling, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `scripts/`, `tools/`, `bin/`, or `.github/scripts/`.
+
 Use this skill for day-to-day pipeline and release automation work.
 
 If you cannot load the supporting references for some reason, still follow the defaults in this file.

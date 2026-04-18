@@ -13,6 +13,11 @@ description: General repo-context maintenance workflow for coding agents and hum
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If this workflow needs helper scripts or generated context artifacts, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `scripts/`, `tools/`, `docs/`, or `.github/scripts/`.
+
 Use this skill to keep durable repo context small, accurate, and easy for later sessions to reuse. It should improve the repo's own context artifacts, not replace them with chat memory.
 
 If you cannot load the supporting references for some reason, still follow the defaults in this file.

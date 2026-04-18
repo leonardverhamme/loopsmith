@@ -13,11 +13,16 @@ description: Full-app UI audit and checklist-driven remediation workflow for Rea
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If this workflow needs helper scripts, UI verification helpers, or generated audit artifacts, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `scripts/`, `tools/`, `output/`, `docs/`, or `.codex-workflows/`.
+
 ## Overview
 
 Use this skill for the heavy workflow that your normal UI skill should not absorb: deep full-app audit, canonical markdown checklist creation, checklist execution, and final closeout.
 
-For UI implementation decisions while working the checklist, load `C:\Users\leona\.codex\skills\ui-skill\SKILL.md` and use it as the base implementation skill.
+For UI implementation decisions while working the checklist, load `$ui-skill` and use it as the base implementation skill.
 
 ## Core Modes
 
@@ -51,7 +56,7 @@ If the user explicitly invokes `$ui-deep-audit` with no meaningful extra instruc
 2. Load the references you need from this skill:
    - Always: `references/audit-scope.md`, `references/checklist-format.md`, `references/execution-loop.md`, `references/closeout.md`
    - Short reusable prompts: `references/prompt-shortcuts.md`
-3. Load `C:\Users\leona\.codex\skills\ui-skill\SKILL.md` before implementing checklist items so UI fixes stay consistent and dense instead of drifting.
+3. Load `$ui-skill` before implementing checklist items so UI fixes stay consistent and dense instead of drifting.
 4. If the checklist file does not exist, or the user asked for a fresh audit, create or refresh it.
 5. Group findings by page, then by section or component.
 6. Use markdown checkboxes:

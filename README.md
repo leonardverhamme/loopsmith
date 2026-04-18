@@ -67,6 +67,8 @@ Run the installer script:
 python .\scripts\install_bundle.py
 ```
 
+This is the zero-touch path. It installs the bundle, enables the plugin, runs post-install health checks, and writes a machine-readable bootstrap report under `agentctl/state/bootstrap-report.json`.
+
 By default it installs into:
 
 - Windows: `%USERPROFILE%\\.codex`
@@ -96,6 +98,18 @@ On macOS or Linux:
 ```bash
 sh ./agentctl.sh doctor
 ```
+
+## Zero-Touch Agent Setup
+
+If you want to hand this bundle to an agent and let it set itself up, use the installer as the single bootstrap command:
+
+```powershell
+python .\scripts\install_bundle.py
+```
+
+The installed bundle then discovers the already-present skills, plugins, MCP servers, and CLIs on the machine and exposes them through `agentctl` as capabilities.
+
+See [docs/agentctl/zero-touch-setup.md](docs/agentctl/zero-touch-setup.md) for the full bootstrap and script-placement rules.
 
 ## Core Commands
 
@@ -177,9 +191,28 @@ npx playwright install chromium
 
 This repo ships with a GitHub Actions workflow that runs:
 
+- Python source compilation for `agentctl/`, `workflow-tools/`, and `scripts/`
 - `agentctl` unit tests
 - `workflow-tools` unit tests
 - a maintenance audit smoke test in repo-local mode
+- an isolated bundle-install smoke test that runs the installed `agentctl`
+
+The CI workflow is manually runnable with `workflow_dispatch` and uses workflow-level concurrency to cancel stale in-progress runs for the same branch or pull request.
+
+## Releases
+
+This repo also ships a tag-driven release workflow.
+
+- Push a tag such as `v1.0.0`, or
+- run the `Release` workflow manually with a version input
+
+The release workflow:
+
+- reruns the core verification gates
+- builds a reproducible `agentctl-platform-<version>.zip` bundle
+- writes a matching SHA-256 file
+- uploads both as workflow artifacts
+- publishes them to the matching GitHub release
 
 ## License
 

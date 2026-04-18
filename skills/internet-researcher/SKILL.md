@@ -13,15 +13,22 @@ description: Research current information on the public web and synthesize sourc
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If the research task needs a saved brief, machine-readable evidence file, or helper script, write it into the target repo, not into `$CODEX_HOME`, not into a skill folder, and not into the agentctl bundle unless the bundle repo is the target.
+- Prefer repo-native locations such as `docs/research/`, `tmp/research/`, `artifacts/research/`, or `scripts/`.
+
 Use this skill to run fast, source-first internet research and return a compact, current answer with links. Treat it as a lightweight research wrapper around built-in web access, not as a code-changing workflow.
 
 For deterministic CLI-backed output, prefer:
 
 ```text
-python C:\Users\leona\.codex\agentctl\agentctl.py research web "<query>"
+agentctl research web "<query>"
 ```
 
-Use `C:\Users\leona\.codex\agentctl\references\research-envelope.md` as the shared output contract when the result needs to feed later work.
+If `agentctl` is not on `PATH` but the current repo bundles it, use `python agentctl/agentctl.py research web "<query>"`.
+
+Use the bundle-local `agentctl/references/research-envelope.md` as the shared output contract when the result needs to feed later work.
 
 ## Workflow
 

@@ -1,11 +1,21 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
+    branches:
+      - main
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  verify:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -23,6 +33,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Verify Python sources compile
+        run: python -m compileall agentctl workflow-tools scripts
+
       - name: Run agentctl tests
         run: python -m unittest discover -s agentctl/tests -p "test_*.py"
 
@@ -31,3 +44,36 @@ jobs:
 
       - name: Smoke maintenance audit
         run: python agentctl/agentctl.py maintenance audit --json
+
+  bundle-smoke:
+    name: Bundle smoke test
+    runs-on: ubuntu-latest
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install bundle into isolated CODEX_HOME
+        env:
+          BUNDLE_CODEX_HOME: ${{ runner.temp }}/agentctl-codex-home
+        run: python scripts/install_bundle.py --codex-home "$BUNDLE_CODEX_HOME"
+
+      - name: Smoke installed agentctl commands
+        env:
+          BUNDLE_CODEX_HOME: ${{ runner.temp }}/agentctl-codex-home
+        run: |
+          python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" doctor --json
+          python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" capabilities --json
+          python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" maintenance audit --json
+
+      - name: Upload maintenance artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentctl-maintenance-report
+          path: ${{ runner.temp }}/agentctl-codex-home/docs/agentctl/maintenance-report.json
+          retention-days: 14

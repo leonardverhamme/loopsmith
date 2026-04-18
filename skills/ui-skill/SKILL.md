@@ -13,6 +13,11 @@ description: General cross-repo UI implementation and refactoring workflow for R
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If this workflow needs helper scripts, mock data generators, or verification helpers, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `scripts/`, `tools/`, `app/testing/`, `src/testing/`, or `.github/scripts/`.
+
 Use this skill for normal UI work across repos when you want dense, calm, production-grade product UI instead of generic AI-generated dashboard layouts. This skill is repo-aware first and opinionated about density, hierarchy, and product surfaces second.
 
 If you cannot load the supporting references for some reason, still follow the defaults in this file.
@@ -30,7 +35,7 @@ If you cannot load the supporting references for some reason, still follow the d
 
 ## Use the Companion Audit Skill When Needed
 
-If the request is any of the following, use `C:\Users\leona\.codex\skills\ui-deep-audit\SKILL.md` instead:
+If the request is any of the following, use `$ui-deep-audit` instead:
 
 - Full-app UI audit
 - Page-by-page UX, design, or readability review

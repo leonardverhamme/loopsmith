@@ -3,20 +3,30 @@
 Use the preferred global wrapper unless the CLI is already installed globally:
 
 ```powershell
-$env:CODEX_HOME = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { "$HOME\.codex" }
-$env:PWCLI = Join-Path $env:CODEX_HOME "agentctl\playwright.cmd"
+$env:PWCLI = if (Get-Command playwright.cmd -ErrorAction SilentlyContinue) {
+  "playwright.cmd"
+} elseif (Test-Path ".\\agentctl\\playwright.cmd") {
+  (Resolve-Path ".\\agentctl\\playwright.cmd").Path
+} elseif ($env:CODEX_HOME -and (Test-Path (Join-Path $env:CODEX_HOME "agentctl\\playwright.cmd"))) {
+  (Join-Path $env:CODEX_HOME "agentctl\\playwright.cmd")
+} else {
+  throw "No playwright wrapper found on PATH, in ./agentctl, or in `$CODEX_HOME\\agentctl."
+}
 "$env:PWCLI" --help
 ```
 
 Fallback Bash wrapper:
 
 ```bash
-export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-export PWCLI="$CODEX_HOME/skills/playwright/scripts/playwright_cli.sh"
+if command -v playwright.cmd >/dev/null 2>&1; then
+  export PWCLI="playwright.cmd"
+elif [ -x "./skills/playwright/scripts/playwright_cli.sh" ]; then
+  export PWCLI="./skills/playwright/scripts/playwright_cli.sh"
+else
+  export PWCLI="./agentctl/playwright.cmd"
+fi
 "$PWCLI" --help
 ```
-
-User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills`).
 
 Optional convenience alias:
 

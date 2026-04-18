@@ -13,15 +13,22 @@ description: Research GitHub repositories, code, issues, pull requests, discussi
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If the research task needs a saved brief, machine-readable evidence file, or helper script, write it into the target repo, not into `$CODEX_HOME`, not into a skill folder, and not into the agentctl bundle unless the bundle repo is the target.
+- Prefer repo-native locations such as `docs/research/`, `tmp/research/`, `artifacts/research/`, or `scripts/`.
+
 Use this skill to search GitHub deliberately and summarize the strongest external implementation evidence. Prefer the GitHub connector when available, then `gh` CLI if authenticated, then GitHub web search as a fallback.
 
 For deterministic CLI-backed output, prefer:
 
 ```text
-python C:\Users\leona\.codex\agentctl\agentctl.py research github "<query>"
+agentctl research github "<query>"
 ```
 
-Use `C:\Users\leona\.codex\agentctl\references\research-envelope.md` as the shared output contract when you need a machine-readable artifact plus a short brief.
+If `agentctl` is not on `PATH` but the current repo bundles it, use `python agentctl/agentctl.py research github "<query>"`.
+
+Use the bundle-local `agentctl/references/research-envelope.md` as the shared output contract when you need a machine-readable artifact plus a short brief.
 
 ## Workflow
 

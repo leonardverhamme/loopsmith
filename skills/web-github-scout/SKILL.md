@@ -13,15 +13,22 @@ description: Combine internet research with GitHub research to scout the best ex
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If the scouting task needs a saved brief, machine-readable evidence file, or helper script, write it into the target repo, not into `$CODEX_HOME`, not into a skill folder, and not into the agentctl bundle unless the bundle repo is the target.
+- Prefer repo-native locations such as `docs/research/`, `tmp/research/`, `artifacts/research/`, or `scripts/`.
+
 Use this skill when the task is broader than a single search and needs both official web sources and real-world GitHub evidence. Keep it read-only and synthesis-focused.
 
 For deterministic CLI-backed output, prefer:
 
 ```text
-python C:\Users\leona\.codex\agentctl\agentctl.py research scout "<query>"
+agentctl research scout "<query>"
 ```
 
-Use `C:\Users\leona\.codex\agentctl\references\research-envelope.md` as the shared output contract.
+If `agentctl` is not on `PATH` but the current repo bundles it, use `python agentctl/agentctl.py research scout "<query>"`.
+
+Use the bundle-local `agentctl/references/research-envelope.md` as the shared output contract.
 
 ## Workflow
 

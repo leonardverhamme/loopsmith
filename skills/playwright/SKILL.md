@@ -14,7 +14,12 @@ description: "Use when the task requires automating a real browser from the term
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
-Drive a real browser from the terminal using `playwright-cli`. Prefer the Windows-safe global wrapper at `C:\Users\leona\.codex\agentctl\playwright.cmd` so the CLI works even when it is not globally installed.
+## Repo Artifact Rule
+
+- If browser automation needs helper scripts, snapshots, or saved artifacts, put them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `output/playwright/`, `artifacts/browser/`, `tmp/browser/`, or `scripts/`.
+
+Drive a real browser from the terminal using `playwright-cli`. Prefer the `playwright.cmd` wrapper when it is on `PATH`; if the current repo bundles agentctl, use the bundle-local `agentctl/playwright.cmd`.
 Treat this skill as CLI-first automation. Do not pivot to `@playwright/test` unless the user explicitly asks for test files.
 
 ## Prerequisite check (required)
@@ -44,18 +49,28 @@ Once `npx` is present, proceed with the wrapper script. A global install of `pla
 PowerShell / Windows:
 
 ```powershell
-$env:CODEX_HOME = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { "$HOME\.codex" }
-$env:PWCLI = Join-Path $env:CODEX_HOME "agentctl\playwright.cmd"
+$env:PWCLI = if (Get-Command playwright.cmd -ErrorAction SilentlyContinue) {
+  "playwright.cmd"
+} elseif (Test-Path ".\\agentctl\\playwright.cmd") {
+  (Resolve-Path ".\\agentctl\\playwright.cmd").Path
+} elseif ($env:CODEX_HOME -and (Test-Path (Join-Path $env:CODEX_HOME "agentctl\\playwright.cmd"))) {
+  (Join-Path $env:CODEX_HOME "agentctl\\playwright.cmd")
+} else {
+  throw "No playwright wrapper found on PATH, in ./agentctl, or in `$CODEX_HOME\\agentctl."
+}
 ```
 
 Fallback Bash path:
 
 ```bash
-export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-export PWCLI="$CODEX_HOME/skills/playwright/scripts/playwright_cli.sh"
+if command -v playwright.cmd >/dev/null 2>&1; then
+  export PWCLI="playwright.cmd"
+elif [ -x "./skills/playwright/scripts/playwright_cli.sh" ]; then
+  export PWCLI="./skills/playwright/scripts/playwright_cli.sh"
+else
+  export PWCLI="./agentctl/playwright.cmd"
+fi
 ```
-
-User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills`).
 
 ## Quick start
 
@@ -141,10 +156,10 @@ Refs can go stale. When a command fails due to a missing ref, snapshot again.
 The preferred global wrapper uses `npx --package @playwright/cli playwright-cli` through:
 
 ```text
-C:\Users\leona\.codex\agentctl\playwright.cmd
+playwright.cmd
 ```
 
-The legacy Bash skill wrapper still exists for shells that prefer it.
+If the repo bundles agentctl, the equivalent bundle-local path is `agentctl/playwright.cmd`. The legacy Bash skill wrapper still exists for shells that prefer it.
 
 ```bash
 "$PWCLI" --help

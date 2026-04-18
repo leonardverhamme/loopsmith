@@ -13,9 +13,14 @@ description: "Full-repo test audit and checklist-driven remediation workflow for
 - Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
 - If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
 
+## Repo Artifact Rule
+
+- If this workflow needs helper scripts, fixtures, generated test helpers, or audit artifacts, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
+- Prefer repo-native locations such as `scripts/`, `tools/`, `tests/helpers/`, `test/helpers/`, `docs/`, or `.codex-workflows/`.
+
 Use this skill for the heavy workflow that the normal testing skill should not absorb: full-repo test audit, canonical checklist creation, checklist execution, and final closeout.
 
-For implementation decisions while working the checklist, load `C:\Users\leona\.codex\skills\test-skill\SKILL.md` and use it as the base testing skill.
+For implementation decisions while working the checklist, load `$test-skill` and use it as the base testing skill.
 
 ## Core Modes
 
@@ -44,9 +49,9 @@ If the user explicitly invokes `$test-deep-audit` with no meaningful extra instr
 ## Shared Runtime Contract
 
 - When `.codex-workflows/test-deep-audit/state.json` exists or should be created, load or initialize it and keep it in sync with the checklist.
-- Use `C:\Users\leona\.codex\workflow-tools\workflow_schema.md` as the shared runtime schema.
+- Use the bundle-local `workflow-tools/workflow_schema.md` as the shared runtime schema.
 - Update the checklist and the workflow state after each meaningful batch.
-- Never self-certify `ready`; only do so when `python C:\Users\leona\.codex\workflow-tools\workflow_guard.py --state <state.json>` would pass.
+- Never self-certify `ready`; only do so when the bundle-local `workflow-tools/workflow_guard.py --state <state.json>` check would pass.
 
 ## Required Workflow
 
@@ -57,7 +62,7 @@ If the user explicitly invokes `$test-deep-audit` with no meaningful extra instr
 2. Load the references you need from this skill:
    - Always: `references/audit-scope.md`, `references/checklist-format.md`, `references/execution-loop.md`, `references/closeout.md`
    - Short reusable prompts: `references/prompt-shortcuts.md`
-3. Load `C:\Users\leona\.codex\skills\test-skill\SKILL.md` before implementing checklist items so fixes stay aligned with the repo's actual testing strategy.
+3. Load `$test-skill` before implementing checklist items so fixes stay aligned with the repo's actual testing strategy.
 4. Create or refresh the checklist file from a fresh audit pass unless the user explicitly asked for execution-only behavior.
 5. Group findings by area, then by page, feature, package, or subsystem as needed.
 6. Use markdown checkboxes:
