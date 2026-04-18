@@ -41,7 +41,6 @@ These should be reviewed directly when behavior changes:
 - `docs/agentctl/unattended-worker-setup.md`
 - `docs/agentctl/skill-governance.md`
 - this file
-- `docs/automation-core.md`
 
 ## What To Update After Common Changes
 

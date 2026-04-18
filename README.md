@@ -8,7 +8,6 @@ It packages:
 - reusable skills for UI, testing, docs, refactor, CI/CD, research, and maintenance
 - the shared deep-workflow runner and guard
 - a local Codex plugin shell for routing and maintenance
-- `automation-core`, a local Postgres-backed Gmail + Calendar + Notion bridge with GitHub analytics jobs and a compact operator console
 - zero-touch bootstrap plus explicit unattended-worker health checks
 
 The design goal is simple: give coding agents one stable front door for capability discovery, workflow launch, and state tracking without replacing the authoritative tools underneath.
@@ -38,14 +37,8 @@ This repository is structured as a portable `$CODEX_HOME` bundle:
 - `skills/`
 - `plugins/agentctl/`
 - `docs/agentctl/`
-- `automation-core/`
 - `AGENTS.md`
 - `config.toml`
-
-Operational docs for the automation bridge live in:
-
-- [automation-core/README.md](automation-core/README.md)
-- [docs/automation-core.md](docs/automation-core.md)
 
 ## Quick Start
 
@@ -141,8 +134,6 @@ Start here when you need the docs by job instead of by filename:
 - [docs/agentctl/unattended-worker-setup.md](docs/agentctl/unattended-worker-setup.md) for making deep workflow loops actually run unattended
 - [docs/agentctl/skill-governance.md](docs/agentctl/skill-governance.md) for the rules that keep local skills thin, visible, and capability-first
 - [docs/agentctl/maintainer-guide.md](docs/agentctl/maintainer-guide.md) for operator and maintainer responsibilities
-- [docs/automation-core.md](docs/automation-core.md) for the workstation automation bridge
-- [docs/automation-core-architecture.md](docs/automation-core-architecture.md) for the automation-core system map and data flow
 
 ## Zero-Touch Agent Setup
 
@@ -173,46 +164,6 @@ agentctl skills check
 agentctl skills update
 agentctl maintenance audit
 ```
-
-## automation-core
-
-This repo now also contains a workstation-local automation stack for Gmail, Google Calendar, and Notion:
-
-- local approval UI for pending inbox and meeting decisions
-- incremental Gmail and Calendar polling
-- Notion technical tables plus business-record updates
-- GitHub analytics ingest, rollups, and weekly reporting jobs backed by local Postgres
-- Codex automation entrypoints for hourly sync, briefs, reviews, hygiene sweeps, and GitHub repo intelligence
-
-Typical operator sequence:
-
-```powershell
-cd automation-core
-supabase start
-copy .env.example .env
-npm install
-npm run cli -- schema-bootstrap
-npm run dev
-```
-
-Then connect Google once:
-
-```text
-http://localhost:3010/auth/google/start
-```
-
-And run a first manual sync:
-
-```powershell
-npm run cli -- job gmail-sync
-npm run cli -- job calendar-sync
-npm run cli -- job reconcile
-npm run cli -- job github-discover
-npm run cli -- job github-backfill
-npm run cli -- job github-sync
-```
-
-See [docs/automation-core.md](docs/automation-core.md) for the operator contract and [automation-core/README.md](automation-core/README.md) for the project-local command surface.
 
 ## Deep Workflows
 
@@ -311,7 +262,6 @@ The shared verification workflow runs:
 - `agentctl` unit tests
 - a real Playwright browser smoke regression on Windows using the agent-facing wrapper
 - `workflow-tools` unit tests
-- `automation-core` dependency install, typecheck, build, and test
 - a maintenance audit smoke test in repo-local mode
 - an isolated bundle-install smoke test that runs the installed `agentctl`
 - a maintenance artifact upload from the bundle-smoke path
