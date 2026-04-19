@@ -59,7 +59,8 @@ class BootstrapTests(unittest.TestCase):
                 with contextlib.redirect_stderr(stderr):
                     code = bootstrap.main(["doctor"])
             self.assertEqual(code, 2)
-            self.assertIn("Run `agentctl bootstrap` first", stderr.getvalue())
+            self.assertIn("Run `loopsmith bootstrap` first", stderr.getvalue())
+            self.assertIn("`agentctl bootstrap`", stderr.getvalue())
 
 
 if __name__ == "__main__":

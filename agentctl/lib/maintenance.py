@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
-import tomllib
 from pathlib import Path
 from typing import Any
 
-from .capabilities import build_capabilities_report, capability_detail, capability_doc_path, capability_keys
+from .branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DOCS_DIRNAME, PUBLIC_PRODUCT_NAME
+from .capabilities import CAPABILITY_GROUPS, build_capabilities_report, capability_detail, capability_doc_path, capability_keys
 from .common import load_json, print_json, save_json, save_text, utc_now
+from .config_layers import _load_toml
 from .paths import (
     AGENTCTL_CAPABILITIES_DOCS_DIR,
     AGENTCTL_DOCS_DIR,
@@ -24,13 +25,14 @@ from .paths import (
     MAINTENANCE_CONTRACT_REFERENCE_PATH,
     MAINTENANCE_REPORT_PATH,
     MAINTENANCE_STATE_PATH,
+    SKILLS_DIR,
     STATE_SCHEMA_REFERENCE_PATH,
     WORKFLOW_REGISTRY_PATH,
 )
 
 
 SCHEMA_VERSION = 1
-AUTO_MARKER = "<!-- agentctl:auto-generated -->"
+AUTO_MARKER = f"<!-- {PUBLIC_PRODUCT_NAME}:auto-generated -->"
 MAINTENANCE_WORKFLOW_NAME = "agentctl-maintenance"
 MAINTENANCE_SKILL_NAME = "agentctl-maintenance-engineer"
 MAINTENANCE_DOCS: dict[str, Path] = {
@@ -52,52 +54,64 @@ COMMAND_GROUPS = [
     {
         "group": "core",
         "items": [
-            {"command": "doctor", "usage": "agentctl doctor [--json]", "summary": "Check installed tools, wrappers, auth health, and browser readiness."},
-            {"command": "capabilities", "usage": "agentctl capabilities [--json]", "summary": "Emit the machine-readable capability inventory and preferred interfaces."},
-            {"command": "capability", "usage": "agentctl capability <key> [--json]", "summary": "Show the drill-down page for a single capability."},
-            {"command": "status", "usage": "agentctl status [--repo <path>] [--all] [--json]", "summary": "Inspect repo-local or registry-backed deep workflow state."},
-            {"command": "run", "usage": "agentctl run <workflow> [--repo <path>] [--worker-command <cmd>]", "summary": "Launch or resume a deep workflow through the shared runner."},
+            {"command": "doctor", "usage": f"{PUBLIC_COMMAND} doctor [--fix] [--json]", "summary": "Check installed tools, wrappers, auth health, and browser readiness, with optional local repair."},
+            {"command": "capabilities", "usage": f"{PUBLIC_COMMAND} capabilities [--json]", "summary": "Emit the machine-readable capability inventory and grouped front doors."},
+            {"command": "capability", "usage": f"{PUBLIC_COMMAND} capability <key> [--json]", "summary": "Show the drill-down page for a capability group or a single capability."},
+            {"command": "status", "usage": f"{PUBLIC_COMMAND} status [--repo <path>] [--all] [--json]", "summary": "Inspect repo-local or registry-backed deep workflow state."},
+            {"command": "run", "usage": f"{PUBLIC_COMMAND} run <workflow> [--repo <path>] [--worker-command <cmd>]", "summary": "Launch or resume a deep workflow through the shared runner."},
+            {"command": "self-check", "usage": f"{PUBLIC_COMMAND} self-check [--json]", "summary": "Compare wrapper version, bundle version, config schema, and plugin health."},
+            {"command": "version", "usage": f"{PUBLIC_COMMAND} version [--json]", "summary": "Show wrapper and bundle version information."},
+            {"command": "upgrade", "usage": f"{PUBLIC_COMMAND} upgrade [--version <tag>] [--json]", "summary": "Upgrade the installed bundle from its recorded release source."},
         ],
     },
     {
         "group": "research",
         "items": [
-            {"command": "research web", "usage": "agentctl research web <query> [--limit N]", "summary": "Research current public web sources through the shared evidence contract."},
-            {"command": "research github", "usage": "agentctl research github <query> [--limit N]", "summary": "Research GitHub repositories, code, issues, and releases through gh-first routing."},
-            {"command": "research scout", "usage": "agentctl research scout <query> [--limit N]", "summary": "Run web and GitHub research together and merge them into one evidence envelope."},
+            {"command": "research web", "usage": f"{PUBLIC_COMMAND} research web <query> [--limit N]", "summary": "Research current public web sources through the shared evidence contract."},
+            {"command": "research github", "usage": f"{PUBLIC_COMMAND} research github <query> [--limit N]", "summary": "Research GitHub repositories, code, issues, and releases through gh-first routing."},
+            {"command": "research scout", "usage": f"{PUBLIC_COMMAND} research scout <query> [--limit N]", "summary": "Run web and GitHub research together and merge them into one evidence envelope."},
+        ],
+    },
+    {
+        "group": "config",
+        "items": [
+            {"command": "config show", "usage": f"{PUBLIC_COMMAND} config show [--repo <path>] [--json]", "summary": "Show bundled, user, repo, and effective config layers."},
+            {"command": "config path", "usage": f"{PUBLIC_COMMAND} config path [--scope bundled|user|repo] [--json]", "summary": "Show the path for one config scope."},
+            {"command": "config set", "usage": f"{PUBLIC_COMMAND} config set <key> <value> [--scope user|repo] [--json]", "summary": "Set a structured config key in the user or repo layer."},
+            {"command": "config unset", "usage": f"{PUBLIC_COMMAND} config unset <key> [--scope user|repo] [--json]", "summary": "Remove a structured config key from the user or repo layer."},
         ],
     },
     {
         "group": "skills",
         "items": [
-            {"command": "skills list", "usage": "agentctl skills list [--project] [--json]", "summary": "List installed skills through the official skills CLI."},
-            {"command": "skills add", "usage": "agentctl skills add <source> [--skill <name>] [--ref <ref>] [--project]", "summary": "Install skills with provenance recording and optional pinning."},
-            {"command": "skills check", "usage": "agentctl skills check [--project] [--json]", "summary": "Compare installed skills with the local provenance lock file."},
-            {"command": "skills update", "usage": "agentctl skills update [--project] [--json]", "summary": "Refresh tracked skills from the lock file without broad unsafe updates."},
+            {"command": "skills list", "usage": f"{PUBLIC_COMMAND} skills list [--project] [--json]", "summary": "List installed skills through the official skills CLI."},
+            {"command": "skills add", "usage": f"{PUBLIC_COMMAND} skills add <source> [--skill <name>] [--ref <ref>] [--project]", "summary": "Install skills with provenance recording and optional pinning."},
+            {"command": "skills check", "usage": f"{PUBLIC_COMMAND} skills check [--project] [--json]", "summary": "Compare installed skills with the local provenance lock file."},
+            {"command": "skills update", "usage": f"{PUBLIC_COMMAND} skills update [--project] [--json]", "summary": "Refresh tracked skills from the lock file without broad unsafe updates."},
         ],
     },
     {
         "group": "maintenance",
         "items": [
-            {"command": "maintenance check", "usage": "agentctl maintenance check [--json]", "summary": "Check command/docs/plugin drift and write a machine-readable maintenance report."},
-            {"command": "maintenance audit", "usage": "agentctl maintenance audit [--json]", "summary": "Run the full maintenance pass, refresh docs, and update maintenance state."},
-            {"command": "maintenance fix-docs", "usage": "agentctl maintenance fix-docs [--json]", "summary": "Regenerate the human-facing agentctl docs from current machine state."},
-            {"command": "maintenance render-report", "usage": "agentctl maintenance render-report [--json]", "summary": "Render the maintenance Markdown page and JSON report without regenerating every doc."},
+            {"command": "maintenance check", "usage": f"{PUBLIC_COMMAND} maintenance check [--json]", "summary": "Check command/docs/plugin drift and write a machine-readable maintenance report."},
+            {"command": "maintenance audit", "usage": f"{PUBLIC_COMMAND} maintenance audit [--json]", "summary": "Run the full maintenance pass, refresh docs, and update maintenance state."},
+            {"command": "maintenance fix-docs", "usage": f"{PUBLIC_COMMAND} maintenance fix-docs [--json]", "summary": f"Regenerate the human-facing {PUBLIC_PRODUCT_NAME} docs from current machine state."},
+            {"command": "maintenance render-report", "usage": f"{PUBLIC_COMMAND} maintenance render-report [--json]", "summary": "Render the maintenance Markdown page and JSON report without regenerating every doc."},
         ],
     },
 ]
 CLOUD_READINESS = [
     {
-        "name": "agentctl core",
+        "name": "loopsmith core",
         "classification": "cloud-ready-with-setup",
-        "requirements": ["Python 3.12+", "agentctl files under $CODEX_HOME", "write access to workflow state"],
+        "requirements": ["Python 3.12+", "agentctl bundle files under $CODEX_HOME", "write access to workflow state"],
         "notes": "Pure Python stdlib control plane. Safe once the environment installs the home bundle.",
     },
     {
         "name": "skills wrapper layer",
         "classification": "cloud-ready-with-setup",
         "requirements": ["Node.js and npx", "skills CLI availability", "network access if installing from remotes"],
-        "notes": "agentctl wraps official skills tooling rather than replacing it.",
+        "notes": f"{PUBLIC_PRODUCT_NAME} wraps official skills tooling rather than replacing it.",
     },
     {
         "name": "research web",
@@ -172,6 +186,8 @@ CLOUD_READINESS = [
         "notes": "Detect-only in v1.",
     },
 ]
+AUTOMATION_CORE_PATTERN = "automation" + "-core"
+CAPABILITY_SKILL_LINE_BUDGET = 160
 
 
 def _read_text(path: Path) -> str:
@@ -226,18 +242,99 @@ def _manual_guides_status() -> list[dict[str, Any]]:
     return [_record_manual_guide(name, path) for name, path in _manual_guides_map().items()]
 
 
+def _capability_group_keys() -> list[str]:
+    return [group["key"] for group in CAPABILITY_GROUPS]
+
+
+def _capability_doc_keys(report: dict[str, Any]) -> list[str]:
+    return [*_capability_group_keys(), *capability_keys(report["capabilities_snapshot"])]
+
+
 def _capability_docs(report: dict[str, Any]) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    for key in capability_keys(report["capabilities_snapshot"]):
+    for key in _capability_doc_keys(report):
         path = AGENTCTL_CAPABILITIES_DOCS_DIR / f"{key}.md"
         items.append(_record_file(f"capability:{key}", path))
     return items
 
 
+def _capability_skill_budget() -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    if not SKILLS_DIR.exists():
+        return records
+    for skill_path in sorted(SKILLS_DIR.glob("*-capability/SKILL.md")):
+        line_count = len(skill_path.read_text(encoding="utf-8").splitlines())
+        records.append(
+            {
+                "name": skill_path.parent.name,
+                "path": str(skill_path),
+                "line_count": line_count,
+                "max_lines": CAPABILITY_SKILL_LINE_BUDGET,
+                "within_budget": line_count <= CAPABILITY_SKILL_LINE_BUDGET,
+            }
+        )
+    return records
+
+
+def _repo_scan_files() -> list[Path]:
+    repo_root = AGENTCTL_HOME.parent
+    roots = [
+        repo_root / "README.md",
+        repo_root / "AGENTS.md",
+        repo_root / "pyproject.toml",
+        repo_root / "config.toml",
+        repo_root / "scripts",
+        repo_root / ".github" / "workflows",
+        AGENTCTL_HOME,
+        AGENTCTL_DOCS_DIR,
+        AGENTCTL_PLUGIN_DIR,
+    ]
+    files: list[Path] = []
+    for root in roots:
+        if root.is_file():
+            files.append(root)
+            continue
+        if root.is_dir():
+            files.extend(path for path in root.rglob("*") if path.is_file())
+    return sorted({path.resolve() for path in files})
+
+
+def _automation_core_hits() -> list[dict[str, Any]]:
+    hits: list[dict[str, Any]] = []
+    maintenance_source = Path(__file__).resolve()
+    maintenance_report = (AGENTCTL_DOCS_DIR / "maintenance-report.json").resolve()
+    machine_artifacts = {
+        AGENTCTL_HOME / "state" / "bootstrap-report.json",
+        CAPABILITIES_PATH,
+        DOCTOR_REPORT_PATH,
+        MAINTENANCE_REPORT_PATH,
+        MAINTENANCE_STATE_PATH,
+    }
+    excluded_paths = {MAINTENANCE_DOCS["maintenance"].resolve(), maintenance_source, maintenance_report}
+    excluded_paths.update(path.resolve() for path in machine_artifacts)
+    for path in _repo_scan_files():
+        if path in excluded_paths:
+            continue
+        if path.suffix.lower() not in {".md", ".py", ".toml", ".json", ".yml", ".yaml", ".cmd", ".sh"}:
+            continue
+        try:
+            content = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if AUTOMATION_CORE_PATTERN not in content:
+            continue
+        for index, line in enumerate(content.splitlines(), start=1):
+            if AUTOMATION_CORE_PATTERN in line:
+                if path == CONFIG_PATH.resolve() and line.strip().startswith("[projects."):
+                    continue
+                hits.append({"path": str(path), "line": index, "snippet": line.strip()})
+    return hits
+
+
 def _plugin_config_status() -> dict[str, Any]:
     if not CONFIG_PATH.exists():
         return {"path": str(CONFIG_PATH), "present": False, "enabled": False, "entry": None}
-    payload = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    payload = _load_toml(CONFIG_PATH)
     plugins = payload.get("plugins", {})
     entry = None
     enabled = False
@@ -340,6 +437,8 @@ def _build_findings(
     plugin: dict[str, Any],
     skills: list[dict[str, Any]],
     tests: list[dict[str, Any]],
+    capability_skill_budget: list[dict[str, Any]],
+    automation_core_hits: list[dict[str, Any]],
     capabilities: dict[str, Any],
 ) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
@@ -464,6 +563,52 @@ def _build_findings(
             path=str(CAPABILITIES_PATH),
         )
 
+    for record in capability_skill_budget:
+        if not record["within_budget"]:
+            _add_finding(
+                findings,
+                finding_id=f"skill-budget-{record['name']}",
+                title=f"Capability skill exceeds budget: {record['name']}",
+                severity="warn",
+                detail=(
+                    f"Thin capability skills should stay navigation-first and within {record['max_lines']} lines. "
+                    f"This skill is {record['line_count']} lines."
+                ),
+                path=record["path"],
+            )
+
+    menu_budget = capabilities.get("menu_budget", {})
+    visible_group_count = capabilities.get("summary", {}).get("visible_group_count", 0)
+    max_group_size = capabilities.get("summary", {}).get("max_group_size", 0)
+    if visible_group_count > menu_budget.get("max_top_level_groups", 8):
+        _add_finding(
+            findings,
+            finding_id="menu-budget-groups",
+            title="Top-level capability groups exceed budget",
+            severity="error",
+            detail="Capability menu has too many top-level groups for the intended low-context navigation model.",
+            path=str(CAPABILITIES_PATH),
+        )
+    if max_group_size > menu_budget.get("max_group_items", 9):
+        _add_finding(
+            findings,
+            finding_id="menu-budget-items",
+            title="Capability group exceeds item budget",
+            severity="error",
+            detail="At least one capability group has too many items and should be split into a sub-group or narrower menu.",
+            path=str(CAPABILITIES_PATH),
+        )
+
+    for hit in automation_core_hits:
+        _add_finding(
+            findings,
+            finding_id=f"automation-core-drift-{Path(hit['path']).name}-{hit['line']}",
+            title="Leftover automation-core coupling",
+            severity="error",
+            detail=f"Found a stale automation-core reference: {hit['snippet']}",
+            path=hit["path"],
+        )
+
     return findings
 
 
@@ -476,6 +621,8 @@ def build_maintenance_report() -> dict[str, Any]:
     plugin = _plugin_status()
     skills = _skills_status()
     tests = _tests_status()
+    capability_skill_budget = _capability_skill_budget()
+    automation_core_hits = _automation_core_hits()
     findings = _build_findings(
         docs=docs,
         references=references,
@@ -483,10 +630,12 @@ def build_maintenance_report() -> dict[str, Any]:
         plugin=plugin,
         skills=skills,
         tests=tests,
+        capability_skill_budget=capability_skill_budget,
+        automation_core_hits=automation_core_hits,
         capabilities=capabilities,
     )
 
-    total_checks = len(docs) + len(references) + len(manual_guides) + len(skills) + len(tests) + 3
+    total_checks = len(docs) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + 5
     blocked_findings = [item for item in findings if item["severity"] == "error"]
     open_findings = len(findings)
     passed_checks = max(total_checks - open_findings, 0)
@@ -514,9 +663,11 @@ def build_maintenance_report() -> dict[str, Any]:
         "references": references,
         "manual_guides": manual_guides,
         "skills": skills,
+        "capability_skill_budget": capability_skill_budget,
         "plugin": plugin,
         "tests": tests,
         "cloud_readiness": CLOUD_READINESS,
+        "automation_core_hits": automation_core_hits,
         "capabilities_snapshot": capabilities,
         "known_limitations": _known_limitations(capabilities),
         "findings": findings,
@@ -599,19 +750,20 @@ def _maintenance_state(report: dict[str, Any]) -> dict[str, Any]:
 
 
 def _render_overview(report: dict[str, Any]) -> str:
+    title = PUBLIC_PRODUCT_NAME.title()
     lines = [
         AUTO_MARKER,
-        "# Agentctl Overview",
+        f"# {title} Overview",
         "",
         "## Purpose",
         "",
-        "`agentctl` is the thin Codex-first control plane for discovery, routing, health checks, deep-workflow launch, and machine-readable state.",
+        f"`{PUBLIC_COMMAND}` is the thin Codex-first control plane for capability discovery, routing, health checks, deep-workflow launch, and machine-readable state.",
         "",
         "## Layers",
         "",
         "1. Repo guidance in `AGENTS.md` and a small set of stable docs.",
         "2. Skills for repeated workflows such as UI, testing, refactor, docs, research, and maintenance.",
-        "3. `agentctl` as the runtime control plane above those skills and above authoritative vendor interfaces.",
+        f"3. `{PUBLIC_COMMAND}` as the runtime control plane above those skills and above authoritative vendor interfaces.",
         "4. Plugin packaging so the system can be installed and surfaced consistently.",
         "",
         "## Current Status",
@@ -621,63 +773,50 @@ def _render_overview(report: dict[str, Any]) -> str:
         f"- Open findings: {report['summary']['open_findings']}",
         f"- Blocked findings: {report['summary']['blocked_findings']}",
         "",
-        "## Authoritative Interfaces",
-        "",
-        "- Skill installation and update stay with the official `skills` CLI and `gh skill` when available.",
-        "- Vendor CLIs remain authoritative for their own platforms.",
-        "- Playwright remains the browser authority.",
-        "- Codex remains the execution engine for local and cloud work.",
-        "",
         "## First Things To Read",
         "",
-        "- Start with `agentctl doctor` when you need a compact health check.",
-        "- Use `agentctl capabilities` when you need the full capability menu and preferred front doors.",
-        "- Use `agentctl capability <key>` when you need the drill-down page for a specific capability or vendor surface.",
-        "- Use `agentctl status --all` to see which durable deep workflows are active now.",
-        "- Use `agentctl maintenance audit` after changing command surface, packaging, state contracts, or docs generators.",
+        f"- `{PUBLIC_COMMAND} doctor` for a compact health check.",
+        f"- `{PUBLIC_COMMAND} capabilities` for the grouped top-level capability menu.",
+        f"- `{PUBLIC_COMMAND} capability <key>` for a group page or a single capability drill-down page.",
+        f"- `{PUBLIC_COMMAND} status --all` for durable workflow state across repos.",
+        f"- `{PUBLIC_COMMAND} maintenance audit` after command, packaging, config, or contract changes.",
         "",
         "## Manual Guides",
         "",
-        "- [Zero-touch setup](zero-touch-setup.md) for one-command bootstrap and bootstrap-report expectations.",
-        "- [Install on another computer](install-on-another-computer.md) for moving the bundle to a new machine.",
-        "- [Unattended worker setup](unattended-worker-setup.md) for getting deep workflow loops to keep running with a real worker.",
-        "- [Maintainer guide](maintainer-guide.md) for generated-vs-manual docs, release hygiene, and validation expectations.",
-        "- [Skill governance](skill-governance.md) for the rules that keep capability skills thin, documented, and low-context.",
+        "- [Zero-touch setup](zero-touch-setup.md)",
+        "- [Install on another computer](install-on-another-computer.md)",
+        "- [Unattended worker setup](unattended-worker-setup.md)",
+        "- [Maintainer guide](maintainer-guide.md)",
+        "- [Skill governance](skill-governance.md)",
         "",
-        "## Common Agent Flows",
+        "## Common Flows",
         "",
-        "- Capability discovery: `agentctl doctor` then `agentctl capabilities` if a broader inventory is needed.",
-        "- External research: `agentctl research web|github|scout <query>` and carry the JSON evidence + brief into implementation.",
-        "- Deep remediation: `agentctl run <workflow>` and trust `.codex-workflows/<workflow>/state.json` over chat history.",
-        "- Autonomous deep remediation only counts when a real worker command exists. The runner loop is deterministic; the worker must be real.",
-        "- Control-plane upkeep: `$agentctl-maintenance-engineer` or `agentctl maintenance audit`.",
+        f"- Capability discovery: `{PUBLIC_COMMAND} doctor` then `{PUBLIC_COMMAND} capabilities`.",
+        f"- External research: `{PUBLIC_COMMAND} research web|github|scout <query>`.",
+        f"- Deep remediation: `{PUBLIC_COMMAND} run <workflow>` plus `.codex-workflows/<workflow>/state.json`.",
+        f"- Control-plane upkeep: `$agentctl-maintenance-engineer` or `{PUBLIC_COMMAND} maintenance audit`.",
         "",
-        "## Verified Workflow Guarantees",
+        "## Compatibility",
         "",
-        "- The shared runner is covered for `complete`, `stalled`, and `blocked` terminal states.",
-        "- The CLI front door is covered end-to-end with `agentctl run ...` plus `agentctl status --json` in a temp repo.",
-        "- Explicit worker-command execution is a supported and tested path for unattended deep runs.",
-        "- Registry writes are protected against transient Windows rename contention and against parallel shared-registry updates.",
-        "- Fresh bundle installs are smoke-tested and allowed to finish `ok` when only degraded-but-documented capabilities remain.",
-        "- The remaining environment-specific limitation is the default local Codex runtime on this machine; if that runtime is unavailable, use an explicit worker command or `AGENTCTL_CODEX_WORKER_TEMPLATE`.",
+        f"- `{PUBLIC_COMMAND}` is the canonical public command.",
+        f"- `{COMPATIBILITY_COMMAND}` remains a compatibility alias for the current migration release.",
+        "- The internal bundle path stays `agentctl/` for this release to avoid a risky filesystem and import break.",
         "",
-        "## Capability-First Rule",
+        "## Verified Guarantees",
         "",
-        "Agents should choose a capability front door first and ignore transport details unless the capability itself is degraded.",
-        "",
-        "- Good: \"use the research capability\" or \"use the browser capability\".",
-        "- Bad: \"start by choosing between CLI, MCP, or plugin\".",
-        "",
-        "The capability registry exists to collapse those overlaps into one stable route.",
+        "- Shared runner coverage exists for `complete`, `blocked`, and `stalled` terminal states.",
+        f"- The CLI front door is covered end-to-end with `{PUBLIC_COMMAND} run ...` and `{PUBLIC_COMMAND} status --json` in temp repos.",
+        "- Fresh installs are smoke-tested and allowed to finish `ok` when only degraded-but-documented optional capabilities remain.",
+        "- The remaining environment-sensitive piece is the worker runtime itself; unattended runs still require a real callable worker route.",
         "",
         "## Key Files",
         "",
-        "- Control plane home: `agentctl/`",
+        "- Internal bundle path: `agentctl/`",
         "- Capabilities snapshot: `agentctl/state/capabilities.json`",
-        "- Maintenance report: `docs/agentctl/maintenance-report.json`",
+        f"- Maintenance report: `docs/{PUBLIC_DOCS_DIRNAME}/maintenance-report.json`",
         "- Maintenance state: `.codex-workflows/agentctl-maintenance/state.json`",
         "",
-        "## What Agentctl Does Not Own",
+        f"## What {title} Does Not Own",
         "",
         "- It does not replace the official `skills` CLI or `gh skill`.",
         "- It does not replace vendor CLIs such as `gh`, `vercel`, or `supabase`.",
@@ -696,7 +835,7 @@ def _render_overview(report: dict[str, Any]) -> str:
 def _render_command_map() -> str:
     lines = [
         AUTO_MARKER,
-        "# Agentctl Command Map",
+        f"# {PUBLIC_PRODUCT_NAME.title()} Command Map",
         "",
         "This is the frozen v1 command surface that maintenance checks expect.",
         "",
@@ -714,7 +853,7 @@ def _render_command_map() -> str:
         "",
         "## Verification Notes",
         "",
-        "- `run` is tested at two levels: the shared workflow runner directly and the public `agentctl run` CLI path.",
+        f"- `run` is tested at two levels: the shared workflow runner directly and the public `{PUBLIC_COMMAND} run` CLI path.",
         "- Shared state transitions are expected to end as `complete`, `blocked`, or `stalled`; `ready_allowed` must gate any `complete` state.",
         "- Shared-registry updates are expected to tolerate concurrent deep workflows without losing entries.",
         "",
@@ -730,10 +869,10 @@ def _render_command_map() -> str:
                 [
                     "Typical sequence:",
                     "",
-                    "- `agentctl doctor`",
-                    "- `agentctl capabilities` if you need the full menu",
-                    "- `agentctl status --all` if you need workflow progress",
-                    "- `agentctl run <workflow>` only when a deep workflow is the right shape",
+                    f"- `{PUBLIC_COMMAND} doctor`",
+                    f"- `{PUBLIC_COMMAND} capabilities` if you need the full menu",
+                    f"- `{PUBLIC_COMMAND} status --all` if you need workflow progress",
+                    f"- `{PUBLIC_COMMAND} run <workflow>` only when a deep workflow is the right shape",
                     "- If no worker runtime is healthy, configure `--worker-command` or `AGENTCTL_CODEX_WORKER_TEMPLATE` before treating the run as unattended",
                 ]
             )
@@ -742,9 +881,9 @@ def _render_command_map() -> str:
                 [
                     "Typical sequence:",
                     "",
-                    "- `agentctl research web <query>` for current official docs or standards",
-                    "- `agentctl research github <query>` for field practice and repository evidence",
-                    "- `agentctl research scout <query>` when both are needed before implementation",
+                    f"- `{PUBLIC_COMMAND} research web <query>` for current official docs or standards",
+                    f"- `{PUBLIC_COMMAND} research github <query>` for field practice and repository evidence",
+                    f"- `{PUBLIC_COMMAND} research scout <query>` when both are needed before implementation",
                 ]
             )
         elif group["group"] == "skills":
@@ -752,9 +891,9 @@ def _render_command_map() -> str:
                 [
                     "Typical sequence:",
                     "",
-                    "- `agentctl skills list` to inspect current installs",
-                    "- `agentctl skills check` to inspect provenance and local-vs-external management",
-                    "- `agentctl skills add ...` only when you are intentionally extending the skill surface",
+                    f"- `{PUBLIC_COMMAND} skills list` to inspect current installs",
+                    f"- `{PUBLIC_COMMAND} skills check` to inspect provenance and local-vs-external management",
+                    f"- `{PUBLIC_COMMAND} skills add ...` only when you are intentionally extending the skill surface",
                 ]
             )
         elif group["group"] == "maintenance":
@@ -762,9 +901,9 @@ def _render_command_map() -> str:
                 [
                     "Typical sequence:",
                     "",
-                    "- `agentctl maintenance check` for a quick control-plane inspection",
-                    "- `agentctl maintenance audit` after code or contract changes",
-                    "- `agentctl maintenance fix-docs` only when the docs need regeneration without broader change",
+                    f"- `{PUBLIC_COMMAND} maintenance check` for a quick control-plane inspection",
+                    f"- `{PUBLIC_COMMAND} maintenance audit` after code or contract changes",
+                    f"- `{PUBLIC_COMMAND} maintenance fix-docs` only when the docs need regeneration without broader change",
                 ]
             )
         lines.append("")
@@ -778,7 +917,7 @@ def _render_state_schema(report: dict[str, Any]) -> str:
         reference = "\n".join(reference_lines[1:]).lstrip()
     lines = [
         AUTO_MARKER,
-        "# Agentctl State Schema",
+        f"# {PUBLIC_PRODUCT_NAME.title()} State Schema",
         "",
         "## Deep Workflow State",
         "",
@@ -786,7 +925,7 @@ def _render_state_schema(report: dict[str, Any]) -> str:
         "",
         "## Maintenance Report Schema",
         "",
-        "The maintenance report is stored at `docs/agentctl/maintenance-report.json` and is mirrored into `.codex-workflows/agentctl-maintenance/state.json`.",
+        f"The maintenance report is stored at `docs/{PUBLIC_DOCS_DIRNAME}/maintenance-report.json` and is mirrored into `.codex-workflows/agentctl-maintenance/state.json`.",
         "",
         "Top-level report fields:",
         "",
@@ -846,7 +985,7 @@ def _render_capability_registry(report: dict[str, Any]) -> str:
     capability_items = report["capabilities_snapshot"].get("capabilities", [])
     lines = [
         AUTO_MARKER,
-        "# Agentctl Capability Registry",
+        f"# {PUBLIC_PRODUCT_NAME.title()} Capability Registry",
         "",
         "The machine-readable registry lives at `agentctl/state/capabilities.json`.",
         "",
@@ -863,18 +1002,21 @@ def _render_capability_registry(report: dict[str, Any]) -> str:
     grouped: dict[str, list[dict[str, Any]]] = {}
     for payload in capability_items:
         grouped.setdefault(payload.get("group", "other"), []).append(payload)
-    for group_key in ("control-plane", "workflow-skills", "research-and-verification", "integrations"):
+    for group in CAPABILITY_GROUPS:
+        group_key = group["key"]
         items = grouped.get(group_key, [])
         if not items:
             continue
-        lines.append(f"### {group_key.replace('-', ' ').title()}")
+        lines.append(f"### {group['label']}")
+        lines.append("")
+        lines.append(group["summary"])
         lines.append("")
         for payload in items:
             lines.append(f"- `{payload.get('key', 'unknown')}` uses `{payload.get('front_door', 'unknown')}` and is currently `{payload.get('status', 'unknown')}`.")
             lines.append(f"  - Overlap policy: {payload.get('overlap_policy', 'Not documented.')}")
             if payload.get("advisory"):
                 lines.append(f"  - Advisory: {payload['advisory']}")
-            lines.append(f"  - Page: `docs/agentctl/capabilities/{payload.get('key', 'unknown')}.md`")
+            lines.append(f"  - Page: `docs/{PUBLIC_DOCS_DIRNAME}/capabilities/{payload.get('key', 'unknown')}.md`")
         lines.append("")
     lines.extend(
         [
@@ -889,6 +1031,8 @@ def _render_capability_registry(report: dict[str, Any]) -> str:
             "- `mcp_servers`",
             "- `tools`",
             "- `capabilities`",
+            "- `capability_groups`",
+            "- `menu_budget`",
             "- `overlap_analysis`",
             "- `detect_only_tools`",
             "",
@@ -905,11 +1049,22 @@ def _render_capability_registry(report: dict[str, Any]) -> str:
                     "required_capability_count": report["capabilities_snapshot"]["summary"].get("required_capability_count", 0),
                     "optional_capability_count": report["capabilities_snapshot"]["summary"].get("optional_capability_count", 0),
                     "optional_attention_count": report["capabilities_snapshot"]["summary"].get("optional_attention_count", 0),
+                    "visible_group_count": report["capabilities_snapshot"]["summary"].get("visible_group_count", 0),
+                    "max_group_size": report["capabilities_snapshot"]["summary"].get("max_group_size", 0),
                 },
                 indent=2,
                 sort_keys=True,
             ),
             "```",
+            "",
+        ]
+    )
+    lines.extend(
+        [
+            "## Menu Budgets",
+            "",
+            f"- Top-level groups: <= {report['capabilities_snapshot'].get('menu_budget', {}).get('max_top_level_groups', 8)}",
+            f"- Items per group page: <= {report['capabilities_snapshot'].get('menu_budget', {}).get('max_group_items', 9)}",
             "",
         ]
     )
@@ -926,6 +1081,34 @@ def _render_capability_page(report: dict[str, Any], key: str) -> str:
     detail = capability_detail(report["capabilities_snapshot"], key)
     if detail is None:
         raise KeyError(f"unknown capability: {key}")
+
+    if detail.get("kind") == "group":
+        lines = [
+            AUTO_MARKER,
+            f"# {detail['label']}",
+            "",
+            f"- Key: `{detail['key']}`",
+            f"- Doc page: `docs/{PUBLIC_DOCS_DIRNAME}/capabilities/{detail['key']}.md`",
+            "",
+            detail["summary"],
+            "",
+            "## Items",
+            "",
+        ]
+        for item in detail.get("items", []):
+            optional_tag = " optional" if not item.get("required", True) else ""
+            lines.append(f"- `{item['key']}` uses `{item['front_door']}` and is currently `{item['status']}`{optional_tag}.")
+        lines.extend(
+            [
+                "",
+                "## Menu Budget",
+                "",
+                f"- Top-level groups: <= {detail.get('menu_budget', {}).get('max_top_level_groups', 8)}",
+                f"- Items per group page: <= {detail.get('menu_budget', {}).get('max_group_items', 9)}",
+                "",
+            ]
+        )
+        return "\n".join(lines).rstrip() + "\n"
 
     lines = [
         AUTO_MARKER,
@@ -994,7 +1177,7 @@ def _render_cloud_readiness(report: dict[str, Any]) -> str:
     browser_status = capabilities_by_key.get("browser-automation", {}).get("status", "unknown")
     lines = [
         AUTO_MARKER,
-        "# Agentctl Cloud Readiness",
+        f"# {PUBLIC_PRODUCT_NAME.title()} Cloud Readiness",
         "",
         "Cloud support is explicit, not assumed. A plugin install is not enough without a cloud environment that provides the required tools and auth.",
         "",
@@ -1018,8 +1201,8 @@ def _render_cloud_readiness(report: dict[str, Any]) -> str:
             "",
             "## Cloud Bring-Up Checklist",
             "",
-            "- Install the `agentctl` bundle under `$CODEX_HOME`.",
-            "- Verify `agentctl doctor` is healthy in the cloud environment itself.",
+        "- Install the `agentctl/` bundle under `$CODEX_HOME`.",
+        f"- Verify `{PUBLIC_COMMAND} doctor` is healthy in the cloud environment itself.",
             "- Verify vendor CLI auth before relying on GitHub-, Vercel-, or Supabase-backed flows.",
         "- Verify the browser route before relying on research, UI, or test workflows that need runtime inspection.",
         "- Verify the deep-run worker route before relying on unattended checklist completion. A checklist alone is not a worker.",
@@ -1039,7 +1222,7 @@ def _render_cloud_readiness(report: dict[str, Any]) -> str:
 def _render_maintenance(report: dict[str, Any]) -> str:
     lines = [
         AUTO_MARKER,
-        "# Agentctl Maintenance",
+        f"# {PUBLIC_PRODUCT_NAME.title()} Maintenance",
         "",
         "## Last Run",
         "",
@@ -1058,15 +1241,15 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "",
         "## Operator Runbook",
         "",
-        "1. Run `agentctl maintenance check` for a quick signal.",
-        "2. If command surface, docs, or packaging changed, run `agentctl maintenance audit`.",
+        f"1. Run `{PUBLIC_COMMAND} maintenance check` for a quick signal.",
+        f"2. If command surface, docs, or packaging changed, run `{PUBLIC_COMMAND} maintenance audit`.",
         "3. Read `maintenance.md`, `maintenance-report.json`, and `.codex-workflows/agentctl-maintenance/state.json` together.",
-        "4. If findings are doc-only, prefer `agentctl maintenance fix-docs` over hand edits.",
+        f"4. If findings are doc-only, prefer `{PUBLIC_COMMAND} maintenance fix-docs` over hand edits.",
         "5. Re-run the relevant tests and smoke checks before trusting a green maintenance state.",
         "",
         "## What Must Be Updated After Changes",
         "",
-        "- Refresh `docs/agentctl/*.md` from machine state.",
+        f"- Refresh `docs/{PUBLIC_DOCS_DIRNAME}/*.md` from machine state.",
         "- Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.",
         "- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.",
         "- Re-run tests for `agentctl` and the shared workflow tools.",
@@ -1078,16 +1261,16 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "",
         "- `python -m unittest discover -s agentctl/tests -p \"test_*.py\"` passes.",
         "- `python -m unittest discover -s workflow-tools/tests -p \"test_*.py\"` passes.",
-        "- A temp-repo `agentctl run <workflow>` smoke can reach a correct terminal state with a real or explicit worker command.",
+        f"- A temp-repo `{PUBLIC_COMMAND} run <workflow>` smoke can reach a correct terminal state with a real or explicit worker command.",
         "- Fresh bundle install smoke keeps `bootstrap-report.json` truthful and does not fail purely on documented degraded capabilities.",
         "",
         "## Clean State Expectations",
         "",
         "- `maintenance-report.json` has `status: ok`.",
         "- `.codex-workflows/agentctl-maintenance/state.json` has `status: complete` and `ready_allowed: true`.",
-        "- `agentctl doctor` stays compact and health-focused.",
-        "- `agentctl capabilities` stays capability-first.",
-        "- `agentctl status --all` surfaces durable active workflows and hides stale temp history by default.",
+        f"- `{PUBLIC_COMMAND} doctor` stays compact and health-focused.",
+        f"- `{PUBLIC_COMMAND} capabilities` stays capability-first.",
+        f"- `{PUBLIC_COMMAND} status --all` surfaces durable active workflows and hides stale temp history by default.",
         "",
         "## Maintenance Checklist",
         "",
@@ -1119,7 +1302,7 @@ def _write_docs(report: dict[str, Any], *, include_all: bool, include_maintenanc
         save_text(MAINTENANCE_DOCS["capability-registry"], _render_capability_registry(report))
         save_text(MAINTENANCE_DOCS["cloud-readiness"], _render_cloud_readiness(report))
         AGENTCTL_CAPABILITIES_DOCS_DIR.mkdir(parents=True, exist_ok=True)
-        for key in capability_keys(report["capabilities_snapshot"]):
+        for key in _capability_doc_keys(report):
             save_text(AGENTCTL_CAPABILITIES_DOCS_DIR / f"{key}.md", _render_capability_page(report, key))
     if include_all or include_maintenance_page:
         save_text(MAINTENANCE_DOCS["maintenance"], _render_maintenance(report))

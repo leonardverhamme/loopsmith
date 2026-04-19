@@ -1,19 +1,19 @@
-# Agentctl Maintenance Contract
+# Loopsmith Maintenance Contract
 
-The maintenance subsystem treats `agentctl` as a maintained product.
+The maintenance subsystem treats the public `loopsmith` control plane as a maintained product.
 
 Canonical outputs:
 
-- Human docs: `../../docs/agentctl/*.md`
-- Machine report: `../../docs/agentctl/maintenance-report.json`
+- Human docs: `../../docs/loopsmith/*.md`
+- Machine report: `../../docs/loopsmith/maintenance-report.json`
 - Machine state: `../../.codex-workflows/agentctl-maintenance/state.json`
 
 Required maintenance commands:
 
-- `agentctl maintenance check`
-- `agentctl maintenance audit`
-- `agentctl maintenance fix-docs`
-- `agentctl maintenance render-report`
+- `loopsmith maintenance check`
+- `loopsmith maintenance audit`
+- `loopsmith maintenance fix-docs`
+- `loopsmith maintenance render-report`
 
 Checks covered in v1:
 

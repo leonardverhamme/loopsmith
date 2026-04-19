@@ -3,9 +3,9 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agentctl"
+name = "loopsmith"
 version = "0.1.0"
-description = "Bootstrap wrapper for the public capability-first Codex control plane."
+description = "Capability-first Codex control plane for long-running developer workflows."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -25,11 +25,13 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/leonardverhamme/agentctl"
-Repository = "https://github.com/leonardverhamme/agentctl"
-Issues = "https://github.com/leonardverhamme/agentctl/issues"
+Homepage = "https://github.com/leonardverhamme/loopsmith"
+Repository = "https://github.com/leonardverhamme/loopsmith"
+Issues = "https://github.com/leonardverhamme/loopsmith/issues"
 
 [project.scripts]
+loopsmith = "agentctl.bootstrap:main"
+loopsmith-bootstrap = "agentctl.bootstrap:main"
 agentctl = "agentctl.bootstrap:main"
 agentctl-bootstrap = "agentctl.bootstrap:main"
 

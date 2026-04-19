@@ -16,10 +16,10 @@ from lib import maintenance
 class MaintenanceTests(unittest.TestCase):
     def _patch_paths(self, root: Path) -> list[mock._patch]:
         agentctl_home = root / "agentctl"
-        docs_dir = root / "docs" / "agentctl"
+        docs_dir = root / "docs" / "loopsmith"
         capability_docs_dir = docs_dir / "capabilities"
         refs_dir = agentctl_home / "references"
-        plugin_dir = root / "plugins" / "agentctl"
+        plugin_dir = root / "plugins" / "loopsmith"
         patches = [
             mock.patch.object(maintenance, "AGENTCTL_HOME", agentctl_home),
             mock.patch.object(maintenance, "AGENTCTL_DOCS_DIR", docs_dir),
@@ -72,9 +72,14 @@ class MaintenanceTests(unittest.TestCase):
                 "playwright": {"status": "ok"},
             },
             "capabilities": [
-                {"key": "browser-automation", "status": "ok", "front_door": "$playwright", "overlap_policy": "test"},
-                {"key": "research", "status": "ok", "front_door": "agentctl research", "overlap_policy": "test"},
+                {"key": "browser-automation", "status": "ok", "front_door": "$playwright", "overlap_policy": "test", "group": "browser-design"},
+                {"key": "research", "status": "ok", "front_door": "loopsmith research", "overlap_policy": "test", "group": "research"},
             ],
+            "capability_groups": [
+                {"key": "research", "label": "Research", "count": 1},
+                {"key": "browser-design", "label": "Browser & Design", "count": 1},
+            ],
+            "menu_budget": {"max_top_level_groups": 8, "max_group_items": 9},
             "overlap_analysis": [],
             "detect_only_tools": [],
         }
@@ -111,9 +116,9 @@ class MaintenanceTests(unittest.TestCase):
 
             skill_dir = root / "skills" / "agentctl-maintenance-engineer"
             skill_dir.mkdir(parents=True, exist_ok=True)
-            plugin_manifest = root / "plugins" / "agentctl" / ".codex-plugin" / "plugin.json"
+            plugin_manifest = root / "plugins" / "loopsmith" / ".codex-plugin" / "plugin.json"
             plugin_manifest.parent.mkdir(parents=True, exist_ok=True)
-            plugin_manifest.write_text(json.dumps({"name": "agentctl"}), encoding="utf-8")
+            plugin_manifest.write_text(json.dumps({"name": "loopsmith"}), encoding="utf-8")
             tests_dir = root / "agentctl" / "tests"
             tests_dir.mkdir(parents=True, exist_ok=True)
             for name in (
@@ -129,13 +134,13 @@ class MaintenanceTests(unittest.TestCase):
                 "test_maintenance.py",
             ):
                 (tests_dir / name).write_text("pass\n", encoding="utf-8")
-            router_skill = root / "plugins" / "agentctl" / "skills" / "agentctl-router" / "SKILL.md"
+            router_skill = root / "plugins" / "loopsmith" / "skills" / "agentctl-router" / "SKILL.md"
             router_skill.parent.mkdir(parents=True, exist_ok=True)
             router_skill.write_text("---\nname: agentctl-router\ndescription: test\n---\n", encoding="utf-8")
-            (root / "config.toml").write_text('[plugins."agentctl"]\nenabled = true\n', encoding="utf-8")
-            docs_dir = root / "docs" / "agentctl"
+            (root / "config.toml").write_text('[plugins."loopsmith"]\nenabled = true\n', encoding="utf-8")
+            docs_dir = root / "docs" / "loopsmith"
             docs_dir.mkdir(parents=True, exist_ok=True)
-            (root / "README.md").write_text("# agentctl\n", encoding="utf-8")
+            (root / "README.md").write_text("# loopsmith\n", encoding="utf-8")
             for name in (
                 "zero-touch-setup.md",
                 "install-on-another-computer.md",
@@ -152,11 +157,11 @@ class MaintenanceTests(unittest.TestCase):
                     stack.enter_context(patcher)
                 report = maintenance.maintenance_fix_docs()
 
-                overview = (root / "docs" / "agentctl" / "overview.md").read_text(encoding="utf-8")
-                capability_page = (root / "docs" / "agentctl" / "capabilities" / "research.md").read_text(encoding="utf-8")
+                overview = (root / "docs" / "loopsmith" / "overview.md").read_text(encoding="utf-8")
+                capability_page = (root / "docs" / "loopsmith" / "capabilities" / "research.md").read_text(encoding="utf-8")
                 state = json.loads((root / ".codex-workflows" / "agentctl-maintenance" / "state.json").read_text(encoding="utf-8"))
 
-            self.assertIn("agentctl:auto-generated", overview)
+            self.assertIn("loopsmith:auto-generated", overview)
             self.assertIn("# Research", capability_page)
             self.assertEqual(report["summary"]["status"], "ok")
             self.assertTrue(state["ready_allowed"])

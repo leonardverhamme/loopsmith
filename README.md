@@ -1,173 +1,147 @@
-# agentctl
+# loopsmith
 
-`agentctl` is a public, capability-first Codex bundle for long-running agent workflows.
+`loopsmith` is a capability-first Codex control plane for long-running agent work.
 
-It packages:
+It gives agents one stable front door for:
 
-- `agentctl` as a thin control plane
-- reusable skills for UI, testing, docs, refactor, CI/CD, research, and maintenance
-- the shared deep-workflow runner and guard
-- a local Codex plugin shell for routing and maintenance
-- zero-touch bootstrap plus explicit unattended-worker health checks
+- capability discovery
+- deep workflow launch and resume
+- research routing
+- install health
+- upgrade and maintenance
 
-The design goal is simple: give coding agents one stable front door for capability discovery, workflow launch, and state tracking without replacing the authoritative tools underneath.
+It does not replace the authoritative tools underneath. It routes into them.
 
-## What It Is
+## 5-Minute Setup
 
-`agentctl` does four things:
-
-1. discovers what capabilities exist and what is healthy
-2. routes research through one interface
-3. launches and resumes deep, checklist-driven workflows
-4. keeps installs and workflow state machine-readable
-
-It does **not** replace:
-
-- the `skills` CLI or `gh skill`
-- vendor CLIs such as `gh`, `vercel`, or `supabase`
-- Playwright as the browser authority
-- Codex itself as the execution engine
-
-## Repo Layout
-
-This repository is structured as a portable `$CODEX_HOME` bundle:
-
-- `agentctl/`
-- `workflow-tools/`
-- `skills/`
-- `plugins/agentctl/`
-- `docs/agentctl/`
-- `AGENTS.md`
-- `config.toml`
-
-## Quick Start
-
-### Option 0: Install as a package
-
-If you want a terminal-installable front door first, install the bootstrap wrapper:
+Install the public wrapper:
 
 ```powershell
-pipx install git+https://github.com/leonardverhamme/agentctl.git
-agentctl bootstrap
-agentctl doctor
+pipx install git+https://github.com/leonardverhamme/loopsmith.git
 ```
 
-You can also use `pip` instead of `pipx`, but `pipx` is the cleaner default for a user-facing CLI.
-
-What this does:
-
-- installs a small `agentctl` wrapper on your PATH
-- bootstraps the real bundle into your `CODEX_HOME`
-- keeps the same `agentctl` command as the public front door after bootstrap
-
-If you already have a local checkout and want to bootstrap from it instead of downloading the public archive:
+Bootstrap the real bundle into your `CODEX_HOME`:
 
 ```powershell
-agentctl bootstrap --source-root C:\path\to\agentctl
+loopsmith bootstrap
 ```
 
-### Option 1: Run from the clone
-
-If you want to work on the bundle directly, set `CODEX_HOME` to the repository root and run `agentctl` from there.
-
-PowerShell:
+Repair common setup issues and confirm health:
 
 ```powershell
-$env:CODEX_HOME = (Get-Location).Path
-python .\agentctl\agentctl.py doctor
+loopsmith doctor --fix
 ```
 
-Bash:
+That is the main onboarding path.
 
-```bash
-export CODEX_HOME="$PWD"
-python3 ./agentctl/agentctl.py doctor
-```
+`loopsmith` is the canonical public command. `agentctl` still works as a compatibility alias for the current migration release.
 
-### Option 2: Install into your real `$CODEX_HOME`
+## What You Get
 
-Run the installer script:
-
-```powershell
-python .\scripts\install_bundle.py
-```
-
-This is the zero-touch path. It installs the bundle, enables the plugin, runs post-install health checks, and writes a machine-readable bootstrap report under `agentctl/state/bootstrap-report.json`.
-
-By default it installs into:
-
-- Windows: `%USERPROFILE%\\.codex`
-- macOS/Linux: `$HOME/.codex`
-
-You can override the target:
-
-```powershell
-python .\scripts\install_bundle.py --codex-home C:\Users\you\.codex
-```
-
-After install, you can use the generated wrapper or call the Python entrypoint directly:
-
-```powershell
-agentctl.cmd doctor
-agentctl.cmd capabilities
-```
-
-or
-
-```powershell
-python %CODEX_HOME%\agentctl\agentctl.py doctor
-```
-
-On macOS or Linux:
-
-```bash
-sh ./agentctl.sh doctor
-```
-
-## Documentation Map
-
-Start here when you need the docs by job instead of by filename:
-
-- [docs/agentctl/overview.md](docs/agentctl/overview.md) for the generated control-plane summary
-- [docs/agentctl/zero-touch-setup.md](docs/agentctl/zero-touch-setup.md) for one-command bootstrap
-- [docs/agentctl/install-on-another-computer.md](docs/agentctl/install-on-another-computer.md) for moving the bundle to a new machine
-- [docs/agentctl/unattended-worker-setup.md](docs/agentctl/unattended-worker-setup.md) for making deep workflow loops actually run unattended
-- [docs/agentctl/skill-governance.md](docs/agentctl/skill-governance.md) for the rules that keep local skills thin, visible, and capability-first
-- [docs/agentctl/maintainer-guide.md](docs/agentctl/maintainer-guide.md) for operator and maintainer responsibilities
-
-## Zero-Touch Agent Setup
-
-If you want to hand this bundle to an agent and let it set itself up, use the installer as the single bootstrap command:
-
-```powershell
-python .\scripts\install_bundle.py
-```
-
-The installed bundle then discovers the already-present skills, plugins, MCP servers, and CLIs on the machine and exposes them through `agentctl` as capabilities.
-
-See [docs/agentctl/zero-touch-setup.md](docs/agentctl/zero-touch-setup.md) for the full bootstrap and script-placement rules.
-For a full move to a fresh machine, including release-bundle and wrapper expectations, also see [docs/agentctl/install-on-another-computer.md](docs/agentctl/install-on-another-computer.md).
+- `loopsmith` as the public wrapper command
+- the internal `agentctl/` bundle under `CODEX_HOME`
+- reusable local skills for UI, tests, docs, refactor, CI/CD, research, and maintenance
+- a local plugin shell for Codex routing
+- deep workflow state under `.codex-workflows/<workflow>/state.json`
 
 ## Core Commands
 
 ```text
-agentctl doctor
-agentctl capabilities
-agentctl status --all
-agentctl run <workflow>
-agentctl research web <query>
-agentctl research github <query>
-agentctl research scout <query>
-agentctl skills list
-agentctl skills add <source>
-agentctl skills check
-agentctl skills update
-agentctl maintenance audit
+loopsmith doctor --fix
+loopsmith capabilities
+loopsmith capability <key>
+loopsmith status --all
+loopsmith run <workflow>
+loopsmith research web <query>
+loopsmith research github <query>
+loopsmith research scout <query>
+loopsmith config show
+loopsmith self-check
+loopsmith upgrade
+loopsmith maintenance audit
 ```
+
+## Examples
+
+Install on the current machine:
+
+```powershell
+pipx install git+https://github.com/leonardverhamme/loopsmith.git
+loopsmith bootstrap
+loopsmith doctor --fix
+```
+
+Install on another computer from a local checkout:
+
+```powershell
+git clone https://github.com/leonardverhamme/loopsmith.git
+cd loopsmith
+python .\scripts\install_bundle.py --codex-home C:\Users\you\.codex
+```
+
+Bootstrap from a local checkout during development:
+
+```powershell
+loopsmith bootstrap --source-root C:\path\to\loopsmith
+```
+
+Run a deep workflow:
+
+```powershell
+loopsmith run docs-deep-audit --repo C:\path\to\repo
+```
+
+Upgrade later:
+
+```powershell
+loopsmith upgrade
+loopsmith self-check
+```
+
+## Config Layers
+
+`loopsmith` uses a small structured config system with clear precedence:
+
+1. bundled defaults
+2. user-global config at `$CODEX_HOME/config.toml`
+3. repo-local config at `<repo>/.loopsmith/config.toml`
+
+Use:
+
+```powershell
+loopsmith config show
+loopsmith config path --scope user
+loopsmith config set worker.mode auto
+loopsmith config set browser.preferred_route cli --scope repo --repo C:\path\to\repo
+loopsmith config unset browser.preferred_route --scope repo --repo C:\path\to\repo
+```
+
+Structured config is intentionally small. Use `AGENTS.md` for natural-language guidance.
+
+## Grouped Capability Navigation
+
+The default capability menu is grouped so the top-level surface stays small:
+
+- Core
+- Workflows
+- Research
+- Platforms
+- Browser & Design
+- Native
+
+Use:
+
+```powershell
+loopsmith capabilities
+loopsmith capability platforms
+loopsmith capability github-advanced-security
+```
+
+The detailed routing notes live in generated capability pages under `docs/loopsmith/capabilities/`.
 
 ## Deep Workflows
 
-The bundled deep workflows are:
+Bundled deep workflows:
 
 - `ui-deep-audit`
 - `test-deep-audit`
@@ -175,115 +149,65 @@ The bundled deep workflows are:
 - `cicd-deep-audit`
 - `refactor-deep-audit`
 
-Each uses repo-local JSON state at:
+Each workflow is disk-backed:
+
+- checklist or progress markdown in the target repo
+- machine state in `.codex-workflows/<workflow>/state.json`
+
+For unattended execution, the loop still needs a real worker route. `loopsmith` supports:
+
+- `--worker-command`
+- `CODEX_WORKFLOW_WORKER_COMMAND`
+- `AGENTCTL_CODEX_WORKER_TEMPLATE`
+- a callable standalone Codex CLI when auto-detected
+
+## Install and Upgrade Model
+
+The public wrapper is installable as a Python package.
+
+The real bundle is installed into `CODEX_HOME` by `loopsmith bootstrap` and upgraded by `loopsmith upgrade`.
+
+Install metadata is written to:
 
 ```text
-.codex-workflows/<workflow>/state.json
+agentctl/state/install-metadata.json
 ```
 
-The runner owns repetition, retries, and stop conditions. The skill remains the judgment-heavy worker.
+That metadata lets upgrades use the recorded source and version channel instead of guessing.
 
-Unattended execution only counts when a real worker runtime exists. Use `--worker-command`, `CODEX_WORKFLOW_WORKER_COMMAND`, or `AGENTCTL_CODEX_WORKER_TEMPLATE` instead of relying on chat repetition.
+## Compatibility
 
-The operator guide for worker routing, guard behavior, and loop troubleshooting lives at [docs/agentctl/unattended-worker-setup.md](docs/agentctl/unattended-worker-setup.md).
+This release intentionally keeps:
 
-## Verified Loop Behavior
+- the internal Python package name as `agentctl`
+- the internal bundle directory as `agentctl/`
+- `agentctl` as a compatibility command alias
 
-The deep-workflow loop is verified in the repo, not just described:
+That keeps existing installs and repo assumptions stable while the public product name changes to `loopsmith`.
 
-- the shared runner reaches `complete` with `ready_allowed=true` when the checklist is fully cleared
-- repeated no-progress runs end as `stalled`
-- all-blocked checklists end as `blocked`
-- `agentctl run ...` is covered end-to-end against the fake worker in a temp repo
-- shared registry updates are covered for concurrent deep runs so parallel workflows do not lose entries
+## Documentation Map
 
-The remaining environment-dependent part is a real unattended Codex worker route on the local machine. The deterministic loop is covered; the worker runtime still depends on the machine or cloud environment.
+- [docs/loopsmith/overview.md](docs/loopsmith/overview.md)
+- [docs/loopsmith/zero-touch-setup.md](docs/loopsmith/zero-touch-setup.md)
+- [docs/loopsmith/install-on-another-computer.md](docs/loopsmith/install-on-another-computer.md)
+- [docs/loopsmith/unattended-worker-setup.md](docs/loopsmith/unattended-worker-setup.md)
+- [docs/loopsmith/maintainer-guide.md](docs/loopsmith/maintainer-guide.md)
+- [docs/loopsmith/skill-governance.md](docs/loopsmith/skill-governance.md)
 
-## Optional Integrations
+## Release Model
 
-This repo is intentionally capability-first. Optional integrations are surfaced as capabilities, but they are not treated as baseline failures when missing.
-
-Examples:
-
-- GitHub
-- Vercel
-- Supabase
-- Stripe
-- Sentry
-- Figma
-- Next.js DevTools
-- platform-specific iOS/macOS/Android plugins
+- Python package: `loopsmith`
+- canonical repo: `https://github.com/leonardverhamme/loopsmith`
+- GitHub Releases carry the versioned bundle zip used by `bootstrap` and `upgrade`
+- tagged releases build wheel, sdist, bundle zip, checksum, and publish to PyPI
 
 ## Maintenance
 
-Treat `agentctl` as a maintained product.
-
-Use:
+Treat the control plane as a maintained product:
 
 ```powershell
-python .\agentctl\agentctl.py maintenance audit
+loopsmith maintenance audit
+loopsmith self-check
 ```
 
-That refreshes:
-
-- `docs/agentctl/*.md`
-- `docs/agentctl/maintenance-report.json`
-- `.codex-workflows/agentctl-maintenance/state.json`
-
-For the full maintainer playbook, including which docs are generated and which stay hand-maintained, see [docs/agentctl/maintainer-guide.md](docs/agentctl/maintainer-guide.md).
-
-## Browser Support
-
-`agentctl` keeps Playwright as the browser authority. For full browser-backed verification, ensure a Chromium-compatible browser route is available.
-
-Typical fix:
-
-```powershell
-npx playwright install chromium
-```
-
-Local browser smoke regression:
-
-```powershell
-$env:AGENTCTL_RUN_BROWSER_SMOKE="1"
-$env:AGENTCTL_BROWSER="msedge"
-python -m unittest discover -s agentctl/tests -p "test_browser_smoke.py"
-```
-
-## CI
-
-This repo ships with a reusable GitHub Actions verification workflow at `.github/workflows/verify.yml`.
-
-The main `CI` workflow is just the repo-facing trigger layer. It calls the shared verification workflow on push, pull request, and manual dispatch so the verification surface stays identical everywhere.
-
-The shared verification workflow runs:
-
-- Python source compilation for `agentctl/`, `workflow-tools/`, and `scripts/`
-- `agentctl` unit tests
-- a real Playwright browser smoke regression on Windows using the agent-facing wrapper
-- `workflow-tools` unit tests
-- a maintenance audit smoke test in repo-local mode
-- an isolated bundle-install smoke test that runs the installed `agentctl`
-- a maintenance artifact upload from the bundle-smoke path
-
-The `CI` trigger workflow is manually runnable with `workflow_dispatch` and uses workflow-level concurrency to cancel stale in-progress runs for the same branch or pull request.
-
-## Releases
-
-This repo also ships a tag-driven release workflow.
-
-- Push a tag such as `v1.0.0`, or
-- run the `Release` workflow manually with a version input
-
-The release workflow:
-
-- reruns the same shared verification workflow used by normal CI
-- builds a reproducible `agentctl-<version>.zip` bundle
-- builds a Python package (`sdist` and `wheel`) for terminal installation
-- writes a matching SHA-256 file
-- uploads both as workflow artifacts
-- publishes them to the matching GitHub release
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+The maintenance pass refreshes generated docs, checks plugin/config health, enforces grouped-menu budgets, and blocks reintroduced sidecar-app coupling in the product surface.

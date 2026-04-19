@@ -11,9 +11,11 @@ BUNDLE_ITEMS = [
     "workflow-tools",
     "skills",
     "plugins",
-    "docs/agentctl",
+    "docs/loopsmith",
     "scripts",
     "AGENTS.md",
+    "loopsmith.cmd",
+    "loopsmith.sh",
     "agentctl.cmd",
     "agentctl.sh",
     "README.md",
@@ -45,7 +47,7 @@ def sha256_for(path: Path) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Build a zip release bundle for agentctl.")
+    parser = argparse.ArgumentParser(description="Build a zip release bundle for loopsmith.")
     parser.add_argument("--version", required=True, help="Version label used in the zip filename, e.g. v1.0.0")
     parser.add_argument("--output-dir", default="dist", help="Output directory for the bundle")
     args = parser.parse_args()
@@ -54,7 +56,7 @@ def main() -> int:
     output_dir = (source_root / args.output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    archive_path = output_dir / f"agentctl-{args.version}.zip"
+    archive_path = output_dir / f"loopsmith-bundle-{args.version}.zip"
     with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
         for relative in BUNDLE_ITEMS:
             add_path(bundle, source_root, relative)

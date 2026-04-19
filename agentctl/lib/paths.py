@@ -3,15 +3,27 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from .branding import (
+    LEGACY_DOCS_DIRNAME,
+    LEGACY_PLUGIN_NAMES,
+    PUBLIC_DOCS_DIRNAME,
+    PUBLIC_PLUGIN_NAME,
+)
 
 CODEX_HOME = Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex")).resolve()
+SOURCE_REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENTCTL_HOME = CODEX_HOME / "agentctl"
 STATE_DIR = AGENTCTL_HOME / "state"
 REFERENCES_DIR = AGENTCTL_HOME / "references"
 DOCS_DIR = CODEX_HOME / "docs"
-AGENTCTL_DOCS_DIR = DOCS_DIR / "agentctl"
+AGENTCTL_DOCS_DIR = DOCS_DIR / PUBLIC_DOCS_DIRNAME
+LEGACY_AGENTCTL_DOCS_DIR = DOCS_DIR / LEGACY_DOCS_DIRNAME
 AGENTCTL_CAPABILITIES_DOCS_DIR = AGENTCTL_DOCS_DIR / "capabilities"
 WORKFLOW_TOOLS_DIR = CODEX_HOME / "workflow-tools"
+if not WORKFLOW_TOOLS_DIR.exists():
+    source_workflow_tools = SOURCE_REPO_ROOT / "workflow-tools"
+    if source_workflow_tools.exists():
+        WORKFLOW_TOOLS_DIR = source_workflow_tools
 WORKFLOW_REGISTRY_PATH = CODEX_HOME / "workflow-state" / "registry.json"
 SKILLS_DIR = CODEX_HOME / "skills"
 PLUGINS_DIR = CODEX_HOME / "plugins"
@@ -21,14 +33,16 @@ PLAYWRIGHT_WRAPPER_CMD = AGENTCTL_HOME / "playwright.cmd"
 CAPABILITIES_PATH = STATE_DIR / "capabilities.json"
 DOCTOR_REPORT_PATH = STATE_DIR / "doctor-report.json"
 SKILLS_LOCK_PATH = STATE_DIR / "skills-lock.json"
+INSTALL_METADATA_PATH = STATE_DIR / "install-metadata.json"
 MAINTENANCE_REPORT_PATH = AGENTCTL_DOCS_DIR / "maintenance-report.json"
 MAINTENANCE_STATE_PATH = CODEX_HOME / ".codex-workflows" / "agentctl-maintenance" / "state.json"
 STATE_SCHEMA_REFERENCE_PATH = REFERENCES_DIR / "state-schema.md"
 CAPABILITY_REGISTRY_REFERENCE_PATH = REFERENCES_DIR / "capability-registry.md"
 MAINTENANCE_CONTRACT_REFERENCE_PATH = REFERENCES_DIR / "maintenance-contract.md"
 CLOUD_READINESS_REFERENCE_PATH = REFERENCES_DIR / "cloud-readiness.md"
-AGENTCTL_PLUGIN_NAME = "agentctl"
+AGENTCTL_PLUGIN_NAME = PUBLIC_PLUGIN_NAME
 AGENTCTL_PLUGIN_DIR = PLUGINS_DIR / AGENTCTL_PLUGIN_NAME
 AGENTCTL_PLUGIN_MANIFEST_PATH = AGENTCTL_PLUGIN_DIR / ".codex-plugin" / "plugin.json"
 AGENTCTL_PLUGIN_ROUTER_SKILL_DIR = AGENTCTL_PLUGIN_DIR / "skills" / "agentctl-router"
 AGENTCTL_MAINTENANCE_SKILL_DIR = SKILLS_DIR / "agentctl-maintenance-engineer"
+LEGACY_PLUGIN_DIRS = tuple(PLUGINS_DIR / name for name in LEGACY_PLUGIN_NAMES)

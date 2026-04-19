@@ -23,7 +23,7 @@ from agentctl.bundle_install import (  # noqa: E402
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Install the agentctl bundle into a CODEX_HOME directory.")
+    parser = argparse.ArgumentParser(description="Install the loopsmith bundle into a CODEX_HOME directory.")
     parser.add_argument("--codex-home", help="Target CODEX_HOME. Defaults to $CODEX_HOME or ~/.codex")
     parser.add_argument("--skip-post-checks", action="store_true", help="Skip post-install doctor/capabilities/maintenance checks")
     args = parser.parse_args()
@@ -32,7 +32,7 @@ def main() -> int:
     target_root = Path(args.codex_home).resolve() if args.codex_home else default_codex_home()
     summary = install_bundle(source_root=source_root, target_root=target_root, skip_post_checks=args.skip_post_checks)
 
-    print(f"Installed agentctl into {target_root}")
+    print(f"Installed loopsmith into {target_root}")
     print(f"Run: python {target_root / 'agentctl' / 'agentctl.py'} doctor")
     if args.skip_post_checks:
         print("Post-install checks: skipped")

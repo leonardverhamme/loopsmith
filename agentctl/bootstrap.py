@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from .bundle_install import DEFAULT_REPO_URL, bootstrap_bundle, default_codex_home
+from .lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_PRODUCT_NAME
 
 
 def _installed_entry(codex_home: Path) -> Path:
@@ -22,11 +23,12 @@ def _delegate(args: list[str], codex_home: Path) -> int:
 
 
 def _bootstrap_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="agentctl bootstrap", description="Bootstrap the public agentctl bundle into CODEX_HOME.")
+    parser = argparse.ArgumentParser(prog=f"{PUBLIC_COMMAND} bootstrap", description=f"Bootstrap the public {PUBLIC_PRODUCT_NAME} bundle into CODEX_HOME.")
     parser.add_argument("--codex-home", help="Target CODEX_HOME. Defaults to $CODEX_HOME or ~/.codex")
     parser.add_argument("--source-root", help="Install from a local checkout instead of downloading the public repo archive")
-    parser.add_argument("--repo-url", default=DEFAULT_REPO_URL, help="GitHub repo URL used when downloading the public bundle archive")
-    parser.add_argument("--ref", default="main", help="Git ref to download when bootstrapping from GitHub")
+    parser.add_argument("--repo-url", default=DEFAULT_REPO_URL, help="GitHub repo URL used when downloading release assets or fallback archives")
+    parser.add_argument("--version", help="Release version tag to bootstrap, for example v0.1.0. Defaults to the latest release.")
+    parser.add_argument("--ref", default="main", help="Fallback git ref used only when release assets are unavailable")
     parser.add_argument("--ref-type", choices=("branch", "tag"), default="branch", help="Interpret --ref as a branch or tag")
     parser.add_argument("--skip-post-checks", action="store_true", help="Skip post-install doctor/capabilities/maintenance checks")
     return parser
@@ -41,11 +43,12 @@ def _bootstrap(argv: list[str]) -> int:
         target_root=target_root,
         source_root=source_root,
         repo_url=args.repo_url,
+        version=args.version,
         ref=args.ref,
         ref_type=args.ref_type,
         skip_post_checks=args.skip_post_checks,
     )
-    print(f"Installed agentctl into {target_root}")
+    print(f"Installed {PUBLIC_PRODUCT_NAME} into {target_root}")
     if summary.get("post_checks") is not None:
         print(f"Post-install checks: {summary['status']}")
         print(f"Bootstrap report: {target_root / 'agentctl' / 'state' / 'bootstrap-report.json'}")
@@ -55,15 +58,15 @@ def _bootstrap(argv: list[str]) -> int:
 
 
 def _print_wrapper_help() -> None:
-    print("agentctl package wrapper")
+    print(f"{PUBLIC_PRODUCT_NAME} package wrapper")
     print("")
-    print("Use `agentctl bootstrap` to install the public bundle into CODEX_HOME.")
-    print("After bootstrap, the same `agentctl` command delegates to the installed bundle.")
+    print(f"Use `{PUBLIC_COMMAND} bootstrap` to install the public bundle into CODEX_HOME.")
+    print(f"After bootstrap, both `{PUBLIC_COMMAND}` and `{COMPATIBILITY_COMMAND}` delegate to the installed bundle.")
     print("")
     print("Examples")
-    print("- agentctl bootstrap")
-    print("- agentctl bootstrap --source-root C:\\path\\to\\agentctl")
-    print("- agentctl doctor")
+    print(f"- {PUBLIC_COMMAND} bootstrap")
+    print(f"- {PUBLIC_COMMAND} bootstrap --source-root C:\\path\\to\\{PUBLIC_PRODUCT_NAME}")
+    print(f"- {PUBLIC_COMMAND} doctor")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -82,8 +85,12 @@ def main(argv: list[str] | None = None) -> int:
     if _installed_entry(codex_home).exists():
         return _delegate(args, codex_home)
 
-    print("agentctl bundle is not installed in CODEX_HOME.", file=sys.stderr)
-    print("Run `agentctl bootstrap` first, or use `agentctl bootstrap --source-root <repo>` from a local checkout.", file=sys.stderr)
+    print(f"{PUBLIC_PRODUCT_NAME} bundle is not installed in CODEX_HOME.", file=sys.stderr)
+    print(
+        f"Run `{PUBLIC_COMMAND} bootstrap` first (or `{COMPATIBILITY_COMMAND} bootstrap`), "
+        f"or use `{PUBLIC_COMMAND} bootstrap --source-root <repo>` from a local checkout.",
+        file=sys.stderr,
+    )
     return 2
 
 

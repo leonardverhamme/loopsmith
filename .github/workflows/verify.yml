@@ -63,12 +63,12 @@ jobs:
 
       - name: Install bundle into isolated CODEX_HOME
         env:
-          BUNDLE_CODEX_HOME: ${{ runner.temp }}/agentctl-codex-home
+          BUNDLE_CODEX_HOME: ${{ runner.temp }}/loopsmith-codex-home
         run: python scripts/install_bundle.py --codex-home "$BUNDLE_CODEX_HOME"
 
-      - name: Smoke installed agentctl commands
+      - name: Smoke installed loopsmith commands
         env:
-          BUNDLE_CODEX_HOME: ${{ runner.temp }}/agentctl-codex-home
+          BUNDLE_CODEX_HOME: ${{ runner.temp }}/loopsmith-codex-home
         run: |
           python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" doctor --json
           python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" capabilities --json
@@ -78,8 +78,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agentctl-maintenance-report
-          path: ${{ runner.temp }}/agentctl-codex-home/docs/agentctl/maintenance-report.json
+          name: loopsmith-maintenance-report
+          path: ${{ runner.temp }}/loopsmith-codex-home/docs/loopsmith/maintenance-report.json
           retention-days: 14
 
   package-smoke:
@@ -102,6 +102,12 @@ jobs:
           python -m pip install .
 
       - name: Smoke package wrapper bootstrap help
+        env:
+          BUNDLE_CODEX_HOME: ${{ runner.temp }}/loopsmith-package-home
         run: |
           . .venv-package/bin/activate
+          loopsmith bootstrap --help
           agentctl bootstrap --help
+          CODEX_HOME="$BUNDLE_CODEX_HOME" loopsmith bootstrap --source-root "$GITHUB_WORKSPACE"
+          python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" doctor --json
+          python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" self-check --json

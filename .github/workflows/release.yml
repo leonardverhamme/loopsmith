@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref_name || inputs.version }}
@@ -41,13 +42,21 @@ jobs:
           python -m pip install build
           python -m build --sdist --wheel --outdir dist
 
+      - name: Verify Python distributions
+        run: |
+          python -m pip install twine
+          twine check dist/*
+
       - name: Build release bundle
         run: python scripts/build_release_bundle.py --version "$RELEASE_VERSION" --output-dir dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Upload release bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: agentctl-${{ env.RELEASE_VERSION }}
+          name: loopsmith-${{ env.RELEASE_VERSION }}
           path: |
             dist/*.zip
             dist/*.sha256
@@ -64,3 +73,15 @@ jobs:
           else
             gh release create "$RELEASE_VERSION" dist/* --title "$RELEASE_VERSION" --generate-notes
           fi
+
+      - name: Smoke bootstrap from released artifacts
+        env:
+          BUNDLE_CODEX_HOME: ${{ runner.temp }}/loopsmith-release-home
+        run: |
+          python -m venv .venv-release
+          . .venv-release/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install dist/*.whl
+          CODEX_HOME="$BUNDLE_CODEX_HOME" loopsmith bootstrap --version "$RELEASE_VERSION"
+          python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" doctor --json
+          python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" self-check --json

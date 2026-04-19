@@ -1,2 +1,2 @@
-[plugins."agentctl"]
+[plugins."loopsmith"]
 enabled = true

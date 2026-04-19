@@ -8,8 +8,10 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+from .branding import LEGACY_PLUGIN_NAMES, PUBLIC_COMMAND, PUBLIC_DOCS_DIRNAME, PUBLIC_PRODUCT_NAME
 from .codex_runtime import detect_codex_runtime
 from .common import command_path, print_json, run_command, utc_now
+from .config_layers import effective_config
 from .paths import AGENTCTL_CAPABILITIES_DOCS_DIR, CONFIG_PATH, PLAYWRIGHT_WRAPPER, PLAYWRIGHT_WRAPPER_CMD, SKILLS_DIR
 
 
@@ -17,13 +19,13 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "autonomous-deep-runs",
         "label": "Autonomous deep runs",
-        "group": "control-plane",
+        "group": "core",
         "required": True,
         "front_door": "$autonomous-deep-runs-capability",
         "entrypoints": [
             "$autonomous-deep-runs-capability",
-            "agentctl capability autonomous-deep-runs",
-            "agentctl run <workflow>",
+            f"{PUBLIC_COMMAND} capability autonomous-deep-runs",
+            f"{PUBLIC_COMMAND} run <workflow>",
             "CODEX_WORKFLOW_WORKER_COMMAND",
             "AGENTCTL_CODEX_WORKER_TEMPLATE",
         ],
@@ -33,23 +35,23 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
         "overlap_policy": "The outer execute-until-done loop must use a real worker command, not chat memory. Prefer Codex runtime when it is callable or explicitly templated.",
         "summary": "Use for launching, resuming, and diagnosing unattended deep workflows through the shared runner.",
         "routing_notes": [
-            "Start with the capability skill, then route into `agentctl run <workflow>`.",
+            f"Start with the capability skill, then route into `{PUBLIC_COMMAND} run <workflow>`.",
             "A real worker command or `AGENTCTL_CODEX_WORKER_TEMPLATE` is still required for unattended execution.",
         ],
     },
     {
         "key": "skills-management",
         "label": "Skills management",
-        "group": "control-plane",
+        "group": "core",
         "required": True,
         "front_door": "$skills-management-capability",
         "entrypoints": [
             "$skills-management-capability",
-            "agentctl capability skills-management",
-            "agentctl skills list",
-            "agentctl skills add",
-            "agentctl skills check",
-            "agentctl skills update",
+            f"{PUBLIC_COMMAND} capability skills-management",
+            f"{PUBLIC_COMMAND} skills list",
+            f"{PUBLIC_COMMAND} skills add",
+            f"{PUBLIC_COMMAND} skills check",
+            f"{PUBLIC_COMMAND} skills update",
         ],
         "skills": ["skills-management-capability"],
         "interfaces": ["tool:skills", "tool:npx"],
@@ -63,20 +65,20 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     },
     {
         "key": "agentctl-maintenance",
-        "label": "Agentctl maintenance",
-        "group": "control-plane",
+        "label": "Loopsmith maintenance",
+        "group": "core",
         "required": True,
         "front_door": "$agentctl-maintenance-engineer",
-        "entrypoints": ["agentctl maintenance check", "agentctl maintenance audit", "agentctl maintenance fix-docs"],
+        "entrypoints": [f"{PUBLIC_COMMAND} maintenance check", f"{PUBLIC_COMMAND} maintenance audit", f"{PUBLIC_COMMAND} maintenance fix-docs"],
         "skills": ["agentctl-maintenance-engineer"],
-        "interfaces": ["plugin:agentctl"],
+        "interfaces": [f"plugin:{PUBLIC_PRODUCT_NAME}"],
         "availability_mode": "all",
         "overlap_policy": "Keep maintenance as one capability surface for docs, packaging, registry health, and platform drift.",
     },
     {
         "key": "context-workflows",
         "label": "Repo context workflows",
-        "group": "workflow-skills",
+        "group": "workflows",
         "required": True,
         "front_door": "$context-skill",
         "entrypoints": ["$context-skill"],
@@ -88,10 +90,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "ui-workflows",
         "label": "UI workflows",
-        "group": "workflow-skills",
+        "group": "workflows",
         "required": True,
         "front_door": "$ui-skill / $ui-deep-audit",
-        "entrypoints": ["$ui-skill", "$ui-deep-audit", "agentctl run ui-deep-audit"],
+        "entrypoints": ["$ui-skill", "$ui-deep-audit", f"{PUBLIC_COMMAND} run ui-deep-audit"],
         "skills": ["ui-skill", "ui-deep-audit"],
         "interfaces": [],
         "availability_mode": "all",
@@ -100,10 +102,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "test-workflows",
         "label": "Testing workflows",
-        "group": "workflow-skills",
+        "group": "workflows",
         "required": True,
         "front_door": "$test-skill / $test-deep-audit",
-        "entrypoints": ["$test-skill", "$test-deep-audit", "agentctl run test-deep-audit"],
+        "entrypoints": ["$test-skill", "$test-deep-audit", f"{PUBLIC_COMMAND} run test-deep-audit"],
         "skills": ["test-skill", "test-deep-audit"],
         "interfaces": [],
         "availability_mode": "any",
@@ -112,10 +114,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "docs-workflows",
         "label": "Documentation workflows",
-        "group": "workflow-skills",
+        "group": "workflows",
         "required": True,
         "front_door": "$docs-skill / $docs-deep-audit",
-        "entrypoints": ["$docs-skill", "$docs-deep-audit", "agentctl run docs-deep-audit"],
+        "entrypoints": ["$docs-skill", "$docs-deep-audit", f"{PUBLIC_COMMAND} run docs-deep-audit"],
         "skills": ["docs-skill", "docs-deep-audit"],
         "interfaces": [],
         "availability_mode": "all",
@@ -124,10 +126,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "refactor-workflows",
         "label": "Refactor workflows",
-        "group": "workflow-skills",
+        "group": "workflows",
         "required": True,
         "front_door": "$refactor-skill / $refactor-deep-audit",
-        "entrypoints": ["$refactor-skill", "$refactor-deep-audit", "$refactor-orchestrator", "agentctl run refactor-deep-audit"],
+        "entrypoints": ["$refactor-skill", "$refactor-deep-audit", "$refactor-orchestrator", f"{PUBLIC_COMMAND} run refactor-deep-audit"],
         "skills": ["refactor-skill", "refactor-deep-audit", "refactor-orchestrator"],
         "interfaces": [],
         "availability_mode": "all",
@@ -136,10 +138,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "cicd-workflows",
         "label": "CI/CD workflows",
-        "group": "workflow-skills",
+        "group": "workflows",
         "required": True,
         "front_door": "$cicd-skill / $cicd-deep-audit",
-        "entrypoints": ["$cicd-skill", "$cicd-deep-audit", "agentctl run cicd-deep-audit"],
+        "entrypoints": ["$cicd-skill", "$cicd-deep-audit", f"{PUBLIC_COMMAND} run cicd-deep-audit"],
         "skills": ["cicd-skill", "cicd-deep-audit"],
         "interfaces": [],
         "availability_mode": "all",
@@ -148,15 +150,15 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "research",
         "label": "Research",
-        "group": "research-and-verification",
+        "group": "research",
         "required": True,
         "front_door": "$research-capability",
         "entrypoints": [
             "$research-capability",
-            "agentctl capability research",
-            "agentctl research web",
-            "agentctl research github",
-            "agentctl research scout",
+            f"{PUBLIC_COMMAND} capability research",
+            f"{PUBLIC_COMMAND} research web",
+            f"{PUBLIC_COMMAND} research github",
+            f"{PUBLIC_COMMAND} research scout",
         ],
         "skills": ["research-capability", "internet-researcher", "github-researcher", "web-github-scout"],
         "interfaces": [],
@@ -171,10 +173,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "github-workflows",
         "label": "GitHub workflows",
-        "group": "integrations",
+        "group": "platforms",
         "required": False,
         "front_door": "$github-capability",
-        "entrypoints": ["$github-capability", "agentctl capability github-workflows", "$github:github", "$github:gh-fix-ci", "$github:gh-address-comments", "gh"],
+        "entrypoints": ["$github-capability", f"{PUBLIC_COMMAND} capability github-workflows", "$github:github", "$github:gh-fix-ci", "$github:gh-address-comments", "gh"],
         "skills": ["github-capability"],
         "interfaces": ["plugin:github@openai-curated", "tool:gh"],
         "availability_mode": "any",
@@ -188,12 +190,12 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "github-advanced-security",
         "label": "GitHub Advanced Security",
-        "group": "integrations",
+        "group": "platforms",
         "required": False,
         "front_door": "$github-security-capability",
         "entrypoints": [
             "$github-security-capability",
-            "agentctl capability github-advanced-security",
+            f"{PUBLIC_COMMAND} capability github-advanced-security",
             "ghas-cli",
             "gh codeql",
             "gh api",
@@ -214,10 +216,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "browser-automation",
         "label": "Browser automation",
-        "group": "research-and-verification",
+        "group": "browser-design",
         "required": False,
         "front_door": "$browser-capability",
-        "entrypoints": ["$browser-capability", "agentctl capability browser-automation", "$playwright", "playwright.cmd", "Playwright MCP"],
+        "entrypoints": ["$browser-capability", f"{PUBLIC_COMMAND} capability browser-automation", "$playwright", "playwright.cmd", "Playwright MCP"],
         "skills": ["browser-capability", "playwright"],
         "interfaces": ["tool:playwright", "mcp:playwright", "plugin:vercel@openai-curated"],
         "availability_mode": "any",
@@ -231,10 +233,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "vercel-platform",
         "label": "Vercel platform",
-        "group": "integrations",
+        "group": "platforms",
         "required": False,
         "front_door": "$vercel-capability",
-        "entrypoints": ["$vercel-capability", "agentctl capability vercel-platform", "$vercel:vercel-cli", "$vercel:deployments-cicd", "vercel"],
+        "entrypoints": ["$vercel-capability", f"{PUBLIC_COMMAND} capability vercel-platform", "$vercel:vercel-cli", "$vercel:deployments-cicd", "vercel"],
         "skills": ["vercel-capability"],
         "interfaces": ["plugin:vercel@openai-curated", "tool:vercel", "mcp:com-vercel-vercel-mcp", "mcp:vercel-remote"],
         "availability_mode": "any",
@@ -248,10 +250,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "supabase-data",
         "label": "Supabase data",
-        "group": "integrations",
+        "group": "platforms",
         "required": False,
         "front_door": "$supabase-capability",
-        "entrypoints": ["$supabase-capability", "agentctl capability supabase-data", "supabase", "Supabase MCP"],
+        "entrypoints": ["$supabase-capability", f"{PUBLIC_COMMAND} capability supabase-data", "supabase", "Supabase MCP"],
         "skills": ["supabase-capability"],
         "interfaces": ["tool:supabase", "mcp:supabase", "mcp:supabase-remote"],
         "availability_mode": "any",
@@ -267,10 +269,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "stripe-payments",
         "label": "Stripe payments",
-        "group": "integrations",
+        "group": "platforms",
         "required": False,
         "front_door": "$stripe-capability",
-        "entrypoints": ["$stripe-capability", "agentctl capability stripe-payments", "$stripe:stripe-best-practices", "$stripe:upgrade-stripe"],
+        "entrypoints": ["$stripe-capability", f"{PUBLIC_COMMAND} capability stripe-payments", "$stripe:stripe-best-practices", "$stripe:upgrade-stripe"],
         "skills": ["stripe-capability"],
         "interfaces": ["plugin:stripe@openai-curated", "mcp:stripe"],
         "availability_mode": "any",
@@ -284,10 +286,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "sentry-observability",
         "label": "Sentry observability",
-        "group": "integrations",
+        "group": "platforms",
         "required": False,
         "front_door": "$sentry-capability",
-        "entrypoints": ["$sentry-capability", "agentctl capability sentry-observability", "$sentry:sentry"],
+        "entrypoints": ["$sentry-capability", f"{PUBLIC_COMMAND} capability sentry-observability", "$sentry:sentry"],
         "skills": ["sentry-capability"],
         "interfaces": ["plugin:sentry@openai-curated"],
         "availability_mode": "all",
@@ -300,12 +302,12 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "ios-development",
         "label": "iOS development",
-        "group": "integrations",
+        "group": "native",
         "required": False,
         "front_door": "$ios-development-capability",
         "entrypoints": [
             "$ios-development-capability",
-            "agentctl capability ios-development",
+            f"{PUBLIC_COMMAND} capability ios-development",
             "$build-ios-apps:ios-debugger-agent",
             "$build-ios-apps:swiftui-ui-patterns",
         ],
@@ -321,12 +323,12 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "macos-development",
         "label": "macOS development",
-        "group": "integrations",
+        "group": "native",
         "required": False,
         "front_door": "$macos-development-capability",
         "entrypoints": [
             "$macos-development-capability",
-            "agentctl capability macos-development",
+            f"{PUBLIC_COMMAND} capability macos-development",
             "$build-macos-apps:build-run-debug",
             "$build-macos-apps:swiftui-patterns",
         ],
@@ -342,12 +344,12 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "android-testing",
         "label": "Android testing",
-        "group": "integrations",
+        "group": "native",
         "required": False,
         "front_door": "$android-testing-capability",
         "entrypoints": [
             "$android-testing-capability",
-            "agentctl capability android-testing",
+            f"{PUBLIC_COMMAND} capability android-testing",
             "$test-android-apps:android-emulator-qa",
         ],
         "skills": ["android-testing-capability"],
@@ -362,10 +364,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "figma-design",
         "label": "Figma design",
-        "group": "integrations",
+        "group": "browser-design",
         "required": False,
         "front_door": "$figma-capability",
-        "entrypoints": ["$figma-capability", "agentctl capability figma-design", "Figma MCP"],
+        "entrypoints": ["$figma-capability", f"{PUBLIC_COMMAND} capability figma-design", "Figma MCP"],
         "skills": ["figma-capability"],
         "interfaces": ["mcp:figma"],
         "availability_mode": "all",
@@ -378,10 +380,10 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     {
         "key": "nextjs-runtime",
         "label": "Next.js runtime",
-        "group": "integrations",
+        "group": "browser-design",
         "required": False,
         "front_door": "$nextjs-runtime-capability",
-        "entrypoints": ["$nextjs-runtime-capability", "agentctl capability nextjs-runtime", "Next DevTools MCP"],
+        "entrypoints": ["$nextjs-runtime-capability", f"{PUBLIC_COMMAND} capability nextjs-runtime", "Next DevTools MCP"],
         "skills": ["nextjs-runtime-capability"],
         "interfaces": ["mcp:next-devtools"],
         "availability_mode": "all",
@@ -393,12 +395,42 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
     },
 ]
 
-GROUP_LABELS = {
-    "control-plane": "Control plane",
-    "workflow-skills": "Workflow skills",
-    "research-and-verification": "Research and verification",
-    "integrations": "Integrations",
-}
+CAPABILITY_GROUPS = [
+    {
+        "key": "core",
+        "label": "Core",
+        "summary": "Control-plane entrypoints for install health, maintenance, and unattended worker routing.",
+    },
+    {
+        "key": "workflows",
+        "label": "Workflows",
+        "summary": "Reusable repo-level workflows for UI, tests, docs, refactors, CI/CD, and context upkeep.",
+    },
+    {
+        "key": "research",
+        "label": "Research",
+        "summary": "Research routing and evidence creation before implementation.",
+    },
+    {
+        "key": "platforms",
+        "label": "Platforms",
+        "summary": "Vendor and platform integrations such as GitHub, Vercel, Supabase, Stripe, and Sentry.",
+    },
+    {
+        "key": "browser-design",
+        "label": "Browser & design",
+        "summary": "Browser automation, Figma, and frontend runtime drill-down pages.",
+    },
+    {
+        "key": "native",
+        "label": "Native",
+        "summary": "iOS, macOS, and Android development/testing capability front doors.",
+    },
+]
+
+GROUP_LABELS = {item["key"]: item["label"] for item in CAPABILITY_GROUPS}
+MAX_TOP_LEVEL_GROUPS = 8
+MAX_GROUP_ITEMS = 9
 
 CAPABILITY_CLOUD_READINESS = {
     "autonomous-deep-runs": [],
@@ -417,6 +449,10 @@ CAPABILITY_CLOUD_READINESS = {
 }
 
 REQUIRED_TOOL_NAMES = {"python", "npx", "skills"}
+
+
+def _group_specs_map() -> dict[str, dict[str, Any]]:
+    return {item["key"]: item for item in CAPABILITY_GROUPS}
 
 
 def _tool_record(name: str, *, command: str, version_args: list[str], auth_args: list[str] | None = None, detect_only: bool = False) -> dict[str, Any]:
@@ -759,6 +795,11 @@ def _tool_status(tools: dict[str, Any], name: str) -> str:
 
 def _plugin_status(plugins: dict[str, Any], name: str) -> str:
     item = plugins.get(name)
+    if not item and name == PUBLIC_PRODUCT_NAME:
+        for legacy_name in LEGACY_PLUGIN_NAMES:
+            item = plugins.get(legacy_name)
+            if item:
+                break
     if not item:
         return "missing"
     return "ok" if item.get("enabled") else "disabled"
@@ -918,7 +959,7 @@ def build_capabilities_report() -> dict[str, Any]:
         "playwright": _detect_playwright(),
     }
     installed_skills = _installed_skills()
-    config = _config_payload()
+    config = effective_config()
     plugins = _enabled_plugins_map(config)
     mcp_servers = _mcp_servers_map(config)
     local_skill_names = _local_skill_names()
@@ -953,6 +994,17 @@ def build_capabilities_report() -> dict[str, Any]:
     required_capability_count = sum(1 for entry in capabilities if entry.get("required", True))
     optional_capability_count = len(capabilities) - required_capability_count
     optional_attention_count = sum(1 for entry in capabilities if not entry.get("required", True) and entry.get("status") != "ok")
+    grouped = _grouped_capabilities({"capabilities": capabilities})
+    capability_groups = [
+        {
+            **group_spec,
+            "count": len(grouped.get(group_spec["key"], [])),
+            "items": [item["key"] for item in grouped.get(group_spec["key"], [])],
+        }
+        for group_spec in CAPABILITY_GROUPS
+    ]
+    visible_group_count = sum(1 for group in capability_groups if group["count"])
+    max_group_size = max((group["count"] for group in capability_groups), default=0)
 
     return {
         "schema_version": 2,
@@ -968,6 +1020,8 @@ def build_capabilities_report() -> dict[str, Any]:
             "required_capability_count": required_capability_count,
             "optional_capability_count": optional_capability_count,
             "optional_attention_count": optional_attention_count,
+            "visible_group_count": visible_group_count,
+            "max_group_size": max_group_size,
         },
         "installed_skills": installed_skills,
         "local_skills": {
@@ -984,6 +1038,11 @@ def build_capabilities_report() -> dict[str, Any]:
         },
         "tools": tools,
         "capabilities": capabilities,
+        "capability_groups": capability_groups,
+        "menu_budget": {
+            "max_top_level_groups": MAX_TOP_LEVEL_GROUPS,
+            "max_group_items": MAX_GROUP_ITEMS,
+        },
         "overlap_analysis": overlap_analysis,
         "detect_only_tools": detect_only_tools,
     }
@@ -998,6 +1057,21 @@ def capability_keys(payload: dict[str, Any]) -> list[str]:
 
 
 def capability_detail(payload: dict[str, Any], key: str) -> dict[str, Any] | None:
+    group_spec = _group_specs_map().get(key)
+    if group_spec:
+        grouped = _grouped_capabilities(payload)
+        items = grouped.get(key, [])
+        return {
+            "kind": "group",
+            "key": key,
+            "label": group_spec["label"],
+            "status": "ok",
+            "summary": group_spec["summary"],
+            "doc_path": str(capability_doc_path(key)),
+            "items": items,
+            "menu_budget": payload.get("menu_budget", {}),
+        }
+
     capability = next((item for item in payload.get("capabilities", []) if item.get("key") == key), None)
     if capability is None:
         return None
@@ -1011,6 +1085,7 @@ def capability_detail(payload: dict[str, Any], key: str) -> dict[str, Any] | Non
     ]
 
     return {
+        "kind": "capability",
         "key": capability["key"],
         "label": capability.get("label", fallback_label),
         "group": capability.get("group", "unknown"),
@@ -1031,15 +1106,17 @@ def capability_detail(payload: dict[str, Any], key: str) -> dict[str, Any] | Non
             for name in ("codex", "gh", "gh-codeql", "ghas-cli", "playwright", "supabase", "vercel")
             if name in tool_map
         },
-    }
+}
 
 
 def _grouped_capabilities(payload: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
-    grouped: dict[str, list[dict[str, Any]]] = {}
+    grouped: dict[str, list[dict[str, Any]]] = {group["key"]: [] for group in CAPABILITY_GROUPS}
+    spec_order = {spec["key"]: index for index, spec in enumerate(CAPABILITY_SPECS)}
     for item in payload.get("capabilities", []):
-        grouped.setdefault(item["group"], []).append(item)
+        group_key = item.get("group", "other")
+        grouped.setdefault(group_key, []).append(item)
     for items in grouped.values():
-        items.sort(key=lambda item: (item["status"] != "ok", item["label"]))
+        items.sort(key=lambda item: (_status_rank(item.get("status", "unknown")), spec_order.get(item.get("key"), 9999), item.get("label", item.get("key", "unknown"))))
     return grouped
 
 
@@ -1135,16 +1212,36 @@ def print_capabilities_human(payload: dict[str, Any], *, as_json: bool = False) 
     print("")
     print("Capability menu")
     grouped = _grouped_capabilities(payload)
-    for group_key in ("control-plane", "workflow-skills", "research-and-verification", "integrations"):
+    visible_groups = payload.get("capability_groups") or [
+        {
+            "key": group["key"],
+            "label": group["label"],
+            "count": len(grouped.get(group["key"], [])),
+        }
+        for group in CAPABILITY_GROUPS
+    ]
+    known_group_keys = {group["key"] for group in visible_groups}
+    for group_key, items in grouped.items():
+        if group_key in known_group_keys or not items:
+            continue
+        visible_groups.append(
+            {
+                "key": group_key,
+                "label": GROUP_LABELS.get(group_key, group_key.replace("-", " ").title()),
+                "count": len(items),
+            }
+        )
+    for group in visible_groups:
+        group_key = group["key"]
         items = grouped.get(group_key, [])
         if not items:
             continue
-        print(f"- {GROUP_LABELS[group_key]}:")
+        print(f"- {group.get('label', GROUP_LABELS.get(group_key, group_key.replace('-', ' ').title()))}:")
         for item in items:
             optional_tag = " optional" if not item.get("required", True) else ""
             print(f"  - {item['key']}: `{item['front_door']}` [{item['status']}{optional_tag}]")
     print("")
-    print("Use `agentctl capability <key>` for the drill-down page for any capability.")
+    print(f"Use `{PUBLIC_COMMAND} capability <key>` for a group page or a single capability drill-down page.")
     notes = _doctor_notes(payload)
     if notes:
         print("")
@@ -1156,6 +1253,23 @@ def print_capabilities_human(payload: dict[str, Any], *, as_json: bool = False) 
 def print_capability_human(payload: dict[str, Any], *, as_json: bool = False) -> None:
     if as_json:
         print_json(payload)
+        return
+
+    if payload.get("kind") == "group":
+        print(f"Group: {payload['label']} (`{payload['key']}`)")
+        print(f"Doc page: `{payload['doc_path']}`")
+        print("")
+        print(payload["summary"])
+        print("")
+        print("Items")
+        for item in payload.get("items", []):
+            optional_tag = " optional" if not item.get("required", True) else ""
+            print(f"- {item['key']}: `{item['front_door']}` [{item['status']}{optional_tag}]")
+        print("")
+        print("Menu budget")
+        budget = payload.get("menu_budget", {})
+        print(f"- top-level groups: <= {budget.get('max_top_level_groups', MAX_TOP_LEVEL_GROUPS)}")
+        print(f"- items per group page: <= {budget.get('max_group_items', MAX_GROUP_ITEMS)}")
         return
 
     print(f"Capability: {payload['label']} (`{payload['key']}`)")

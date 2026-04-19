@@ -28,7 +28,7 @@ class InstallBundleTests(unittest.TestCase):
             install_bundle.ensure_plugin_enabled(config_path)
             second = config_path.read_text(encoding="utf-8")
 
-        self.assertIn('[plugins."agentctl"]', first)
+        self.assertIn('[plugins."loopsmith"]', first)
         self.assertEqual(first, second)
 
     def test_ensure_plugin_enabled_migrates_legacy_plugin_key(self) -> None:
@@ -39,7 +39,7 @@ class InstallBundleTests(unittest.TestCase):
             install_bundle.ensure_plugin_enabled(config_path)
             updated = config_path.read_text(encoding="utf-8")
 
-        self.assertIn('[plugins."agentctl"]', updated)
+        self.assertIn('[plugins."loopsmith"]', updated)
         self.assertNotIn('agentctl-platform', updated)
 
     def test_cleanup_legacy_plugin_removes_old_directory(self) -> None:
@@ -64,7 +64,7 @@ class InstallBundleTests(unittest.TestCase):
 
             self.assertEqual(summary["status"], "ok")
             self.assertTrue(report_path.exists())
-            self.assertEqual(run_mock.call_count, 3)
+            self.assertEqual(run_mock.call_count, 4)
             called_env = run_mock.call_args.kwargs["env"]
             self.assertEqual(called_env["CODEX_HOME"], str(target_root))
 

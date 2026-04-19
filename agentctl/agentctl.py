@@ -5,6 +5,8 @@ import argparse
 import sys
 
 try:
+    from .bundle_install import default_codex_home, repair_install, upgrade_bundle
+    from .lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_PRODUCT_NAME
     from .lib.capabilities import (
         build_capabilities_report,
         capability_detail,
@@ -15,7 +17,16 @@ try:
         print_skills_human,
         print_status_human,
     )
-    from .lib.common import save_json
+    from .lib.common import print_json, save_json
+    from .lib.config_layers import (
+        config_path_payload,
+        config_snapshot,
+        parse_value,
+        print_config_human,
+        repair_user_config,
+        set_config_value,
+        unset_config_value,
+    )
     from .lib.maintenance import (
         maintenance_audit,
         maintenance_check,
@@ -25,9 +36,12 @@ try:
     )
     from .lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
     from .lib.research import run_research
+    from .lib.self_check import build_self_check, print_self_check, wrapper_version
     from .lib.skills_ops import add_skill, check_skills, list_skills, update_skills
     from .lib.workflows import run_workflow, workflow_status
 except ImportError:
+    from bundle_install import default_codex_home, repair_install, upgrade_bundle
+    from lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_PRODUCT_NAME
     from lib.capabilities import (
         build_capabilities_report,
         capability_detail,
@@ -38,7 +52,16 @@ except ImportError:
         print_skills_human,
         print_status_human,
     )
-    from lib.common import save_json
+    from lib.common import print_json, save_json
+    from lib.config_layers import (
+        config_path_payload,
+        config_snapshot,
+        parse_value,
+        print_config_human,
+        repair_user_config,
+        set_config_value,
+        unset_config_value,
+    )
     from lib.maintenance import (
         maintenance_audit,
         maintenance_check,
@@ -48,6 +71,7 @@ except ImportError:
     )
     from lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
     from lib.research import run_research
+    from lib.self_check import build_self_check, print_self_check, wrapper_version
     from lib.skills_ops import add_skill, check_skills, list_skills, update_skills
     from lib.workflows import run_workflow, workflow_status
 
@@ -87,11 +111,34 @@ def add_maintenance_subcommands(maintenance_parser: argparse.ArgumentParser) -> 
         parser.add_argument("--json", action="store_true", help="Emit JSON")
 
 
+def add_config_subcommands(config_parser: argparse.ArgumentParser) -> None:
+    config_subparsers = config_parser.add_subparsers(dest="config_command", required=True)
+
+    show_parser = config_subparsers.add_parser("show", help="Show effective or layered config")
+    show_parser.add_argument("--repo", help="Repo root for repo-local config resolution")
+    show_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    path_parser = config_subparsers.add_parser("path", help="Show the path for one config scope")
+    path_parser.add_argument("--scope", choices=("bundled", "user", "repo"), default="user")
+    path_parser.add_argument("--repo", help="Repo root for repo-local config resolution")
+    path_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    for command_name, help_text in (("set", "Set one config key"), ("unset", "Unset one config key")):
+        parser = config_subparsers.add_parser(command_name, help=help_text)
+        parser.add_argument("key", help="Dotted config key, e.g. worker.mode")
+        if command_name == "set":
+            parser.add_argument("value", help="Config value")
+        parser.add_argument("--scope", choices=("user", "repo"), default="user")
+        parser.add_argument("--repo", help="Repo root for repo-local config resolution")
+        parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Codex-first control plane for skills, workflows, and CLI-backed research.")
+    parser = argparse.ArgumentParser(description=f"{PUBLIC_PRODUCT_NAME} is the capability-first Codex control plane for workflows, research, and installable agent tooling.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     doctor_parser = subparsers.add_parser("doctor", help="Check installed tools, wrappers, and auth health")
+    doctor_parser.add_argument("--fix", action="store_true", help="Repair common local install/config issues before reporting health")
     doctor_parser.add_argument("--json", action="store_true", help="Emit JSON")
 
     capabilities_parser = subparsers.add_parser("capabilities", help="Emit the machine-readable capability inventory")
@@ -132,6 +179,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     maintenance_parser = subparsers.add_parser("maintenance", help="Audit and refresh agentctl's own docs, packaging, and state")
     add_maintenance_subcommands(maintenance_parser)
+
+    config_parser = subparsers.add_parser("config", help="Inspect and update bundled, user, and repo config layers")
+    add_config_subcommands(config_parser)
+
+    upgrade_parser = subparsers.add_parser("upgrade", help=f"Upgrade the installed {PUBLIC_PRODUCT_NAME} bundle from its recorded release source")
+    upgrade_parser.add_argument("--version", help="Optional explicit release version to install")
+    upgrade_parser.add_argument("--skip-post-checks", action="store_true", help="Skip post-install checks")
+    upgrade_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    self_check_parser = subparsers.add_parser("self-check", help="Compare wrapper version, bundle version, config schema, and plugin health")
+    self_check_parser.add_argument("--repo", help="Repo root for repo-local config resolution")
+    self_check_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    version_parser = subparsers.add_parser("version", help="Show wrapper and bundle version information")
+    version_parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
 
 
@@ -140,7 +202,15 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.command in {"doctor", "capabilities", "capability"}:
+        repair_summary = None
+        if args.command == "doctor" and getattr(args, "fix", False):
+            repair_summary = {
+                "install": repair_install(default_codex_home()),
+                "config": repair_user_config(),
+            }
         report = build_capabilities_report()
+        if repair_summary is not None:
+            report["repair"] = repair_summary
         save_json(CAPABILITIES_PATH, report)
         save_json(DOCTOR_REPORT_PATH, report)
         if args.command == "doctor":
@@ -158,6 +228,20 @@ def main() -> int:
         result = workflow_status(repo=args.repo, use_registry=args.all)
         print_status_human(result, as_json=args.json)
         return 0 if result["summary"]["status"] != "error" else 1
+
+    if args.command == "config":
+        if args.config_command == "show":
+            result = config_snapshot(args.repo)
+        elif args.config_command == "path":
+            result = config_path_payload(args.scope, repo=args.repo)
+        elif args.config_command == "set":
+            result = set_config_value(args.scope, args.key, parse_value(args.value), repo=args.repo)
+        elif args.config_command == "unset":
+            result = unset_config_value(args.scope, args.key, repo=args.repo)
+        else:  # pragma: no cover
+            parser.error(f"unknown config command: {args.config_command}")
+        print_config_human(result, as_json=getattr(args, "json", False))
+        return 0
 
     if args.command == "run":
         return run_workflow(
@@ -215,6 +299,41 @@ def main() -> int:
             parser.error(f"unknown maintenance command: {args.maintenance_command}")
         print_maintenance_human(result, as_json=getattr(args, "json", False))
         return 0 if result["summary"]["status"] == "ok" else 1
+
+    if args.command == "upgrade":
+        result = upgrade_bundle(target_root=default_codex_home(), skip_post_checks=args.skip_post_checks, version=args.version)
+        if args.json:
+            print_json(result)
+        else:
+            print(f"Status: {result['status']}")
+            print(f"Target: {result['target_codex_home']}")
+            if result.get("install_metadata_path"):
+                print(f"Install metadata: {result['install_metadata_path']}")
+        return 0 if result["status"] == "ok" else 1
+
+    if args.command == "self-check":
+        capabilities = build_capabilities_report()
+        payload = build_self_check(capabilities, repo=args.repo)
+        print_self_check(payload, as_json=args.json)
+        return 0 if payload["status"] != "error" else 1
+
+    if args.command == "version":
+        capabilities = build_capabilities_report()
+        payload = build_self_check(capabilities)
+        result = {
+            "product": PUBLIC_PRODUCT_NAME,
+            "public_command": PUBLIC_COMMAND,
+            "compatibility_command": COMPATIBILITY_COMMAND,
+            "wrapper_version": wrapper_version(),
+            "bundle_version": payload.get("bundle_version"),
+        }
+        if args.json:
+            print_json(result)
+        else:
+            print(f"{PUBLIC_PRODUCT_NAME} {result['wrapper_version'] or 'unknown'}")
+            print(f"Bundle version: {result['bundle_version'] or 'unknown'}")
+            print(f"Commands: `{PUBLIC_COMMAND}` (canonical), `{COMPATIBILITY_COMMAND}` (compatibility)")
+        return 0
 
     parser.error(f"unknown command: {args.command}")
     return 2

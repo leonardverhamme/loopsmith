@@ -58,7 +58,7 @@ class CliOutputTests(unittest.TestCase):
                     "tasks_blocked": 0,
                     "iteration": 1,
                     "repo_root": r"C:\repo\agentctl",
-                    "checklist_path": r"docs/agentctl/maintenance.md",
+                    "checklist_path": r"docs/loopsmith/maintenance.md",
                 }
             ],
         }
@@ -111,9 +111,13 @@ class CliOutputTests(unittest.TestCase):
             "summary": {"status": "ok"},
             "tools": {"gh": {"installed": True, "skill_supported": False}, "codex": {"installed": True, "callable": False}},
             "detect_only_tools": ["firebase"],
+            "capability_groups": [
+                {"key": "platforms", "label": "Platforms", "count": 1},
+                {"key": "research", "label": "Research", "count": 1},
+            ],
             "capabilities": [
-                {"key": "github-workflows", "label": "GitHub workflows", "status": "ok", "front_door": "$github-capability", "required": False, "group": "integrations"},
-                {"key": "research", "label": "Research", "status": "ok", "front_door": "agentctl research", "required": True, "group": "research-and-verification"},
+                {"key": "github-workflows", "label": "GitHub workflows", "status": "ok", "front_door": "$github-capability", "required": False, "group": "platforms"},
+                {"key": "research", "label": "Research", "status": "ok", "front_door": "loopsmith research", "required": True, "group": "research"},
             ],
         }
         buffer = io.StringIO()
@@ -121,7 +125,7 @@ class CliOutputTests(unittest.TestCase):
             print_capabilities_human(payload)
         output = buffer.getvalue()
         self.assertIn("github-workflows", output)
-        self.assertIn("Use `agentctl capability <key>`", output)
+        self.assertIn("Use `loopsmith capability <key>`", output)
 
     def test_capability_human_surfaces_doc_page_and_routing_notes(self) -> None:
         payload = {
@@ -129,7 +133,7 @@ class CliOutputTests(unittest.TestCase):
             "label": "Supabase data",
             "status": "ok",
             "front_door": "$supabase-capability",
-            "doc_path": r"C:\repo\docs\agentctl\capabilities\supabase-data.md",
+            "doc_path": r"C:\repo\docs\loopsmith\capabilities\supabase-data.md",
             "summary": "Use for local Supabase stacks and database workflows.",
             "skills": ["supabase-capability"],
             "entrypoints": ["$supabase-capability", "supabase", "Supabase MCP"],
