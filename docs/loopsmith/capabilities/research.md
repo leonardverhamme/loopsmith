@@ -13,4 +13,4 @@ Research routing and evidence creation before implementation.
 ## Menu Budget
 
 - Top-level groups: <= 8
-- Items per group page: <= 9
+- Items per group page: <= 25

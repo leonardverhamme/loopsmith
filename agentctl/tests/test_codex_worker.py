@@ -77,6 +77,35 @@ class CodexWorkerTests(unittest.TestCase):
         command = run_mock.call_args.kwargs["args"] if "args" in run_mock.call_args.kwargs else run_mock.call_args.args[0]
         self.assertNotIn("--skip-git-repo-check", command)
 
+    @mock.patch("codex_worker.subprocess.run")
+    @mock.patch("codex_worker.detect_codex_runtime")
+    def test_build_prompt_includes_task_brief_for_generic_loops(self, detect_runtime: mock.Mock, run_mock: mock.Mock) -> None:
+        detect_runtime.return_value = {"callable": True, "path": "codex"}
+        run_mock.return_value = mock.Mock(returncode=0, stdout="", stderr="")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            env = self._env(repo_root)
+            task_path = repo_root / ".codex-workflows" / "repo-cleanup" / "task.md"
+            task_path.parent.mkdir(parents=True, exist_ok=True)
+            task_path.write_text("# Task\n\nClean up stale files and keep going until done.\n", encoding="utf-8")
+            env.update(
+                {
+                    "CODEX_WORKFLOW_SKILL": "loopsmith",
+                    "CODEX_WORKFLOW_NAME": "repo-cleanup",
+                    "CODEX_WORKFLOW_TASK_FILE": str(task_path),
+                }
+            )
+            with mock.patch.dict(os.environ, env, clear=False):
+                rc = codex_worker.main()
+
+        self.assertEqual(rc, 0)
+        prompt = run_mock.call_args.kwargs["input"]
+        self.assertIn("Use $loopsmith.", prompt)
+        self.assertIn("repo-cleanup", prompt)
+        self.assertIn("Task brief:", prompt)
+        self.assertIn("derive it from the task brief", prompt)
+
     @mock.patch("codex_worker.detect_codex_runtime")
     def test_main_returns_126_when_runtime_is_not_callable(self, detect_runtime: mock.Mock) -> None:
         detect_runtime.return_value = {"callable": False, "call_detail": "Access is denied."}

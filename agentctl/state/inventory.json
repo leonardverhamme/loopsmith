@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-04-19T00:00:00+00:00",
+  "summary": {
+    "status": "ok",
+    "max_bucket_size": 1
+  },
+  "menu_budget": {
+    "max_items": 25
+  },
+  "tool_map": {
+    "python": {
+      "installed": true,
+      "status": "ok",
+      "version": "3.12.0"
+    },
+    "npx": {
+      "installed": true,
+      "status": "ok",
+      "version": "10.0.0"
+    },
+    "skills": {
+      "installed": true,
+      "status": "ok",
+      "version": "1.5.1"
+    },
+    "codex": {
+      "installed": true,
+      "status": "ok",
+      "callable": true,
+      "worker_runtime_ready": true
+    },
+    "gh": {
+      "installed": true,
+      "status": "ok",
+      "skill_supported": false
+    },
+    "gh-codeql": {
+      "installed": true,
+      "status": "ok"
+    },
+    "ghas-cli": {
+      "installed": true,
+      "status": "ok",
+      "callable": true
+    },
+    "vercel": {
+      "installed": true,
+      "status": "ok"
+    },
+    "supabase": {
+      "installed": true,
+      "status": "ok"
+    },
+    "firebase": {
+      "installed": false,
+      "status": "missing",
+      "detect_only": true
+    },
+    "gcloud": {
+      "installed": false,
+      "status": "missing",
+      "detect_only": true
+    },
+    "playwright": {
+      "installed": true,
+      "status": "ok",
+      "wrapper_ready": true
+    }
+  },
+  "items": [
+    {
+      "kind": "skill",
+      "name": "loopsmith",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "autonomous-deep-runs-capability",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "skills-management-capability",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "agentctl-maintenance-engineer",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "context-skill",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "ui-skill",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "ui-deep-audit",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "test-skill",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "test-deep-audit",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "docs-skill",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "docs-deep-audit",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "refactor-skill",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "refactor-deep-audit",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "refactor-orchestrator",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "cicd-skill",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "cicd-deep-audit",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "supabase-capability",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "github-security-capability",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "research-capability",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "internet-researcher",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "github-researcher",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "skill",
+      "name": "web-github-scout",
+      "source_scope": "user",
+      "status": "ok",
+      "source_hint": "npx skills ls -g"
+    },
+    {
+      "kind": "plugin",
+      "name": "loopsmith",
+      "source_scope": "user",
+      "status": "ok",
+      "enabled": true
+    }
+  ],
+  "menu_buckets": []
+}

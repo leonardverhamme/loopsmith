@@ -128,22 +128,28 @@ def workflow_status(*, repo: str | None, use_registry: bool) -> dict[str, Any]:
 def run_workflow(
     *,
     workflow: str,
+    workflow_name: str | None = None,
+    skill_name: str | None = None,
     repo: str | None,
     checklist: str | None,
     progress: str | None,
+    task_file: str | None = None,
     worker_command: str | None,
     worker_mode: str,
     max_iterations: int,
     max_stagnant: int,
 ) -> int:
     repo_root = _repo_root(repo)
-    resolved_checklist = Path(checklist).resolve() if checklist else default_checklist_path(repo_root, workflow)
-    resolved_progress = Path(progress).resolve() if progress else default_progress_path(repo_root, workflow)
-    state_path = workflow_state_path(repo_root, workflow)
+    resolved_workflow_name = workflow_name or workflow
+    resolved_skill_name = skill_name or workflow
+    resolved_checklist = Path(checklist).resolve() if checklist else default_checklist_path(repo_root, resolved_workflow_name)
+    resolved_progress = Path(progress).resolve() if progress else default_progress_path(repo_root, resolved_workflow_name)
+    resolved_task_file = Path(task_file).resolve() if task_file else None
+    state_path = workflow_state_path(repo_root, resolved_workflow_name)
     resolved_worker_command = worker_command
     if not resolved_worker_command and worker_mode in {"auto", "codex"}:
         resolved_worker_command = resolve_codex_worker_command(
-            workflow=workflow,
+            workflow=resolved_workflow_name,
             repo_root=repo_root,
             checklist_path=resolved_checklist,
             progress_path=resolved_progress,
@@ -153,7 +159,9 @@ def run_workflow(
         sys.executable,
         str(WORKFLOW_RUNNER),
         "--skill",
-        workflow,
+        resolved_skill_name,
+        "--workflow-name",
+        resolved_workflow_name,
         "--repo",
         str(repo_root),
         "--max-iterations",
@@ -165,6 +173,8 @@ def run_workflow(
         command.extend(["--checklist", checklist])
     if progress:
         command.extend(["--progress", progress])
+    if resolved_task_file:
+        command.extend(["--task-file", str(resolved_task_file)])
     if resolved_worker_command:
         command.extend(["--worker-command", resolved_worker_command])
     command.extend(["--worker-mode", worker_mode])

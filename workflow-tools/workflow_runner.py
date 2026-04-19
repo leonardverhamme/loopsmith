@@ -98,9 +98,11 @@ def determine_worker_command(cli_value: str | None) -> str | None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Shared runner for deep-skill workflows.")
     parser.add_argument("--skill", required=True, help="Deep skill name, e.g. ui-deep-audit")
+    parser.add_argument("--workflow-name", help="Optional workflow instance name. Defaults to the skill name.")
     parser.add_argument("--repo", required=True, help="Repository root")
     parser.add_argument("--checklist", help="Optional checklist path")
     parser.add_argument("--progress", help="Optional progress markdown path")
+    parser.add_argument("--task-file", help="Optional task brief path for generic loops")
     parser.add_argument("--max-iterations", type=int, default=DEFAULT_MAX_ITERATIONS)
     parser.add_argument("--max-stagnant", type=int, default=DEFAULT_MAX_STAGNANT_ITERATIONS)
     parser.add_argument("--worker-command", help="Shell command used to run one deep-skill pass")
@@ -110,9 +112,10 @@ def main() -> int:
     args = parser.parse_args()
 
     repo_root = Path(args.repo).resolve()
-    workflow_name = args.skill
-    checklist_path = Path(args.checklist).resolve() if args.checklist else default_checklist_path(repo_root, args.skill)
-    progress_path = Path(args.progress).resolve() if args.progress else default_progress_path(repo_root, args.skill)
+    workflow_name = args.workflow_name or args.skill
+    checklist_path = Path(args.checklist).resolve() if args.checklist else default_checklist_path(repo_root, workflow_name)
+    progress_path = Path(args.progress).resolve() if args.progress else default_progress_path(repo_root, workflow_name)
+    task_file = Path(args.task_file).resolve() if args.task_file else None
     state_path = Path(args.state).resolve() if args.state else workflow_state_path(repo_root, workflow_name)
     registry_path = Path(args.registry).resolve() if args.registry else GLOBAL_REGISTRY
     worker_command = determine_worker_command(args.worker_command)
@@ -219,11 +222,14 @@ def main() -> int:
                 "CODEX_WORKFLOW_CHECKLIST": str(checklist_path),
                 "CODEX_WORKFLOW_PROGRESS": str(progress_path),
                 "CODEX_WORKFLOW_SKILL": args.skill,
+                "CODEX_WORKFLOW_NAME": workflow_name,
                 "CODEX_WORKFLOW_REPO": str(repo_root),
                 "CODEX_WORKFLOW_ITERATION": str(state["iteration"]),
                 "CODEX_WORKFLOW_RETRY_HINT": retry_hint,
             }
         )
+        if task_file is not None:
+            env["CODEX_WORKFLOW_TASK_FILE"] = str(task_file)
         persist_state(state_path, state, registry_path)
 
         result = subprocess.run(

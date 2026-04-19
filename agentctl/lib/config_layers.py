@@ -27,8 +27,19 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "browser": {
         "preferred_route": "auto",
     },
+    "inventory": {
+        "refresh_on_doctor": True,
+    },
+    "guidance": {
+        "user_dir": "",
+        "repo_dir": "",
+        "max_files": 8,
+        "max_total_lines": 200,
+    },
     "menus": {
         "default_view": "groups",
+        "max_items": 25,
+        "names_only": True,
     },
 }
 

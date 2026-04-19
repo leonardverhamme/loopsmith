@@ -18,4 +18,4 @@ Vendor and platform integrations such as GitHub, Vercel, Supabase, Stripe, and S
 ## Menu Budget
 
 - Top-level groups: <= 8
-- Items per group page: <= 9
+- Items per group page: <= 25

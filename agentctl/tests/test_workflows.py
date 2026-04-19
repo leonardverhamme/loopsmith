@@ -286,6 +286,41 @@ class WorkflowStatusTests(unittest.TestCase):
         self.assertIn("explicit-worker", command)
         self.assertNotIn("ignored-template", command)
 
+    @mock.patch("lib.workflows.subprocess.run")
+    @mock.patch("lib.workflows.resolve_codex_worker_command")
+    def test_run_workflow_supports_generic_loop_contract(self, resolve_codex_worker_command: mock.Mock, run_mock: mock.Mock) -> None:
+        resolve_codex_worker_command.return_value = "codex-template-worker"
+        run_mock.return_value = mock.Mock(returncode=0)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            task_file = repo_root / ".codex-workflows" / "repo-cleanup" / "task.md"
+            task_file.parent.mkdir(parents=True, exist_ok=True)
+            task_file.write_text("cleanup task\n", encoding="utf-8")
+            rc = run_workflow(
+                workflow="loopsmith",
+                workflow_name="repo-cleanup",
+                skill_name="loopsmith",
+                repo=temp_dir,
+                checklist=None,
+                progress=None,
+                task_file=str(task_file),
+                worker_command=None,
+                worker_mode="auto",
+                max_iterations=30,
+                max_stagnant=3,
+            )
+
+        self.assertEqual(rc, 0)
+        resolver_kwargs = resolve_codex_worker_command.call_args.kwargs
+        self.assertEqual(resolver_kwargs["workflow"], "repo-cleanup")
+        command = run_mock.call_args.args[0]
+        self.assertIn("--skill", command)
+        self.assertIn("loopsmith", command)
+        self.assertIn("--workflow-name", command)
+        self.assertIn("repo-cleanup", command)
+        self.assertIn("--task-file", command)
+        self.assertIn(str(task_file), command)
+
     def test_cli_run_completes_end_to_end_with_fake_worker(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_root = Path(temp_dir)
@@ -583,6 +618,63 @@ class WorkflowStatusTests(unittest.TestCase):
             self.assertTrue(state["ready_allowed"])
             self.assertEqual(state["worker_mode"], "auto")
             self.assertIn("codex_worker.py", state["worker_command"])
+
+    def test_cli_loop_completes_end_to_end_with_fake_worker(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            worker_command = f'"{sys.executable}" "{FAKE_WORKER}" complete_after_two'
+
+            run_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "loop",
+                    "repo-cleanup",
+                    "--repo",
+                    str(repo_root),
+                    "--task",
+                    "Clean up stale files and keep going until the checklist is empty.",
+                    "--worker-command",
+                    worker_command,
+                    "--worker-mode",
+                    "explicit",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr or run_result.stdout)
+
+            status_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLI_ENTRY),
+                    "status",
+                    "--repo",
+                    str(repo_root),
+                    "--json",
+                ],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+            self.assertEqual(status_result.returncode, 0, status_result.stderr or status_result.stdout)
+            payload = json.loads(status_result.stdout)
+            workflow_record = payload["workflows"][0]
+            self.assertEqual(workflow_record["workflow_name"], "repo-cleanup")
+            self.assertEqual(workflow_record["skill_name"], "loopsmith")
+            self.assertEqual(workflow_record["status"], "complete")
+            self.assertTrue((repo_root / ".codex-workflows" / "repo-cleanup" / "task.md").exists())
+            self.assertTrue(
+                str(workflow_record["checklist_path"]).endswith("docs\\repo-cleanup-checklist.md")
+                or str(workflow_record["checklist_path"]).endswith("docs/repo-cleanup-checklist.md")
+            )
 
     def test_cli_run_without_worker_command_fails_safely(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

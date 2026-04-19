@@ -1,6 +1,6 @@
 # Unattended Worker Setup
 
-This guide explains when a deep workflow is actually autonomous.
+This guide explains when a deep workflow or generic long-task loop is actually autonomous.
 
 ## Real Loop Contract
 
@@ -16,7 +16,7 @@ Without the worker command, the loop is only partially real.
 
 ## Supported Worker Paths
 
-`loopsmith run <workflow>` can use:
+`loopsmith run <workflow>` and `loopsmith loop <name>` can use:
 
 - the auto-detected standalone Codex CLI
 - `--worker-command`
@@ -50,6 +50,7 @@ loopsmith doctor
 
 ```powershell
 loopsmith run docs-deep-audit --repo C:\path\to\repo --worker-command "<real worker command>"
+loopsmith loop repo-cleanup --repo C:\path\to\repo --task "Finish the cleanup in validated batches until the checklist is empty." --worker-command "<real worker command>"
 loopsmith status --repo C:\path\to\repo --json
 ```
 

@@ -1,7 +1,7 @@
 <!-- loopsmith:auto-generated -->
 # Loopsmith Capability Registry
 
-The machine-readable registry lives at `agentctl/state/capabilities.json`.
+The machine-readable registry lives at `agentctl/state/capabilities.json` and is derived from the latest raw inventory snapshot.
 
 ## How To Use This Registry
 
@@ -19,6 +19,9 @@ Control-plane entrypoints for install health, maintenance, and unattended worker
 - `autonomous-deep-runs` uses `$autonomous-deep-runs-capability` and is currently `ok`.
   - Overlap policy: The outer execute-until-done loop must use a real worker command, not chat memory. Prefer Codex runtime when it is callable or explicitly templated.
   - Page: `docs/loopsmith/capabilities/autonomous-deep-runs.md`
+- `long-task-loops` uses `$loopsmith` and is currently `ok`.
+  - Overlap policy: Use named deep workflows first. Use the generic loopsmith loop only when the task is large, multi-step, and does not already fit a dedicated workflow skill.
+  - Page: `docs/loopsmith/capabilities/long-task-loops.md`
 - `skills-management` uses `$skills-management-capability` and is currently `ok`.
   - Overlap policy: Wrap official skills tooling rather than reimplementing it.
   - Page: `docs/loopsmith/capabilities/skills-management.md`
@@ -113,6 +116,8 @@ iOS, macOS, and Android development/testing capability front doors.
 - `schema_version`
 - `generated_at`
 - `summary`
+- `inventory_path`
+- `inventory_summary`
 - `installed_skills`
 - `local_skills`
 - `plugins`
@@ -129,13 +134,13 @@ iOS, macOS, and Android development/testing capability front doors.
 ```json
 {
   "configured_mcp_count": 0,
-  "enabled_plugin_count": 1,
-  "installed_skill_count": 33,
-  "local_skill_count": 33,
+  "enabled_plugin_count": 0,
+  "installed_skill_count": 37,
+  "local_skill_count": 37,
   "max_group_size": 6,
   "optional_attention_count": 7,
   "optional_capability_count": 12,
-  "required_capability_count": 10,
+  "required_capability_count": 11,
   "status": "ok",
   "visible_group_count": 6
 }
@@ -144,7 +149,7 @@ iOS, macOS, and Android development/testing capability front doors.
 ## Menu Budgets
 
 - Top-level groups: <= 8
-- Items per group page: <= 9
+- Items per group page: <= 25
 
 ## Overlap Decisions
 

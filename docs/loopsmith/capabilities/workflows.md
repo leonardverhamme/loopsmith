@@ -18,4 +18,4 @@ Reusable repo-level workflows for UI, tests, docs, refactors, CI/CD, and context
 ## Menu Budget
 
 - Top-level groups: <= 8
-- Items per group page: <= 9
+- Items per group page: <= 25

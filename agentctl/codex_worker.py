@@ -23,6 +23,10 @@ def _read_env(name: str) -> str:
     return value
 
 
+def _optional_env(name: str) -> str:
+    return os.environ.get(name, "").strip()
+
+
 def _text_if_exists(path: Path) -> str:
     if not path.exists():
         return ""
@@ -37,26 +41,49 @@ def _trim_block(text: str, *, limit: int = 6000) -> str:
 
 
 def build_prompt() -> str:
-    workflow = _read_env("CODEX_WORKFLOW_SKILL")
+    skill_name = _read_env("CODEX_WORKFLOW_SKILL")
+    workflow_name = _optional_env("CODEX_WORKFLOW_NAME") or skill_name
     repo_root = Path(_read_env("CODEX_WORKFLOW_REPO"))
     checklist_path = Path(_read_env("CODEX_WORKFLOW_CHECKLIST"))
     state_path = Path(_read_env("CODEX_WORKFLOW_STATE"))
     progress_path = Path(_read_env("CODEX_WORKFLOW_PROGRESS"))
+    task_file_value = _optional_env("CODEX_WORKFLOW_TASK_FILE")
+    task_file = Path(task_file_value) if task_file_value else None
     iteration = _read_env("CODEX_WORKFLOW_ITERATION")
     retry_hint = os.environ.get("CODEX_WORKFLOW_RETRY_HINT", "").strip()
     checklist = parse_checklist(checklist_path)
     checklist_text = _trim_block(_text_if_exists(checklist_path), limit=12000)
     state_text = _trim_block(_text_if_exists(state_path), limit=6000)
     progress_text = _trim_block(_text_if_exists(progress_path), limit=6000)
+    task_text = _trim_block(_text_if_exists(task_file), limit=8000) if task_file else ""
 
     remaining_titles = [item["title"] for item in checklist.get("remaining_items", [])[:12]]
     blocked_titles = [item["title"] for item in checklist.get("blocked_items", [])[:12]]
     remaining_lines = "\n".join(f"- {title}" for title in remaining_titles) or "- none listed"
     blocked_lines = "\n".join(f"- {title}" for title in blocked_titles) or "- none listed"
 
-    return f"""Use ${workflow}.
+    task_block = ""
+    if task_file is not None:
+        task_block = f"""
+Task brief path:
+`{task_file}`
 
-You are running exactly one pass inside the shared deep-workflow loop for `{workflow}`.
+Task brief:
+```markdown
+{task_text or "# task brief file missing"}
+```
+"""
+
+    generic_loop_hint = ""
+    if skill_name == "loopsmith":
+        generic_loop_hint = """
+- If the checklist does not exist yet, derive it from the task brief before doing the first implementation batch.
+- Keep the checklist concise, actionable, and stable enough for the outer loop to resume from disk.
+"""
+
+    return f"""Use ${skill_name}.
+
+You are running exactly one pass inside the shared deep-workflow loop for `{workflow_name}`.
 
 Hard rules:
 - Work from disk, not from chat memory.
@@ -70,10 +97,12 @@ Hard rules:
 - Update the checklist, state, and progress artifacts before exiting.
 - Never mark the workflow ready unless the checklist is actually at zero unchecked items and the guard would pass.
 - If items are genuinely blocked, leave them unchecked and record a concise blocker note instead of pretending they are done.
+{generic_loop_hint.rstrip()}
 
 Context:
 - Repo root: `{repo_root}`
-- Workflow: `{workflow}`
+- Workflow: `{workflow_name}`
+- Skill: `{skill_name}`
 - Iteration: `{iteration}`
 - Checklist path: `{checklist_path}`
 - State path: `{state_path}`
@@ -96,6 +125,8 @@ Execution contract for this pass:
 4. Run the smallest correct validations for that batch.
 5. Update the checklist, progress notes, and machine state so the outer runner can continue.
 6. Exit after one real batch, not after a plan-only note.
+
+{task_block.rstrip()}
 
 Checklist snapshot:
 ```markdown

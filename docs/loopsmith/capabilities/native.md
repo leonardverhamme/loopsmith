@@ -15,4 +15,4 @@ iOS, macOS, and Android development/testing capability front doors.
 ## Menu Budget
 
 - Top-level groups: <= 8
-- Items per group page: <= 9
+- Items per group page: <= 25

@@ -6,10 +6,12 @@ This is the frozen v1 command surface that maintenance checks expect.
 ## Quick Routing Rules
 
 - `doctor` is the shortest health-oriented entrypoint.
-- `capabilities` is the full menu for capability discovery.
+- `capabilities` is the compact grouped menu for capability discovery.
 - `capability <key>` is the drill-down page for a single capability and should be preferred before choosing lower-level vendor tools.
+- `inventory` is the raw autodetected surface for debugging, not the default front door.
 - `status` is for workflow progress, not general health.
 - `run` is only for deep workflows that use the shared runner/state contract.
+- `loop` is the generic long-task wrapper when there is no dedicated deep workflow for the job.
 - `run` should prefer a real worker runtime such as Codex CLI or an explicit worker command, not chat-only repetition.
 - `research` is for evidence creation, not implementation.
 - `skills` wraps official install/update tooling and provenance checks.
@@ -26,13 +28,15 @@ This is the frozen v1 command surface that maintenance checks expect.
 - `loopsmith doctor [--fix] [--json]`
   - Check installed tools, wrappers, auth health, and browser readiness, with optional local repair.
 - `loopsmith capabilities [--json]`
-  - Emit the machine-readable capability inventory and grouped front doors.
+  - Show the compact grouped capability menu, not the raw installed inventory.
 - `loopsmith capability <key> [--json]`
   - Show the drill-down page for a capability group or a single capability.
 - `loopsmith status [--repo <path>] [--all] [--json]`
   - Inspect repo-local or registry-backed deep workflow state.
 - `loopsmith run <workflow> [--repo <path>] [--worker-command <cmd>]`
   - Launch or resume a deep workflow through the shared runner.
+- `loopsmith loop <name> [--repo <path>] (--task <text> | --task-file <path>)`
+  - Launch a generic long task through the shared disk-backed loop when no dedicated deep workflow already fits.
 - `loopsmith self-check [--json]`
   - Compare wrapper version, bundle version, config schema, and plugin health.
 - `loopsmith version [--json]`
@@ -43,9 +47,11 @@ This is the frozen v1 command surface that maintenance checks expect.
 Typical sequence:
 
 - `loopsmith doctor`
-- `loopsmith capabilities` if you need the full menu
+- `loopsmith capabilities` for the compact grouped menu
+- `loopsmith inventory show` only when you need the raw detected surface
 - `loopsmith status --all` if you need workflow progress
-- `loopsmith run <workflow>` only when a deep workflow is the right shape
+- `loopsmith run <workflow>` when a dedicated deep workflow is the right shape
+- `loopsmith loop <name>` when the task is large but does not cleanly map to a dedicated deep workflow
 - If no worker runtime is healthy, configure `--worker-command` or `AGENTCTL_CODEX_WORKER_TEMPLATE` before treating the run as unattended
 
 ## Research
@@ -62,6 +68,21 @@ Typical sequence:
 - `loopsmith research web <query>` for current official docs or standards
 - `loopsmith research github <query>` for field practice and repository evidence
 - `loopsmith research scout <query>` when both are needed before implementation
+
+## Inventory
+
+- `loopsmith inventory refresh [--repo <path>] [--json]`
+  - Refresh and persist the raw autodetected inventory snapshot.
+- `loopsmith inventory show [--kind tools|skills|plugins|mcp|all] [--scope user|repo|all] [--json]`
+  - Inspect the raw autodetected inventory behind the curated capability menu.
+- `loopsmith inventory item <kind>:<name> [--json]`
+  - Show one raw inventory record.
+
+Typical sequence:
+
+- `loopsmith inventory refresh` after local installs or config changes that affect detection
+- `loopsmith inventory show --kind all --scope all` to inspect the raw detected surface
+- `loopsmith inventory item tool:gh` or a similar selector when one record needs detail
 
 ## Config
 

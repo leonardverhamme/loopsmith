@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import json
 from pathlib import Path
 from typing import Any
 
+from . import config_layers as config_layers_module
+from . import guidance as guidance_module
+from . import inventory as inventory_module
 from .branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DOCS_DIRNAME, PUBLIC_PRODUCT_NAME
 from .capabilities import CAPABILITY_GROUPS, build_capabilities_report, capability_detail, capability_doc_path, capability_keys
 from .common import load_json, print_json, save_json, save_text, utc_now
 from .config_layers import _load_toml
+from .guidance import GUIDANCE_SCHEMA_VERSION, refresh_guidance_snapshot
+from .inventory import INVENTORY_SCHEMA_VERSION, refresh_inventory_snapshot
 from .paths import (
     AGENTCTL_CAPABILITIES_DOCS_DIR,
     AGENTCTL_DOCS_DIR,
@@ -22,12 +28,17 @@ from .paths import (
     CLOUD_READINESS_REFERENCE_PATH,
     CONFIG_PATH,
     DOCTOR_REPORT_PATH,
+    GUIDANCE_PATH,
+    INVENTORY_PATH,
     MAINTENANCE_CONTRACT_REFERENCE_PATH,
     MAINTENANCE_REPORT_PATH,
     MAINTENANCE_STATE_PATH,
+    MaintenanceWorkspace,
     SKILLS_DIR,
+    SOURCE_REPO_ROOT,
     STATE_SCHEMA_REFERENCE_PATH,
     WORKFLOW_REGISTRY_PATH,
+    maintenance_workspace,
 )
 
 
@@ -38,6 +49,7 @@ MAINTENANCE_SKILL_NAME = "agentctl-maintenance-engineer"
 MAINTENANCE_DOCS: dict[str, Path] = {
     "overview": AGENTCTL_DOCS_DIR / "overview.md",
     "command-map": AGENTCTL_DOCS_DIR / "command-map.md",
+    "inventory": AGENTCTL_DOCS_DIR / "inventory.md",
     "state-schema": AGENTCTL_DOCS_DIR / "state-schema.md",
     "capability-registry": AGENTCTL_DOCS_DIR / "capability-registry.md",
     "cloud-readiness": AGENTCTL_DOCS_DIR / "cloud-readiness.md",
@@ -49,16 +61,18 @@ REFERENCE_DOCS: dict[str, Path] = {
     "maintenance-contract": MAINTENANCE_CONTRACT_REFERENCE_PATH,
     "cloud-readiness": CLOUD_READINESS_REFERENCE_PATH,
 }
+SAFE_MAINTENANCE_ROOTS = (SOURCE_REPO_ROOT,)
 PLUGIN_CONFIG_KEYS = (AGENTCTL_PLUGIN_NAME, f"{AGENTCTL_PLUGIN_NAME}@local")
 COMMAND_GROUPS = [
     {
         "group": "core",
         "items": [
             {"command": "doctor", "usage": f"{PUBLIC_COMMAND} doctor [--fix] [--json]", "summary": "Check installed tools, wrappers, auth health, and browser readiness, with optional local repair."},
-            {"command": "capabilities", "usage": f"{PUBLIC_COMMAND} capabilities [--json]", "summary": "Emit the machine-readable capability inventory and grouped front doors."},
+            {"command": "capabilities", "usage": f"{PUBLIC_COMMAND} capabilities [--json]", "summary": "Show the compact grouped capability menu, not the raw installed inventory."},
             {"command": "capability", "usage": f"{PUBLIC_COMMAND} capability <key> [--json]", "summary": "Show the drill-down page for a capability group or a single capability."},
             {"command": "status", "usage": f"{PUBLIC_COMMAND} status [--repo <path>] [--all] [--json]", "summary": "Inspect repo-local or registry-backed deep workflow state."},
             {"command": "run", "usage": f"{PUBLIC_COMMAND} run <workflow> [--repo <path>] [--worker-command <cmd>]", "summary": "Launch or resume a deep workflow through the shared runner."},
+            {"command": "loop", "usage": f"{PUBLIC_COMMAND} loop <name> [--repo <path>] (--task <text> | --task-file <path>)", "summary": "Launch a generic long task through the shared disk-backed loop when no dedicated deep workflow already fits."},
             {"command": "self-check", "usage": f"{PUBLIC_COMMAND} self-check [--json]", "summary": "Compare wrapper version, bundle version, config schema, and plugin health."},
             {"command": "version", "usage": f"{PUBLIC_COMMAND} version [--json]", "summary": "Show wrapper and bundle version information."},
             {"command": "upgrade", "usage": f"{PUBLIC_COMMAND} upgrade [--version <tag>] [--json]", "summary": "Upgrade the installed bundle from its recorded release source."},
@@ -70,6 +84,14 @@ COMMAND_GROUPS = [
             {"command": "research web", "usage": f"{PUBLIC_COMMAND} research web <query> [--limit N]", "summary": "Research current public web sources through the shared evidence contract."},
             {"command": "research github", "usage": f"{PUBLIC_COMMAND} research github <query> [--limit N]", "summary": "Research GitHub repositories, code, issues, and releases through gh-first routing."},
             {"command": "research scout", "usage": f"{PUBLIC_COMMAND} research scout <query> [--limit N]", "summary": "Run web and GitHub research together and merge them into one evidence envelope."},
+        ],
+    },
+    {
+        "group": "inventory",
+        "items": [
+            {"command": "inventory refresh", "usage": f"{PUBLIC_COMMAND} inventory refresh [--repo <path>] [--json]", "summary": "Refresh and persist the raw autodetected inventory snapshot."},
+            {"command": "inventory show", "usage": f"{PUBLIC_COMMAND} inventory show [--kind tools|skills|plugins|mcp|all] [--scope user|repo|all] [--json]", "summary": "Inspect the raw autodetected inventory behind the curated capability menu."},
+            {"command": "inventory item", "usage": f"{PUBLIC_COMMAND} inventory item <kind>:<name> [--json]", "summary": "Show one raw inventory record."},
         ],
     },
     {
@@ -188,6 +210,95 @@ CLOUD_READINESS = [
 ]
 AUTOMATION_CORE_PATTERN = "automation" + "-core"
 CAPABILITY_SKILL_LINE_BUDGET = 160
+
+
+def _maintenance_docs_map(docs_dir: Path) -> dict[str, Path]:
+    return {
+        "overview": docs_dir / "overview.md",
+        "command-map": docs_dir / "command-map.md",
+        "inventory": docs_dir / "inventory.md",
+        "state-schema": docs_dir / "state-schema.md",
+        "capability-registry": docs_dir / "capability-registry.md",
+        "cloud-readiness": docs_dir / "cloud-readiness.md",
+        "maintenance": docs_dir / "maintenance.md",
+    }
+
+
+def _reference_docs_map(workspace: MaintenanceWorkspace) -> dict[str, Path]:
+    return {
+        "state-schema": workspace.state_schema_reference_path,
+        "capability-registry": workspace.capability_registry_reference_path,
+        "maintenance-contract": workspace.maintenance_contract_reference_path,
+        "cloud-readiness": workspace.cloud_readiness_reference_path,
+    }
+
+
+def _workspace_bindings(workspace: MaintenanceWorkspace) -> dict[str, Path]:
+    return {
+        "AGENTCTL_HOME": workspace.agentctl_home,
+        "AGENTCTL_DOCS_DIR": workspace.docs_dir,
+        "AGENTCTL_CAPABILITIES_DOCS_DIR": workspace.capabilities_docs_dir,
+        "CAPABILITIES_PATH": workspace.capabilities_path,
+        "DOCTOR_REPORT_PATH": workspace.doctor_report_path,
+        "INVENTORY_PATH": workspace.inventory_path,
+        "GUIDANCE_PATH": workspace.guidance_path,
+        "MAINTENANCE_REPORT_PATH": workspace.maintenance_report_path,
+        "MAINTENANCE_STATE_PATH": workspace.maintenance_state_path,
+        "STATE_SCHEMA_REFERENCE_PATH": workspace.state_schema_reference_path,
+        "CAPABILITY_REGISTRY_REFERENCE_PATH": workspace.capability_registry_reference_path,
+        "MAINTENANCE_CONTRACT_REFERENCE_PATH": workspace.maintenance_contract_reference_path,
+        "CLOUD_READINESS_REFERENCE_PATH": workspace.cloud_readiness_reference_path,
+        "CONFIG_PATH": workspace.config_path,
+        "WORKFLOW_REGISTRY_PATH": workspace.workflow_registry_path,
+        "SKILLS_DIR": workspace.skills_dir,
+        "AGENTCTL_PLUGIN_DIR": workspace.plugin_dir,
+        "AGENTCTL_PLUGIN_MANIFEST_PATH": workspace.plugin_manifest_path,
+        "AGENTCTL_PLUGIN_ROUTER_SKILL_DIR": workspace.plugin_router_skill_dir,
+        "AGENTCTL_MAINTENANCE_SKILL_DIR": workspace.maintenance_skill_dir,
+    }
+
+
+@contextmanager
+def _maintenance_workspace_context(cwd: str | Path | None = None):
+    if cwd is None:
+        yield None
+        return
+
+    workspace = maintenance_workspace(cwd)
+    if workspace.mode == "source" and workspace.root not in SAFE_MAINTENANCE_ROOTS:
+        raise RuntimeError(f"unsafe source maintenance target: {workspace.root}")
+
+    bindings = _workspace_bindings(workspace)
+    original = {name: globals()[name] for name in bindings}
+    original_docs = dict(MAINTENANCE_DOCS)
+    original_refs = dict(REFERENCE_DOCS)
+    module_bindings = (
+        (config_layers_module, "CONFIG_PATH", workspace.config_path),
+        (config_layers_module, "CODEX_HOME", workspace.root),
+        (guidance_module, "CODEX_HOME", workspace.root),
+        (guidance_module, "GUIDANCE_PATH", workspace.guidance_path),
+        (inventory_module, "PLUGINS_DIR", workspace.plugins_dir),
+        (inventory_module, "SKILLS_DIR", workspace.skills_dir),
+        (inventory_module, "INVENTORY_PATH", workspace.inventory_path),
+    )
+    original_module_values = [(module, name, getattr(module, name)) for module, name, _ in module_bindings]
+    try:
+        globals().update(bindings)
+        MAINTENANCE_DOCS.clear()
+        MAINTENANCE_DOCS.update(_maintenance_docs_map(workspace.docs_dir))
+        REFERENCE_DOCS.clear()
+        REFERENCE_DOCS.update(_reference_docs_map(workspace))
+        for module, name, value in module_bindings:
+            setattr(module, name, value)
+        yield workspace
+    finally:
+        for module, name, value in original_module_values:
+            setattr(module, name, value)
+        globals().update(original)
+        MAINTENANCE_DOCS.clear()
+        MAINTENANCE_DOCS.update(original_docs)
+        REFERENCE_DOCS.clear()
+        REFERENCE_DOCS.update(original_refs)
 
 
 def _read_text(path: Path) -> str:
@@ -325,9 +436,19 @@ def _automation_core_hits() -> list[dict[str, Any]]:
             continue
         for index, line in enumerate(content.splitlines(), start=1):
             if AUTOMATION_CORE_PATTERN in line:
-                if path == CONFIG_PATH.resolve() and line.strip().startswith("[projects."):
+                normalized = line.strip()
+                if path == CONFIG_PATH.resolve() and normalized.startswith("[projects."):
                     continue
-                hits.append({"path": str(path), "line": index, "snippet": line.strip()})
+                if any(
+                    marker in normalized
+                    for marker in (
+                        "automation-core-drift-",
+                        "Leftover automation-core coupling",
+                        "stale automation-core reference",
+                    )
+                ):
+                    continue
+                hits.append({"path": str(path), "line": index, "snippet": normalized})
     return hits
 
 
@@ -381,6 +502,8 @@ def _tests_status() -> list[dict[str, Any]]:
         AGENTCTL_HOME / "tests" / "test_cli_output.py",
         AGENTCTL_HOME / "tests" / "test_codex_worker.py",
         AGENTCTL_HOME / "tests" / "test_codex_runtime.py",
+        AGENTCTL_HOME / "tests" / "test_guidance.py",
+        AGENTCTL_HOME / "tests" / "test_inventory.py",
         AGENTCTL_HOME / "tests" / "test_install_bundle.py",
         AGENTCTL_HOME / "tests" / "test_research.py",
         AGENTCTL_HOME / "tests" / "test_skills_ops.py",
@@ -439,6 +562,8 @@ def _build_findings(
     tests: list[dict[str, Any]],
     capability_skill_budget: list[dict[str, Any]],
     automation_core_hits: list[dict[str, Any]],
+    inventory: dict[str, Any],
+    guidance: dict[str, Any],
     capabilities: dict[str, Any],
 ) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
@@ -543,6 +668,64 @@ def _build_findings(
                 path=record["path"],
             )
 
+    if inventory.get("schema_version") != INVENTORY_SCHEMA_VERSION:
+        _add_finding(
+            findings,
+            finding_id="inventory-schema",
+            title="Inventory schema drift",
+            severity="error",
+            detail="The persisted inventory snapshot does not match the expected schema version.",
+            path=str(INVENTORY_PATH),
+        )
+    if inventory.get("summary", {}).get("status") == "error":
+        _add_finding(
+            findings,
+            finding_id="inventory-error",
+            title="Inventory refresh has errors",
+            severity="error",
+            detail="The autodetected inventory could not be refreshed cleanly.",
+            path=str(INVENTORY_PATH),
+        )
+    elif inventory.get("summary", {}).get("status") == "degraded":
+        _add_finding(
+            findings,
+            finding_id="inventory-degraded",
+            title="Inventory refresh is degraded",
+            severity="warn",
+            detail="One or more inventory sources failed or only partially refreshed.",
+            path=str(INVENTORY_PATH),
+        )
+
+    max_inventory_bucket = inventory.get("summary", {}).get("max_bucket_size", 0)
+    if max_inventory_bucket > inventory.get("menu_budget", {}).get("max_items", 25):
+        _add_finding(
+            findings,
+            finding_id="inventory-bucket-overflow",
+            title="Raw inventory bucket exceeds budget",
+            severity="error",
+            detail="At least one raw inventory bucket exceeds the configured max items budget and should be split.",
+            path=str(INVENTORY_PATH),
+        )
+
+    if guidance.get("schema_version") != GUIDANCE_SCHEMA_VERSION:
+        _add_finding(
+            findings,
+            finding_id="guidance-schema",
+            title="Guidance schema drift",
+            severity="error",
+            detail="The persisted guidance snapshot does not match the expected schema version.",
+            path=str(GUIDANCE_PATH),
+        )
+    if not guidance.get("summary", {}).get("within_budget", True):
+        _add_finding(
+            findings,
+            finding_id="guidance-budget",
+            title="Personal guidance exceeds budget",
+            severity="warn",
+            detail="Personal guidance snippets exceed the configured file or total-line budget.",
+            path=str(GUIDANCE_PATH),
+        )
+
     capabilities_status = capabilities.get("summary", {}).get("status", "unknown")
     if capabilities_status == "error":
         _add_finding(
@@ -599,6 +782,16 @@ def _build_findings(
             path=str(CAPABILITIES_PATH),
         )
 
+    if any("full menu" in _read_text(Path(record["path"])).lower() for record in docs if record["name"] in {"overview", "command-map"} and Path(record["path"]).exists()):
+        _add_finding(
+            findings,
+            finding_id="menu-copy-leakage",
+            title="Generated docs still describe capabilities as the full menu",
+            severity="warn",
+            detail="The default menu should stay compact and distinguish curated capability navigation from raw inventory inspection.",
+            path=str(MAINTENANCE_DOCS["command-map"]),
+        )
+
     for hit in automation_core_hits:
         _add_finding(
             findings,
@@ -613,7 +806,10 @@ def _build_findings(
 
 
 def build_maintenance_report() -> dict[str, Any]:
-    capabilities = build_capabilities_report()
+    control_plane_root = AGENTCTL_HOME.parent
+    inventory = refresh_inventory_snapshot(repo=control_plane_root, output_path=INVENTORY_PATH)
+    guidance = refresh_guidance_snapshot(repo=control_plane_root, output_path=GUIDANCE_PATH)
+    capabilities = build_capabilities_report(inventory_snapshot=inventory)
     docs = [_record_file(name, path) for name, path in MAINTENANCE_DOCS.items()]
     docs.extend(_capability_docs({"capabilities_snapshot": capabilities}))
     references = [_record_reference(name, path) for name, path in REFERENCE_DOCS.items()]
@@ -632,10 +828,12 @@ def build_maintenance_report() -> dict[str, Any]:
         tests=tests,
         capability_skill_budget=capability_skill_budget,
         automation_core_hits=automation_core_hits,
+        inventory=inventory,
+        guidance=guidance,
         capabilities=capabilities,
     )
 
-    total_checks = len(docs) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + 5
+    total_checks = len(docs) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + 9
     blocked_findings = [item for item in findings if item["severity"] == "error"]
     open_findings = len(findings)
     passed_checks = max(total_checks - open_findings, 0)
@@ -656,6 +854,8 @@ def build_maintenance_report() -> dict[str, Any]:
         "artifacts": {
             "capabilities": str(CAPABILITIES_PATH),
             "doctor": str(DOCTOR_REPORT_PATH),
+            "inventory": str(INVENTORY_PATH),
+            "guidance": str(GUIDANCE_PATH),
             "maintenance_report": str(MAINTENANCE_REPORT_PATH),
             "maintenance_state": str(MAINTENANCE_STATE_PATH),
         },
@@ -668,6 +868,8 @@ def build_maintenance_report() -> dict[str, Any]:
         "tests": tests,
         "cloud_readiness": CLOUD_READINESS,
         "automation_core_hits": automation_core_hits,
+        "inventory_snapshot": inventory,
+        "guidance_snapshot": guidance,
         "capabilities_snapshot": capabilities,
         "known_limitations": _known_limitations(capabilities),
         "findings": findings,
@@ -743,6 +945,8 @@ def _maintenance_state(report: dict[str, Any]) -> dict[str, Any]:
         "evidence": [
             {"kind": "file", "path": str(CAPABILITIES_PATH)},
             {"kind": "file", "path": str(DOCTOR_REPORT_PATH)},
+            {"kind": "file", "path": str(INVENTORY_PATH)},
+            {"kind": "file", "path": str(GUIDANCE_PATH)},
             {"kind": "file", "path": str(MAINTENANCE_REPORT_PATH)},
         ],
         "updated_at": report["generated_at"],
@@ -778,6 +982,7 @@ def _render_overview(report: dict[str, Any]) -> str:
         f"- `{PUBLIC_COMMAND} doctor` for a compact health check.",
         f"- `{PUBLIC_COMMAND} capabilities` for the grouped top-level capability menu.",
         f"- `{PUBLIC_COMMAND} capability <key>` for a group page or a single capability drill-down page.",
+        f"- `{PUBLIC_COMMAND} inventory show` when you need the raw autodetected inventory behind the curated menu.",
         f"- `{PUBLIC_COMMAND} status --all` for durable workflow state across repos.",
         f"- `{PUBLIC_COMMAND} maintenance audit` after command, packaging, config, or contract changes.",
         "",
@@ -787,13 +992,16 @@ def _render_overview(report: dict[str, Any]) -> str:
         "- [Install on another computer](install-on-another-computer.md)",
         "- [Unattended worker setup](unattended-worker-setup.md)",
         "- [Maintainer guide](maintainer-guide.md)",
-        "- [Skill governance](skill-governance.md)",
+        "- [Control-plane governance](skill-governance.md)",
+        "- [Inventory model](inventory.md)",
         "",
         "## Common Flows",
         "",
         f"- Capability discovery: `{PUBLIC_COMMAND} doctor` then `{PUBLIC_COMMAND} capabilities`.",
+        f"- Raw installed surface: `{PUBLIC_COMMAND} inventory show` then `{PUBLIC_COMMAND} inventory item <kind>:<name>`.",
         f"- External research: `{PUBLIC_COMMAND} research web|github|scout <query>`.",
         f"- Deep remediation: `{PUBLIC_COMMAND} run <workflow>` plus `.codex-workflows/<workflow>/state.json`.",
+        f"- Generic long task: `$loopsmith` then `{PUBLIC_COMMAND} loop <name>` with a task brief on disk.",
         f"- Control-plane upkeep: `$agentctl-maintenance-engineer` or `{PUBLIC_COMMAND} maintenance audit`.",
         "",
         "## Compatibility",
@@ -813,6 +1021,8 @@ def _render_overview(report: dict[str, Any]) -> str:
         "",
         "- Internal bundle path: `agentctl/`",
         "- Capabilities snapshot: `agentctl/state/capabilities.json`",
+        "- Inventory snapshot: `agentctl/state/inventory.json`",
+        "- Guidance snapshot: `agentctl/state/guidance.json`",
         f"- Maintenance report: `docs/{PUBLIC_DOCS_DIRNAME}/maintenance-report.json`",
         "- Maintenance state: `.codex-workflows/agentctl-maintenance/state.json`",
         "",
@@ -842,10 +1052,12 @@ def _render_command_map() -> str:
         "## Quick Routing Rules",
         "",
         "- `doctor` is the shortest health-oriented entrypoint.",
-        "- `capabilities` is the full menu for capability discovery.",
+        "- `capabilities` is the compact grouped menu for capability discovery.",
         "- `capability <key>` is the drill-down page for a single capability and should be preferred before choosing lower-level vendor tools.",
+        "- `inventory` is the raw autodetected surface for debugging, not the default front door.",
         "- `status` is for workflow progress, not general health.",
         "- `run` is only for deep workflows that use the shared runner/state contract.",
+        "- `loop` is the generic long-task wrapper when there is no dedicated deep workflow for the job.",
         "- `run` should prefer a real worker runtime such as Codex CLI or an explicit worker command, not chat-only repetition.",
         "- `research` is for evidence creation, not implementation.",
         "- `skills` wraps official install/update tooling and provenance checks.",
@@ -870,10 +1082,22 @@ def _render_command_map() -> str:
                     "Typical sequence:",
                     "",
                     f"- `{PUBLIC_COMMAND} doctor`",
-                    f"- `{PUBLIC_COMMAND} capabilities` if you need the full menu",
+                    f"- `{PUBLIC_COMMAND} capabilities` for the compact grouped menu",
+                    f"- `{PUBLIC_COMMAND} inventory show` only when you need the raw detected surface",
                     f"- `{PUBLIC_COMMAND} status --all` if you need workflow progress",
-                    f"- `{PUBLIC_COMMAND} run <workflow>` only when a deep workflow is the right shape",
+                    f"- `{PUBLIC_COMMAND} run <workflow>` when a dedicated deep workflow is the right shape",
+                    f"- `{PUBLIC_COMMAND} loop <name>` when the task is large but does not cleanly map to a dedicated deep workflow",
                     "- If no worker runtime is healthy, configure `--worker-command` or `AGENTCTL_CODEX_WORKER_TEMPLATE` before treating the run as unattended",
+                ]
+            )
+        elif group["group"] == "inventory":
+            lines.extend(
+                [
+                    "Typical sequence:",
+                    "",
+                    f"- `{PUBLIC_COMMAND} inventory refresh` after local installs or config changes that affect detection",
+                    f"- `{PUBLIC_COMMAND} inventory show --kind all --scope all` to inspect the raw detected surface",
+                    f"- `{PUBLIC_COMMAND} inventory item tool:gh` or a similar selector when one record needs detail",
                 ]
             )
         elif group["group"] == "research":
@@ -941,6 +1165,8 @@ def _render_state_schema(report: dict[str, Any]) -> str:
         "- `plugin`",
         "- `tests`",
         "- `cloud_readiness`",
+        "- `inventory_snapshot`",
+        "- `guidance_snapshot`",
         "- `capabilities_snapshot`",
         "- `known_limitations`",
         "- `findings`",
@@ -981,13 +1207,70 @@ def _render_state_schema(report: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _render_inventory(report: dict[str, Any]) -> str:
+    inventory = report["inventory_snapshot"]
+    lines = [
+        AUTO_MARKER,
+        f"# {PUBLIC_PRODUCT_NAME.title()} Inventory",
+        "",
+        "The raw autodetected inventory is stored at `agentctl/state/inventory.json`.",
+        "",
+        "## Purpose",
+        "",
+        "- Detect what is actually present on the machine and in Codex.",
+        "- Keep raw installed surface separate from the curated capability menu.",
+        "- Let `capabilities` stay compact while `inventory` remains the debugging and inspection layer.",
+        "",
+        "## Commands",
+        "",
+        f"- `{PUBLIC_COMMAND} inventory refresh`",
+        f"- `{PUBLIC_COMMAND} inventory show --kind all --scope all`",
+        f"- `{PUBLIC_COMMAND} inventory item <kind>:<name>`",
+        "",
+        "## Item Shape",
+        "",
+        "- `id`",
+        "- `kind`",
+        "- `name`",
+        "- `source_scope`",
+        "- `status`",
+        "- `installed` or `configured`",
+        "- `version` when available",
+        "- `source_path` or `source_hint`",
+        "- `front_door_candidate`",
+        "- `menu_bucket`",
+        "- `hidden_reason`",
+        "",
+        "## Menu Budget",
+        "",
+        f"- Raw inventory items per bucket: <= {inventory.get('menu_budget', {}).get('max_items', 25)}",
+        "- Raw buckets split deterministically when the item budget is exceeded.",
+        "",
+        "## Current Summary",
+        "",
+        "```json",
+        json.dumps(inventory.get("summary", {}), indent=2, sort_keys=True),
+        "```",
+        "",
+    ]
+    sources = inventory.get("sources", [])
+    if sources:
+        lines.extend(["## Detection Sources", ""])
+        for source in sources:
+            lines.append(f"- `{source['name']}`: `{source['status']}`")
+            if source.get("detail"):
+                lines.append(f"  - {source['detail']}")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _render_capability_registry(report: dict[str, Any]) -> str:
     capability_items = report["capabilities_snapshot"].get("capabilities", [])
     lines = [
         AUTO_MARKER,
         f"# {PUBLIC_PRODUCT_NAME.title()} Capability Registry",
         "",
-        "The machine-readable registry lives at `agentctl/state/capabilities.json`.",
+        "The machine-readable registry lives at `agentctl/state/capabilities.json` and is derived from the latest raw inventory snapshot.",
         "",
         "## How To Use This Registry",
         "",
@@ -1025,6 +1308,8 @@ def _render_capability_registry(report: dict[str, Any]) -> str:
             "- `schema_version`",
             "- `generated_at`",
             "- `summary`",
+            "- `inventory_path`",
+            "- `inventory_summary`",
             "- `installed_skills`",
             "- `local_skills`",
             "- `plugins`",
@@ -1244,12 +1529,15 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         f"1. Run `{PUBLIC_COMMAND} maintenance check` for a quick signal.",
         f"2. If command surface, docs, or packaging changed, run `{PUBLIC_COMMAND} maintenance audit`.",
         "3. Read `maintenance.md`, `maintenance-report.json`, and `.codex-workflows/agentctl-maintenance/state.json` together.",
-        f"4. If findings are doc-only, prefer `{PUBLIC_COMMAND} maintenance fix-docs` over hand edits.",
-        "5. Re-run the relevant tests and smoke checks before trusting a green maintenance state.",
+        f"4. Inspect `{PUBLIC_COMMAND} inventory show` when a capability surface looks wrong or unexpectedly large.",
+        f"5. Inspect `{PUBLIC_COMMAND} self-check` when config, guidance, or menu budgets may be part of the problem.",
+        f"6. If findings are doc-only, prefer `{PUBLIC_COMMAND} maintenance fix-docs` over hand edits.",
+        "7. Re-run the relevant tests and smoke checks before trusting a green maintenance state.",
         "",
         "## What Must Be Updated After Changes",
         "",
         f"- Refresh `docs/{PUBLIC_DOCS_DIRNAME}/*.md` from machine state.",
+        "- Keep `agentctl/state/inventory.json` and `agentctl/state/guidance.json` healthy and within budget.",
         "- Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.",
         "- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.",
         "- Re-run tests for `agentctl` and the shared workflow tools.",
@@ -1298,6 +1586,7 @@ def _write_docs(report: dict[str, Any], *, include_all: bool, include_maintenanc
     if include_all:
         save_text(MAINTENANCE_DOCS["overview"], _render_overview(report))
         save_text(MAINTENANCE_DOCS["command-map"], _render_command_map())
+        save_text(MAINTENANCE_DOCS["inventory"], _render_inventory(report))
         save_text(MAINTENANCE_DOCS["state-schema"], _render_state_schema(report))
         save_text(MAINTENANCE_DOCS["capability-registry"], _render_capability_registry(report))
         save_text(MAINTENANCE_DOCS["cloud-readiness"], _render_cloud_readiness(report))
@@ -1318,28 +1607,31 @@ def _persist(report: dict[str, Any]) -> dict[str, Any]:
     return report
 
 
-def maintenance_check() -> dict[str, Any]:
-    return _persist(build_maintenance_report())
+def maintenance_check(*, cwd: str | Path | None = None) -> dict[str, Any]:
+    with _maintenance_workspace_context(cwd):
+        return _persist(build_maintenance_report())
 
 
-def maintenance_render_report() -> dict[str, Any]:
-    report = build_maintenance_report()
-    _write_docs(report, include_all=False, include_maintenance_page=True)
-    final_report = build_maintenance_report()
-    _write_docs(final_report, include_all=False, include_maintenance_page=True)
-    return _persist(final_report)
+def maintenance_render_report(*, cwd: str | Path | None = None) -> dict[str, Any]:
+    with _maintenance_workspace_context(cwd):
+        report = build_maintenance_report()
+        _write_docs(report, include_all=False, include_maintenance_page=True)
+        final_report = build_maintenance_report()
+        _write_docs(final_report, include_all=False, include_maintenance_page=True)
+        return _persist(final_report)
 
 
-def maintenance_fix_docs() -> dict[str, Any]:
-    report = build_maintenance_report()
-    _write_docs(report, include_all=True, include_maintenance_page=True)
-    final_report = build_maintenance_report()
-    _write_docs(final_report, include_all=True, include_maintenance_page=True)
-    return _persist(final_report)
+def maintenance_fix_docs(*, cwd: str | Path | None = None) -> dict[str, Any]:
+    with _maintenance_workspace_context(cwd):
+        report = build_maintenance_report()
+        _write_docs(report, include_all=True, include_maintenance_page=True)
+        final_report = build_maintenance_report()
+        _write_docs(final_report, include_all=True, include_maintenance_page=True)
+        return _persist(final_report)
 
 
-def maintenance_audit() -> dict[str, Any]:
-    return maintenance_fix_docs()
+def maintenance_audit(*, cwd: str | Path | None = None) -> dict[str, Any]:
+    return maintenance_fix_docs(cwd=cwd)
 
 
 def print_maintenance_human(payload: dict[str, Any], *, as_json: bool = False) -> None:
@@ -1356,6 +1648,8 @@ def print_maintenance_human(payload: dict[str, Any], *, as_json: bool = False) -
     print("Artifacts")
     print(f"- Maintenance report: {payload['artifacts']['maintenance_report']}")
     print(f"- Maintenance state: {payload['artifacts']['maintenance_state']}")
+    print(f"- Inventory snapshot: {payload['artifacts']['inventory']}")
+    print(f"- Guidance snapshot: {payload['artifacts']['guidance']}")
     print("")
     print("Plugin")
     print(f"- Path: {payload['plugin']['path']}")

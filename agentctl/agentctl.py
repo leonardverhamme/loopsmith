@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 try:
     from .bundle_install import default_codex_home, repair_install, upgrade_bundle
@@ -26,6 +27,14 @@ try:
         repair_user_config,
         set_config_value,
         unset_config_value,
+    )
+    from .lib.guidance import load_guidance_snapshot
+    from .lib.inventory import (
+        filter_inventory_items,
+        inventory_item,
+        load_inventory_snapshot,
+        print_inventory_human,
+        refresh_inventory_snapshot,
     )
     from .lib.maintenance import (
         maintenance_audit,
@@ -61,6 +70,14 @@ except ImportError:
         repair_user_config,
         set_config_value,
         unset_config_value,
+    )
+    from lib.guidance import load_guidance_snapshot
+    from lib.inventory import (
+        filter_inventory_items,
+        inventory_item,
+        load_inventory_snapshot,
+        print_inventory_human,
+        refresh_inventory_snapshot,
     )
     from lib.maintenance import (
         maintenance_audit,
@@ -133,6 +150,25 @@ def add_config_subcommands(config_parser: argparse.ArgumentParser) -> None:
         parser.add_argument("--json", action="store_true", help="Emit JSON")
 
 
+def add_inventory_subcommands(inventory_parser: argparse.ArgumentParser) -> None:
+    inventory_subparsers = inventory_parser.add_subparsers(dest="inventory_command", required=True)
+
+    refresh_parser = inventory_subparsers.add_parser("refresh", help="Refresh and persist the autodetected inventory snapshot")
+    refresh_parser.add_argument("--repo", help="Repo root for repo-local inventory resolution")
+    refresh_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    show_parser = inventory_subparsers.add_parser("show", help="Show the raw autodetected inventory")
+    show_parser.add_argument("--kind", choices=("tools", "skills", "plugins", "mcp", "all"), default="all")
+    show_parser.add_argument("--scope", choices=("user", "repo", "all"), default="all")
+    show_parser.add_argument("--repo", help="Repo root for repo-local inventory resolution")
+    show_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    item_parser = inventory_subparsers.add_parser("item", help="Show one raw inventory record by kind:name")
+    item_parser.add_argument("selector", help="Inventory selector, e.g. tool:gh or skill:github:github")
+    item_parser.add_argument("--repo", help="Repo root for repo-local inventory resolution")
+    item_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=f"{PUBLIC_PRODUCT_NAME} is the capability-first Codex control plane for workflows, research, and installable agent tooling.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -163,6 +199,18 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--max-iterations", type=int, default=30)
     run_parser.add_argument("--max-stagnant", type=int, default=3)
 
+    loop_parser = subparsers.add_parser("loop", help="Run a generic long task through the shared disk-backed loop")
+    loop_parser.add_argument("name", help="Workflow instance name, e.g. repo-cleanup")
+    loop_parser.add_argument("--repo", help="Repo root. Defaults to the current working directory.")
+    loop_parser.add_argument("--task", help="Task brief text for the loop")
+    loop_parser.add_argument("--task-file", help="Existing task brief markdown file")
+    loop_parser.add_argument("--checklist", help="Optional checklist path override")
+    loop_parser.add_argument("--progress", help="Optional progress path override")
+    loop_parser.add_argument("--worker-command", help="Worker command used by the shared loop runner")
+    loop_parser.add_argument("--worker-mode", choices=("auto", "explicit", "codex"), default="auto", help="How loopsmith should resolve the loop worker command")
+    loop_parser.add_argument("--max-iterations", type=int, default=30)
+    loop_parser.add_argument("--max-stagnant", type=int, default=3)
+
     research_parser = subparsers.add_parser("research", help="Route research through the shared evidence contract")
     research_subparsers = research_parser.add_subparsers(dest="research_mode", required=True)
     for mode in ("web", "github", "scout"):
@@ -182,6 +230,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     config_parser = subparsers.add_parser("config", help="Inspect and update bundled, user, and repo config layers")
     add_config_subcommands(config_parser)
+
+    inventory_parser = subparsers.add_parser("inventory", help="Inspect the raw autodetected inventory behind the curated capability menu")
+    add_inventory_subcommands(inventory_parser)
 
     upgrade_parser = subparsers.add_parser("upgrade", help=f"Upgrade the installed {PUBLIC_PRODUCT_NAME} bundle from its recorded release source")
     upgrade_parser.add_argument("--version", help="Optional explicit release version to install")
@@ -208,13 +259,21 @@ def main() -> int:
                 "install": repair_install(default_codex_home()),
                 "config": repair_user_config(),
             }
-        report = build_capabilities_report()
-        if repair_summary is not None:
-            report["repair"] = repair_summary
+        inventory = refresh_inventory_snapshot() if args.command == "doctor" else load_inventory_snapshot()
+        report = build_capabilities_report(inventory_snapshot=inventory)
         save_json(CAPABILITIES_PATH, report)
-        save_json(DOCTOR_REPORT_PATH, report)
         if args.command == "doctor":
-            print_doctor_human(report, as_json=args.json)
+            guidance = load_guidance_snapshot(refresh=True)
+            doctor_summary = dict(report.get("summary", {}))
+            if not guidance.get("summary", {}).get("within_budget", True) and doctor_summary.get("status") == "ok":
+                doctor_summary["status"] = "degraded"
+            if inventory.get("summary", {}).get("max_bucket_size", 0) > inventory.get("menu_budget", {}).get("max_items", 25):
+                doctor_summary["status"] = "error"
+            doctor_report = {**report, "summary": doctor_summary, "inventory_snapshot": inventory, "guidance_snapshot": guidance}
+            if repair_summary is not None:
+                doctor_report["repair"] = repair_summary
+            save_json(DOCTOR_REPORT_PATH, doctor_report)
+            print_doctor_human(doctor_report, as_json=args.json)
         elif args.command == "capability":
             detail = capability_detail(report, args.key)
             if detail is None:
@@ -243,12 +302,50 @@ def main() -> int:
         print_config_human(result, as_json=getattr(args, "json", False))
         return 0
 
+    if args.command == "inventory":
+        if args.inventory_command == "refresh":
+            result = refresh_inventory_snapshot(args.repo)
+        elif args.inventory_command == "show":
+            result = filter_inventory_items(load_inventory_snapshot(args.repo), kind=args.kind, scope=args.scope)
+        elif args.inventory_command == "item":
+            result = inventory_item(load_inventory_snapshot(args.repo), args.selector)
+            if result is None:
+                parser.error(f"unknown inventory item: {args.selector}")
+        else:  # pragma: no cover
+            parser.error(f"unknown inventory command: {args.inventory_command}")
+        print_inventory_human(result, as_json=getattr(args, "json", False))
+        return 0
+
     if args.command == "run":
         return run_workflow(
             workflow=args.workflow,
             repo=args.repo,
             checklist=args.checklist,
             progress=args.progress,
+            worker_command=args.worker_command,
+            worker_mode=args.worker_mode,
+            max_iterations=args.max_iterations,
+            max_stagnant=args.max_stagnant,
+        )
+
+    if args.command == "loop":
+        if args.task and args.task_file:
+            parser.error("use either --task or --task-file, not both")
+        repo_root = Path(args.repo).resolve() if args.repo else Path.cwd().resolve()
+        task_file = Path(args.task_file).resolve() if args.task_file else repo_root / ".codex-workflows" / args.name / "task.md"
+        if args.task:
+            task_file.parent.mkdir(parents=True, exist_ok=True)
+            task_file.write_text(args.task.strip() + "\n", encoding="utf-8")
+        elif not task_file.exists():
+            parser.error("generic loops require --task or an existing --task-file")
+        return run_workflow(
+            workflow="loopsmith",
+            workflow_name=args.name,
+            skill_name="loopsmith",
+            repo=str(repo_root),
+            checklist=args.checklist,
+            progress=args.progress,
+            task_file=str(task_file),
             worker_command=args.worker_command,
             worker_mode=args.worker_mode,
             max_iterations=args.max_iterations,
@@ -287,14 +384,15 @@ def main() -> int:
         return 0 if result.get("summary", {}).get("status", "ok") != "error" else 1
 
     if args.command == "maintenance":
+        maintenance_cwd = Path.cwd()
         if args.maintenance_command == "check":
-            result = maintenance_check()
+            result = maintenance_check(cwd=maintenance_cwd)
         elif args.maintenance_command == "audit":
-            result = maintenance_audit()
+            result = maintenance_audit(cwd=maintenance_cwd)
         elif args.maintenance_command == "fix-docs":
-            result = maintenance_fix_docs()
+            result = maintenance_fix_docs(cwd=maintenance_cwd)
         elif args.maintenance_command == "render-report":
-            result = maintenance_render_report()
+            result = maintenance_render_report(cwd=maintenance_cwd)
         else:  # pragma: no cover
             parser.error(f"unknown maintenance command: {args.maintenance_command}")
         print_maintenance_human(result, as_json=getattr(args, "json", False))
@@ -312,14 +410,18 @@ def main() -> int:
         return 0 if result["status"] == "ok" else 1
 
     if args.command == "self-check":
-        capabilities = build_capabilities_report()
-        payload = build_self_check(capabilities, repo=args.repo)
+        inventory = refresh_inventory_snapshot(args.repo)
+        guidance = load_guidance_snapshot(args.repo, refresh=True)
+        capabilities = build_capabilities_report(inventory_snapshot=inventory)
+        payload = build_self_check(capabilities, inventory=inventory, guidance=guidance, repo=args.repo)
         print_self_check(payload, as_json=args.json)
         return 0 if payload["status"] != "error" else 1
 
     if args.command == "version":
-        capabilities = build_capabilities_report()
-        payload = build_self_check(capabilities)
+        inventory = load_inventory_snapshot()
+        guidance = load_guidance_snapshot(refresh=False)
+        capabilities = build_capabilities_report(inventory_snapshot=inventory)
+        payload = build_self_check(capabilities, inventory=inventory, guidance=guidance)
         result = {
             "product": PUBLIC_PRODUCT_NAME,
             "public_command": PUBLIC_COMMAND,

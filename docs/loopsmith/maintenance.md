@@ -3,9 +3,9 @@
 
 ## Last Run
 
-- Generated: `2026-04-19T13:42:50.207887+00:00`
+- Generated: `2026-04-19T19:51:17.448344+00:00`
 - Status: `ok`
-- Checks passed: 75 / 75
+- Checks passed: 83 / 83
 - Open findings: 0
 - Blocked findings: 0
 
@@ -21,12 +21,15 @@
 1. Run `loopsmith maintenance check` for a quick signal.
 2. If command surface, docs, or packaging changed, run `loopsmith maintenance audit`.
 3. Read `maintenance.md`, `maintenance-report.json`, and `.codex-workflows/agentctl-maintenance/state.json` together.
-4. If findings are doc-only, prefer `loopsmith maintenance fix-docs` over hand edits.
-5. Re-run the relevant tests and smoke checks before trusting a green maintenance state.
+4. Inspect `loopsmith inventory show` when a capability surface looks wrong or unexpectedly large.
+5. Inspect `loopsmith self-check` when config, guidance, or menu budgets may be part of the problem.
+6. If findings are doc-only, prefer `loopsmith maintenance fix-docs` over hand edits.
+7. Re-run the relevant tests and smoke checks before trusting a green maintenance state.
 
 ## What Must Be Updated After Changes
 
 - Refresh `docs/loopsmith/*.md` from machine state.
+- Keep `agentctl/state/inventory.json` and `agentctl/state/guidance.json` healthy and within budget.
 - Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.
 - Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.
 - Re-run tests for `agentctl` and the shared workflow tools.

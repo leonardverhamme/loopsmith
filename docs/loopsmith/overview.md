@@ -15,7 +15,7 @@
 ## Current Status
 
 - Maintenance status: `ok`
-- Checks passed: 75 / 75
+- Checks passed: 83 / 83
 - Open findings: 0
 - Blocked findings: 0
 
@@ -24,6 +24,7 @@
 - `loopsmith doctor` for a compact health check.
 - `loopsmith capabilities` for the grouped top-level capability menu.
 - `loopsmith capability <key>` for a group page or a single capability drill-down page.
+- `loopsmith inventory show` when you need the raw autodetected inventory behind the curated menu.
 - `loopsmith status --all` for durable workflow state across repos.
 - `loopsmith maintenance audit` after command, packaging, config, or contract changes.
 
@@ -33,13 +34,16 @@
 - [Install on another computer](install-on-another-computer.md)
 - [Unattended worker setup](unattended-worker-setup.md)
 - [Maintainer guide](maintainer-guide.md)
-- [Skill governance](skill-governance.md)
+- [Control-plane governance](skill-governance.md)
+- [Inventory model](inventory.md)
 
 ## Common Flows
 
 - Capability discovery: `loopsmith doctor` then `loopsmith capabilities`.
+- Raw installed surface: `loopsmith inventory show` then `loopsmith inventory item <kind>:<name>`.
 - External research: `loopsmith research web|github|scout <query>`.
 - Deep remediation: `loopsmith run <workflow>` plus `.codex-workflows/<workflow>/state.json`.
+- Generic long task: `$loopsmith` then `loopsmith loop <name>` with a task brief on disk.
 - Control-plane upkeep: `$agentctl-maintenance-engineer` or `loopsmith maintenance audit`.
 
 ## Compatibility
@@ -59,6 +63,8 @@
 
 - Internal bundle path: `agentctl/`
 - Capabilities snapshot: `agentctl/state/capabilities.json`
+- Inventory snapshot: `agentctl/state/inventory.json`
+- Guidance snapshot: `agentctl/state/guidance.json`
 - Maintenance report: `docs/loopsmith/maintenance-report.json`
 - Maintenance state: `.codex-workflows/agentctl-maintenance/state.json`
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 from .branding import (
@@ -32,6 +33,8 @@ PLAYWRIGHT_WRAPPER = AGENTCTL_HOME / "playwright_cli.py"
 PLAYWRIGHT_WRAPPER_CMD = AGENTCTL_HOME / "playwright.cmd"
 CAPABILITIES_PATH = STATE_DIR / "capabilities.json"
 DOCTOR_REPORT_PATH = STATE_DIR / "doctor-report.json"
+INVENTORY_PATH = STATE_DIR / "inventory.json"
+GUIDANCE_PATH = STATE_DIR / "guidance.json"
 SKILLS_LOCK_PATH = STATE_DIR / "skills-lock.json"
 INSTALL_METADATA_PATH = STATE_DIR / "install-metadata.json"
 MAINTENANCE_REPORT_PATH = AGENTCTL_DOCS_DIR / "maintenance-report.json"
@@ -46,3 +49,86 @@ AGENTCTL_PLUGIN_MANIFEST_PATH = AGENTCTL_PLUGIN_DIR / ".codex-plugin" / "plugin.
 AGENTCTL_PLUGIN_ROUTER_SKILL_DIR = AGENTCTL_PLUGIN_DIR / "skills" / "agentctl-router"
 AGENTCTL_MAINTENANCE_SKILL_DIR = SKILLS_DIR / "agentctl-maintenance-engineer"
 LEGACY_PLUGIN_DIRS = tuple(PLUGINS_DIR / name for name in LEGACY_PLUGIN_NAMES)
+
+
+@dataclass(frozen=True)
+class MaintenanceWorkspace:
+    mode: str
+    root: Path
+    agentctl_home: Path
+    docs_dir: Path
+    capabilities_docs_dir: Path
+    state_dir: Path
+    references_dir: Path
+    workflow_registry_path: Path
+    skills_dir: Path
+    plugins_dir: Path
+    config_path: Path
+    capabilities_path: Path
+    doctor_report_path: Path
+    inventory_path: Path
+    guidance_path: Path
+    maintenance_report_path: Path
+    maintenance_state_path: Path
+    state_schema_reference_path: Path
+    capability_registry_reference_path: Path
+    maintenance_contract_reference_path: Path
+    cloud_readiness_reference_path: Path
+    plugin_dir: Path
+    plugin_manifest_path: Path
+    plugin_router_skill_dir: Path
+    maintenance_skill_dir: Path
+
+
+def _source_repo_layout_ok() -> bool:
+    required_paths = (
+        SOURCE_REPO_ROOT / ".git",
+        SOURCE_REPO_ROOT / "agentctl" / "agentctl.py",
+        SOURCE_REPO_ROOT / "agentctl" / "references",
+        SOURCE_REPO_ROOT / "docs" / PUBLIC_DOCS_DIRNAME,
+    )
+    return all(path.exists() for path in required_paths)
+
+
+def _workspace_for_root(root: Path, *, mode: str) -> MaintenanceWorkspace:
+    agentctl_home = root / "agentctl"
+    docs_dir = root / "docs" / PUBLIC_DOCS_DIRNAME
+    capabilities_docs_dir = docs_dir / "capabilities"
+    state_dir = agentctl_home / "state"
+    references_dir = agentctl_home / "references"
+    plugins_dir = root / "plugins"
+    plugin_dir = plugins_dir / AGENTCTL_PLUGIN_NAME
+    return MaintenanceWorkspace(
+        mode=mode,
+        root=root,
+        agentctl_home=agentctl_home,
+        docs_dir=docs_dir,
+        capabilities_docs_dir=capabilities_docs_dir,
+        state_dir=state_dir,
+        references_dir=references_dir,
+        workflow_registry_path=root / "workflow-state" / "registry.json",
+        skills_dir=root / "skills",
+        plugins_dir=plugins_dir,
+        config_path=root / "config.toml",
+        capabilities_path=state_dir / "capabilities.json",
+        doctor_report_path=state_dir / "doctor-report.json",
+        inventory_path=state_dir / "inventory.json",
+        guidance_path=state_dir / "guidance.json",
+        maintenance_report_path=docs_dir / "maintenance-report.json",
+        maintenance_state_path=root / ".codex-workflows" / "agentctl-maintenance" / "state.json",
+        state_schema_reference_path=references_dir / "state-schema.md",
+        capability_registry_reference_path=references_dir / "capability-registry.md",
+        maintenance_contract_reference_path=references_dir / "maintenance-contract.md",
+        cloud_readiness_reference_path=references_dir / "cloud-readiness.md",
+        plugin_dir=plugin_dir,
+        plugin_manifest_path=plugin_dir / ".codex-plugin" / "plugin.json",
+        plugin_router_skill_dir=plugin_dir / "skills" / "agentctl-router",
+        maintenance_skill_dir=(root / "skills" / "agentctl-maintenance-engineer"),
+    )
+
+
+def maintenance_workspace(cwd: str | Path | None = None) -> MaintenanceWorkspace:
+    candidate = Path(cwd).resolve() if cwd else Path.cwd().resolve()
+    if _source_repo_layout_ok() and (candidate == SOURCE_REPO_ROOT or candidate.is_relative_to(SOURCE_REPO_ROOT)):
+        return _workspace_for_root(SOURCE_REPO_ROOT, mode="source")
+    return _workspace_for_root(CODEX_HOME, mode="bundle")

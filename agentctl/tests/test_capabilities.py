@@ -19,80 +19,66 @@ from lib.capabilities import (
 
 
 class CapabilitiesTests(unittest.TestCase):
-    @staticmethod
-    def _default_tool_record(*args, **kwargs) -> dict:
-        name = kwargs.get("name")
-        if name is None and args:
-            name = args[0]
-        base = {"installed": True, "status": "ok", "version": "1.0.0"}
-        if name == "gh-codeql":
-            return {**base, "name": "gh-codeql", "extension": "github/gh-codeql"}
-        if name == "ghas-cli":
-            return {**base, "name": "ghas-cli", "callable": True, "path": r"C:\tools\ghas-cli.exe"}
-        return base
-
-    @mock.patch("lib.capabilities._local_skill_names")
-    @mock.patch("lib.capabilities._mcp_servers_map")
-    @mock.patch("lib.capabilities._enabled_plugins_map")
-    @mock.patch("lib.capabilities._config_payload")
-    @mock.patch("lib.capabilities._installed_skills")
-    @mock.patch("lib.capabilities.detect_codex_runtime")
-    @mock.patch("lib.capabilities._detect_playwright")
-    @mock.patch("lib.capabilities._detect_ghas_cli")
-    @mock.patch("lib.capabilities._detect_gh_codeql")
-    @mock.patch("lib.capabilities._detect_gh")
-    @mock.patch("lib.capabilities._detect_skills_cli")
-    @mock.patch("lib.capabilities._tool_record")
-    def test_report_contains_expected_capabilities(
-        self,
-        tool_record: mock.Mock,
-        detect_skills: mock.Mock,
-        detect_gh: mock.Mock,
-        detect_gh_codeql: mock.Mock,
-        detect_ghas_cli: mock.Mock,
-        detect_playwright: mock.Mock,
-        detect_codex: mock.Mock,
-        installed_skills: mock.Mock,
-        config_payload: mock.Mock,
-        enabled_plugins: mock.Mock,
-        mcp_servers: mock.Mock,
-        local_skill_names: mock.Mock,
-    ) -> None:
-        tool_record.side_effect = self._default_tool_record
-        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
-        detect_gh.return_value = {"installed": True, "status": "ok", "version": "gh 1.0", "skill_supported": False}
-        detect_gh_codeql.return_value = self._default_tool_record("gh-codeql")
-        detect_ghas_cli.return_value = self._default_tool_record("ghas-cli")
-        detect_playwright.return_value = {"installed": True, "status": "degraded", "wrapper_ready": False}
-        detect_codex.return_value = {"installed": True, "status": "ok", "callable": True, "worker_runtime_ready": True}
-        installed_skills.return_value = {"status": "ok", "items": [{"name": "ui-skill"}]}
-        config_payload.return_value = {}
-        enabled_plugins.return_value = {
-            "github@openai-curated": {"name": "github@openai-curated", "enabled": True, "status": "ok"},
-            "loopsmith": {"name": "loopsmith", "enabled": True, "status": "ok"},
-        }
-        mcp_servers.return_value = {
-            "playwright": {"name": "playwright", "status": "configured", "configured": True, "transport": "mcp"},
-            "supabase": {"name": "supabase", "status": "configured", "configured": True, "transport": "mcp"},
-        }
-        local_skill_names.return_value = {
-            "ui-skill",
-            "ui-deep-audit",
-            "test-skill",
-            "test-deep-audit",
-            "internet-researcher",
-            "github-researcher",
-            "web-github-scout",
-            "research-capability",
-            "skills-management-capability",
-            "autonomous-deep-runs-capability",
-            "agentctl-maintenance-engineer",
-            "ios-development-capability",
-            "macos-development-capability",
-            "android-testing-capability",
+    def _inventory(self) -> dict:
+        return {
+            "schema_version": 1,
+            "generated_at": "2026-04-19T00:00:00+00:00",
+            "summary": {"status": "ok", "total_items": 0, "max_bucket_size": 2},
+            "menu_budget": {"max_items": 25},
+            "tool_map": {
+                "python": {"installed": True, "status": "ok", "version": "3.12.0"},
+                "npx": {"installed": True, "status": "ok", "version": "10.0.0"},
+                "skills": {"installed": True, "status": "ok", "version": "1.5.1"},
+                "codex": {"installed": True, "status": "ok", "callable": True, "worker_runtime_ready": True},
+                "gh": {"installed": True, "status": "ok", "version": "gh 2.0", "skill_supported": False},
+                "gh-codeql": {"installed": True, "status": "ok"},
+                "ghas-cli": {"installed": True, "status": "ok", "callable": True},
+                "vercel": {"installed": True, "status": "ok"},
+                "supabase": {"installed": True, "status": "ok"},
+                "firebase": {"installed": False, "status": "missing", "detect_only": True},
+                "gcloud": {"installed": False, "status": "missing", "detect_only": True},
+                "playwright": {"installed": True, "status": "ok", "wrapper_ready": True},
+            },
+            "items": [
+                {"kind": "skill", "name": "loopsmith", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "autonomous-deep-runs-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "skills-management-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "agentctl-maintenance-engineer", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "research-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "internet-researcher", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "github-researcher", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "web-github-scout", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "context-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "ui-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "ui-deep-audit", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "test-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "test-deep-audit", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "docs-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "docs-deep-audit", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "refactor-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "refactor-deep-audit", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "refactor-orchestrator", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "cicd-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "cicd-deep-audit", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "github-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "github-security-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "browser-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "supabase-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "vercel-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "stripe-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "sentry-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "ios-development-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "macos-development-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "android-testing-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "plugin", "name": "loopsmith", "source_scope": "user", "status": "ok", "enabled": True},
+                {"kind": "plugin", "name": "github@openai-curated", "source_scope": "user", "status": "ok", "enabled": True},
+                {"kind": "mcp", "name": "supabase", "source_scope": "user", "status": "configured", "configured": True},
+                {"kind": "mcp", "name": "playwright", "source_scope": "user", "status": "configured", "configured": True},
+            ],
         }
 
-        report = build_capabilities_report()
+    def test_report_contains_expected_capabilities(self) -> None:
+        report = build_capabilities_report(inventory_snapshot=self._inventory())
         capability_keys = {item["key"] for item in report["capabilities"]}
         self.assertEqual(report["schema_version"], 2)
         self.assertIn("research", capability_keys)
@@ -100,259 +86,83 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("supabase-data", capability_keys)
         self.assertIn("github-advanced-security", capability_keys)
         self.assertIn("autonomous-deep-runs", capability_keys)
-        self.assertEqual(report["summary"]["installed_skill_count"], 1)
+        self.assertIn("long-task-loops", capability_keys)
+        self.assertEqual(report["summary"]["installed_skill_count"], 30)
+        self.assertEqual(report["inventory_summary"]["status"], "ok")
 
-    @mock.patch("lib.capabilities._local_skill_names")
-    @mock.patch("lib.capabilities._mcp_servers_map")
-    @mock.patch("lib.capabilities._enabled_plugins_map")
-    @mock.patch("lib.capabilities._config_payload")
-    @mock.patch("lib.capabilities._installed_skills")
-    @mock.patch("lib.capabilities.detect_codex_runtime")
-    @mock.patch("lib.capabilities._detect_playwright")
-    @mock.patch("lib.capabilities._detect_ghas_cli")
-    @mock.patch("lib.capabilities._detect_gh_codeql")
-    @mock.patch("lib.capabilities._detect_gh")
-    @mock.patch("lib.capabilities._detect_skills_cli")
-    @mock.patch("lib.capabilities._tool_record")
-    def test_optional_integrations_do_not_degrade_baseline_summary(
-        self,
-        tool_record: mock.Mock,
-        detect_skills: mock.Mock,
-        detect_gh: mock.Mock,
-        detect_gh_codeql: mock.Mock,
-        detect_ghas_cli: mock.Mock,
-        detect_playwright: mock.Mock,
-        detect_codex: mock.Mock,
-        installed_skills: mock.Mock,
-        config_payload: mock.Mock,
-        enabled_plugins: mock.Mock,
-        mcp_servers: mock.Mock,
-        local_skill_names: mock.Mock,
-    ) -> None:
-        tool_record.side_effect = self._default_tool_record
-        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
-        detect_gh.return_value = {"installed": False, "status": "missing", "skill_supported": False}
-        detect_gh_codeql.return_value = {"installed": False, "status": "missing", "name": "gh-codeql"}
-        detect_ghas_cli.return_value = {"installed": False, "status": "missing", "name": "ghas-cli"}
-        detect_playwright.return_value = {"installed": False, "status": "missing", "wrapper_ready": False}
-        detect_codex.return_value = {"installed": True, "status": "ok", "callable": True, "worker_runtime_ready": True}
-        installed_skills.return_value = {"status": "ok", "items": []}
-        config_payload.return_value = {}
-        enabled_plugins.return_value = {"loopsmith": {"name": "loopsmith", "enabled": True, "status": "ok"}}
-        mcp_servers.return_value = {}
-        local_skill_names.return_value = {
-            "context-skill",
-            "ui-skill",
-            "ui-deep-audit",
-            "test-skill",
-            "test-deep-audit",
-            "docs-skill",
-            "docs-deep-audit",
-            "refactor-skill",
-            "refactor-deep-audit",
-            "refactor-orchestrator",
-            "cicd-skill",
-            "cicd-deep-audit",
-            "internet-researcher",
-            "github-researcher",
-            "web-github-scout",
-            "research-capability",
-            "skills-management-capability",
-            "autonomous-deep-runs-capability",
-            "agentctl-maintenance-engineer",
-            "ios-development-capability",
-            "macos-development-capability",
-            "android-testing-capability",
-        }
-
-        report = build_capabilities_report()
+    def test_optional_integrations_do_not_degrade_baseline_summary(self) -> None:
+        inventory = self._inventory()
+        inventory["tool_map"]["gh"] = {"installed": False, "status": "missing", "skill_supported": False}
+        inventory["tool_map"]["gh-codeql"] = {"installed": False, "status": "missing"}
+        inventory["tool_map"]["ghas-cli"] = {"installed": False, "status": "missing"}
+        inventory["tool_map"]["playwright"] = {"installed": False, "status": "missing", "wrapper_ready": False}
+        report = build_capabilities_report(inventory_snapshot=inventory)
         self.assertEqual(report["summary"]["status"], "ok")
         self.assertGreater(report["summary"]["optional_attention_count"], 0)
 
-    @mock.patch("lib.capabilities._local_skill_names")
-    @mock.patch("lib.capabilities._mcp_servers_map")
-    @mock.patch("lib.capabilities._enabled_plugins_map")
-    @mock.patch("lib.capabilities._config_payload")
-    @mock.patch("lib.capabilities._installed_skills")
-    @mock.patch("lib.capabilities.detect_codex_runtime")
-    @mock.patch("lib.capabilities._detect_playwright")
-    @mock.patch("lib.capabilities._detect_ghas_cli")
-    @mock.patch("lib.capabilities._detect_gh_codeql")
-    @mock.patch("lib.capabilities._detect_gh")
-    @mock.patch("lib.capabilities._detect_skills_cli")
-    @mock.patch("lib.capabilities._tool_record")
-    def test_autonomous_deep_runs_stays_ok_when_default_codex_runtime_is_unavailable(
-        self,
-        tool_record: mock.Mock,
-        detect_skills: mock.Mock,
-        detect_gh: mock.Mock,
-        detect_gh_codeql: mock.Mock,
-        detect_ghas_cli: mock.Mock,
-        detect_playwright: mock.Mock,
-        detect_codex: mock.Mock,
-        installed_skills: mock.Mock,
-        config_payload: mock.Mock,
-        enabled_plugins: mock.Mock,
-        mcp_servers: mock.Mock,
-        local_skill_names: mock.Mock,
-    ) -> None:
-        tool_record.side_effect = self._default_tool_record
-        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
-        detect_gh.return_value = {"installed": True, "status": "ok", "version": "gh 1.0", "skill_supported": False}
-        detect_gh_codeql.return_value = self._default_tool_record("gh-codeql")
-        detect_ghas_cli.return_value = self._default_tool_record("ghas-cli")
-        detect_playwright.return_value = {"installed": True, "status": "ok", "wrapper_ready": True}
-        detect_codex.return_value = {
+    def test_autonomous_deep_runs_stays_ok_when_default_codex_runtime_is_unavailable(self) -> None:
+        inventory = self._inventory()
+        inventory["tool_map"]["codex"] = {
             "installed": True,
             "status": "degraded",
             "callable": False,
             "worker_runtime_ready": False,
         }
-        installed_skills.return_value = {"status": "ok", "items": []}
-        config_payload.return_value = {}
-        enabled_plugins.return_value = {"loopsmith": {"name": "loopsmith", "enabled": True, "status": "ok"}}
-        mcp_servers.return_value = {}
-        local_skill_names.return_value = {
-            "context-skill",
-            "ui-skill",
-            "ui-deep-audit",
-            "test-skill",
-            "test-deep-audit",
-            "docs-skill",
-            "docs-deep-audit",
-            "refactor-skill",
-            "refactor-deep-audit",
-            "refactor-orchestrator",
-            "cicd-skill",
-            "cicd-deep-audit",
-            "internet-researcher",
-            "github-researcher",
-            "web-github-scout",
-            "research-capability",
-            "skills-management-capability",
-            "autonomous-deep-runs-capability",
-            "agentctl-maintenance-engineer",
-            "ios-development-capability",
-            "macos-development-capability",
-            "android-testing-capability",
-        }
-
-        report = build_capabilities_report()
+        report = build_capabilities_report(inventory_snapshot=inventory)
         capability = next(item for item in report["capabilities"] if item["key"] == "autonomous-deep-runs")
-
         self.assertEqual(report["summary"]["status"], "ok")
         self.assertEqual(capability["status"], "ok")
         self.assertIn("AGENTCTL_CODEX_WORKER_TEMPLATE", capability["advisory"])
 
-    @mock.patch("lib.capabilities._local_skill_names")
-    @mock.patch("lib.capabilities._mcp_servers_map")
-    @mock.patch("lib.capabilities._enabled_plugins_map")
-    @mock.patch("lib.capabilities._config_payload")
-    @mock.patch("lib.capabilities._installed_skills")
-    @mock.patch("lib.capabilities.detect_codex_runtime")
-    @mock.patch("lib.capabilities._detect_playwright")
-    @mock.patch("lib.capabilities._detect_ghas_cli")
-    @mock.patch("lib.capabilities._detect_gh_codeql")
-    @mock.patch("lib.capabilities._detect_gh")
-    @mock.patch("lib.capabilities._detect_skills_cli")
-    @mock.patch("lib.capabilities._tool_record")
-    def test_capability_detail_exposes_supabase_cli_first_notes(
-        self,
-        tool_record: mock.Mock,
-        detect_skills: mock.Mock,
-        detect_gh: mock.Mock,
-        detect_gh_codeql: mock.Mock,
-        detect_ghas_cli: mock.Mock,
-        detect_playwright: mock.Mock,
-        detect_codex: mock.Mock,
-        installed_skills: mock.Mock,
-        config_payload: mock.Mock,
-        enabled_plugins: mock.Mock,
-        mcp_servers: mock.Mock,
-        local_skill_names: mock.Mock,
-    ) -> None:
-        tool_record.side_effect = self._default_tool_record
-        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
-        detect_gh.return_value = {"installed": True, "status": "ok", "version": "gh 1.0", "skill_supported": False}
-        detect_gh_codeql.return_value = self._default_tool_record("gh-codeql")
-        detect_ghas_cli.return_value = self._default_tool_record("ghas-cli")
-        detect_playwright.return_value = {"installed": True, "status": "ok", "wrapper_ready": True}
-        detect_codex.return_value = {"installed": True, "status": "ok", "callable": True, "worker_runtime_ready": True}
-        installed_skills.return_value = {"status": "ok", "items": []}
-        config_payload.return_value = {}
-        enabled_plugins.return_value = {"loopsmith": {"name": "loopsmith", "enabled": True, "status": "ok"}}
-        mcp_servers.return_value = {}
-        local_skill_names.return_value = {
-            "supabase-capability",
-        }
+    def test_capability_detail_exposes_long_task_loop_front_door(self) -> None:
+        report = build_capabilities_report(inventory_snapshot=self._inventory())
+        detail = capability_detail(report, "long-task-loops")
+        self.assertIsNotNone(detail)
+        assert detail is not None
+        self.assertEqual(detail["front_door"], "$loopsmith")
+        self.assertIn("loopsmith loop <name>", detail["entrypoints"])
+        self.assertEqual(detail["status"], "ok")
 
-        report = build_capabilities_report()
+    def test_capability_detail_exposes_supabase_cli_first_notes(self) -> None:
+        report = build_capabilities_report(inventory_snapshot=self._inventory())
         detail = capability_detail(report, "supabase-data")
-
         self.assertIsNotNone(detail)
         assert detail is not None
         self.assertEqual(detail["front_door"], "$supabase-capability")
         self.assertEqual(detail["status"], "ok")
         self.assertTrue(any("CLI-first" in note for note in detail["routing_notes"]))
 
-    @mock.patch("lib.capabilities._local_skill_names")
-    @mock.patch("lib.capabilities._mcp_servers_map")
-    @mock.patch("lib.capabilities._enabled_plugins_map")
-    @mock.patch("lib.capabilities._config_payload")
-    @mock.patch("lib.capabilities._installed_skills")
-    @mock.patch("lib.capabilities.detect_codex_runtime")
-    @mock.patch("lib.capabilities._detect_playwright")
-    @mock.patch("lib.capabilities._detect_ghas_cli")
-    @mock.patch("lib.capabilities._detect_gh_codeql")
-    @mock.patch("lib.capabilities._detect_gh")
-    @mock.patch("lib.capabilities._detect_skills_cli")
-    @mock.patch("lib.capabilities._tool_record")
-    def test_capability_detail_exposes_github_advanced_security_routes(
-        self,
-        tool_record: mock.Mock,
-        detect_skills: mock.Mock,
-        detect_gh: mock.Mock,
-        detect_gh_codeql: mock.Mock,
-        detect_ghas_cli: mock.Mock,
-        detect_playwright: mock.Mock,
-        detect_codex: mock.Mock,
-        installed_skills: mock.Mock,
-        config_payload: mock.Mock,
-        enabled_plugins: mock.Mock,
-        mcp_servers: mock.Mock,
-        local_skill_names: mock.Mock,
-    ) -> None:
-        tool_record.side_effect = self._default_tool_record
-        detect_skills.return_value = {"installed": True, "status": "ok", "version": "1.5.1"}
-        detect_gh.return_value = {"installed": True, "status": "ok", "version": "gh 1.0", "skill_supported": False}
-        detect_gh_codeql.return_value = self._default_tool_record("gh-codeql")
-        detect_ghas_cli.return_value = {
+    def test_capability_detail_exposes_github_advanced_security_routes(self) -> None:
+        inventory = self._inventory()
+        inventory["tool_map"]["ghas-cli"] = {
             "installed": True,
             "status": "degraded",
-            "name": "ghas-cli",
             "callable": False,
             "runtime_error": "ModuleNotFoundError: No module named 'cli'",
         }
-        detect_playwright.return_value = {"installed": True, "status": "ok", "wrapper_ready": True}
-        detect_codex.return_value = {"installed": True, "status": "ok", "callable": True, "worker_runtime_ready": True}
-        installed_skills.return_value = {"status": "ok", "items": []}
-        config_payload.return_value = {}
-        enabled_plugins.return_value = {
-            "github@openai-curated": {"name": "github@openai-curated", "enabled": True, "status": "ok"},
-            "loopsmith": {"name": "loopsmith", "enabled": True, "status": "ok"},
-        }
-        mcp_servers.return_value = {}
-        local_skill_names.return_value = {"github-capability", "github-security-capability"}
-
-        report = build_capabilities_report()
+        report = build_capabilities_report(inventory_snapshot=inventory)
         detail = capability_detail(report, "github-advanced-security")
-
         self.assertIsNotNone(detail)
         assert detail is not None
         self.assertEqual(detail["front_door"], "$github-security-capability")
         self.assertIn("gh codeql", detail["entrypoints"])
         self.assertIn("gh api", detail["entrypoints"])
         self.assertTrue(any("GHAS-specific" in note for note in detail["routing_notes"]))
+
+    def test_plugin_items_with_configured_flag_count_as_healthy(self) -> None:
+        inventory = self._inventory()
+        inventory["items"] = [
+            item
+            for item in inventory["items"]
+            if not (item["kind"] == "plugin" and item["name"] == "loopsmith")
+        ]
+        inventory["items"].append({"kind": "plugin", "name": "loopsmith", "source_scope": "user", "status": "ok", "configured": True})
+        report = build_capabilities_report(inventory_snapshot=inventory)
+        detail = capability_detail(report, "agentctl-maintenance")
+        self.assertIsNotNone(detail)
+        assert detail is not None
+        self.assertEqual(detail["status"], "ok")
+        self.assertTrue(any(item["kind"] == "plugin" and item["enabled"] for item in detail["backing_interfaces"]))
 
     def test_playwright_browser_binaries_detects_standard_and_cached_windows_paths(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

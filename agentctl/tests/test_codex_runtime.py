@@ -24,8 +24,9 @@ class CodexRuntimeTests(unittest.TestCase):
         windows_candidates.return_value = [r"C:\Users\tester\AppData\Roaming\npm\codex.cmd"]
         from lib.codex_runtime import _candidate_paths
 
-        with mock.patch("lib.codex_runtime.command_path", side_effect=lambda value: value if value in {"codex", "codex.cmd"} else None):
-            candidates = _candidate_paths()
+        with mock.patch.dict(os.environ, {CODEX_PATH_ENV: ""}, clear=False):
+            with mock.patch("lib.codex_runtime.command_path", side_effect=lambda value: value if value in {"codex", "codex.cmd"} else None):
+                candidates = _candidate_paths()
 
         self.assertEqual(candidates[0], r"C:\Users\tester\AppData\Roaming\npm\codex.cmd")
 

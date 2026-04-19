@@ -15,4 +15,4 @@ Browser automation, Figma, and frontend runtime drill-down pages.
 ## Menu Budget
 
 - Top-level groups: <= 8
-- Items per group page: <= 9
+- Items per group page: <= 25

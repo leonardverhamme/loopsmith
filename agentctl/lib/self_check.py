@@ -11,11 +11,15 @@ try:
     from .branding import LEGACY_PRODUCT_NAME, PUBLIC_PRODUCT_NAME
     from .common import print_json, utc_now
     from .config_layers import CONFIG_SCHEMA_VERSION, config_snapshot
+    from .guidance import GUIDANCE_SCHEMA_VERSION
+    from .inventory import INVENTORY_SCHEMA_VERSION
 except ImportError:
     from bundle_install import read_install_metadata
     from lib.branding import LEGACY_PRODUCT_NAME, PUBLIC_PRODUCT_NAME
     from lib.common import print_json, utc_now
     from lib.config_layers import CONFIG_SCHEMA_VERSION, config_snapshot
+    from lib.guidance import GUIDANCE_SCHEMA_VERSION
+    from lib.inventory import INVENTORY_SCHEMA_VERSION
 
 
 def _repo_root() -> Path:
@@ -36,10 +40,16 @@ def wrapper_version() -> str | None:
             return importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
             continue
-    return _pyproject_version()
+    return _pyproject_version() or read_install_metadata().get("version")
 
 
-def build_self_check(capabilities: dict[str, Any], *, repo: str | Path | None = None) -> dict[str, Any]:
+def build_self_check(
+    capabilities: dict[str, Any],
+    *,
+    inventory: dict[str, Any],
+    guidance: dict[str, Any],
+    repo: str | Path | None = None,
+) -> dict[str, Any]:
     install_metadata = read_install_metadata()
     effective_config = config_snapshot(repo)
     wrapper = wrapper_version()
@@ -58,6 +68,40 @@ def build_self_check(capabilities: dict[str, Any], *, repo: str | Path | None = 
             "detail": capabilities.get("summary", {}).get("status", "unknown"),
         },
         {
+            "name": "inventory-schema",
+            "status": "ok" if inventory.get("schema_version") == INVENTORY_SCHEMA_VERSION else "degraded",
+            "detail": f"expected {INVENTORY_SCHEMA_VERSION}, found {inventory.get('schema_version')}",
+        },
+        {
+            "name": "inventory-status",
+            "status": "ok" if inventory.get("summary", {}).get("status") == "ok" else inventory.get("summary", {}).get("status", "degraded"),
+            "detail": inventory.get("generated_at", "inventory not generated"),
+        },
+        {
+            "name": "guidance-schema",
+            "status": "ok" if guidance.get("schema_version") == GUIDANCE_SCHEMA_VERSION else "degraded",
+            "detail": f"expected {GUIDANCE_SCHEMA_VERSION}, found {guidance.get('schema_version')}",
+        },
+        {
+            "name": "guidance-budget",
+            "status": "ok" if guidance.get("summary", {}).get("within_budget") else "degraded",
+            "detail": (
+                f"{guidance.get('summary', {}).get('file_count', 0)} files / "
+                f"{guidance.get('summary', {}).get('total_lines', 0)} lines"
+            ),
+        },
+        {
+            "name": "menu-budget",
+            "status": "ok"
+            if capabilities.get("summary", {}).get("visible_group_count", 0) <= capabilities.get("menu_budget", {}).get("max_top_level_groups", 8)
+            and capabilities.get("summary", {}).get("max_group_size", 0) <= capabilities.get("menu_budget", {}).get("max_group_items", 25)
+            else "degraded",
+            "detail": (
+                f"{capabilities.get('summary', {}).get('visible_group_count', 0)} groups / "
+                f"{capabilities.get('summary', {}).get('max_group_size', 0)} max group size"
+            ),
+        },
+        {
             "name": "install-metadata",
             "status": "ok" if install_metadata else "degraded",
             "detail": json.dumps(install_metadata, sort_keys=True) if install_metadata else "install metadata missing",
@@ -72,6 +116,8 @@ def build_self_check(capabilities: dict[str, Any], *, repo: str | Path | None = 
         "bundle_version": bundle,
         "install_metadata": install_metadata,
         "config": effective_config,
+        "inventory": inventory,
+        "guidance": guidance,
         "checks": checks,
     }
 

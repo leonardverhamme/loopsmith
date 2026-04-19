@@ -13,6 +13,7 @@ from .branding import LEGACY_PLUGIN_NAMES, PUBLIC_COMMAND, PUBLIC_DOCS_DIRNAME, 
 from .codex_runtime import detect_codex_runtime
 from .common import command_path, print_json, run_command, utc_now
 from .config_layers import effective_config
+from .inventory import load_inventory_snapshot
 from .paths import AGENTCTL_CAPABILITIES_DOCS_DIR, CONFIG_PATH, PLAYWRIGHT_WRAPPER, PLAYWRIGHT_WRAPPER_CMD, SKILLS_DIR
 
 
@@ -38,6 +39,30 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
         "routing_notes": [
             f"Start with the capability skill, then route into `{PUBLIC_COMMAND} run <workflow>`.",
             "A real worker command or `AGENTCTL_CODEX_WORKER_TEMPLATE` is still required for unattended execution.",
+        ],
+    },
+    {
+        "key": "long-task-loops",
+        "label": "Long task loops",
+        "group": "core",
+        "required": True,
+        "front_door": "$loopsmith",
+        "entrypoints": [
+            "$loopsmith",
+            f"{PUBLIC_COMMAND} capability long-task-loops",
+            f"{PUBLIC_COMMAND} loop <name>",
+            f"{PUBLIC_COMMAND} status --repo <path>",
+            f"{PUBLIC_COMMAND} self-check",
+        ],
+        "skills": ["loopsmith"],
+        "interfaces": [],
+        "availability_mode": "all",
+        "overlap_policy": "Use named deep workflows first. Use the generic loopsmith loop only when the task is large, multi-step, and does not already fit a dedicated workflow skill.",
+        "summary": "Use for oversized or novel tasks that need a durable checklist, state file, and one-batch-at-a-time loop until the queue is truly empty.",
+        "routing_notes": [
+            f"Start with `$loopsmith`, then launch the durable loop with `{PUBLIC_COMMAND} loop <name>`.",
+            "Prefer `loopsmith run <workflow>` when a dedicated deep workflow already exists, such as UI, docs, test, refactor, or CI/CD audits.",
+            "Store the task brief on disk and let the outer runner own `.codex-workflows/<name>/state.json`, the checklist, and the progress notes.",
         ],
     },
     {
@@ -431,7 +456,7 @@ CAPABILITY_GROUPS = [
 
 GROUP_LABELS = {item["key"]: item["label"] for item in CAPABILITY_GROUPS}
 MAX_TOP_LEVEL_GROUPS = 8
-MAX_GROUP_ITEMS = 9
+MAX_GROUP_ITEMS = 25
 
 CAPABILITY_CLOUD_READINESS = {
     "autonomous-deep-runs": [],
@@ -808,7 +833,9 @@ def _plugin_status(plugins: dict[str, Any], name: str) -> str:
                 break
     if not item:
         return "missing"
-    return "ok" if item.get("enabled") else "disabled"
+    if item.get("status") in {"ok", "configured"}:
+        return "ok"
+    return "ok" if item.get("enabled") or item.get("configured") else "disabled"
 
 
 def _mcp_status(mcp_servers: dict[str, Any], name: str) -> str:
@@ -836,7 +863,12 @@ def _interface_record(
         return {"kind": kind, "name": name, "status": payload.get("status", "missing")}
     if kind == "plugin":
         payload = plugins.get(name)
-        return {"kind": kind, "name": name, "status": _plugin_status(plugins, name), "enabled": bool(payload and payload.get("enabled"))}
+        return {
+            "kind": kind,
+            "name": name,
+            "status": _plugin_status(plugins, name),
+            "enabled": bool(payload and (payload.get("enabled") or payload.get("configured") or payload.get("status") in {"ok", "configured"})),
+        }
     if kind == "mcp":
         payload = mcp_servers.get(name)
         return {"kind": kind, "name": name, "status": _mcp_status(mcp_servers, name), "configured": bool(payload)}
@@ -940,35 +972,42 @@ def _mcp_servers_map(config: dict[str, Any]) -> dict[str, Any]:
     return {item["name"]: item for item in records}
 
 
-def build_capabilities_report() -> dict[str, Any]:
-    gh = _detect_gh()
-    gh_extensions = _gh_extensions() if gh.get("installed") else {}
-    tools = {
-        "python": {
-            "name": "python",
-            "command": sys.executable,
-            "path": sys.executable,
-            "installed": True,
-            "status": "ok",
-            "version": sys.version.splitlines()[0],
-        },
-        "npx": _tool_record("npx", command="npx", version_args=["--version"]),
-        "skills": _detect_skills_cli(),
-        "codex": detect_codex_runtime(),
-        "gh": gh,
-        "gh-codeql": _detect_gh_codeql(gh_extensions, gh),
-        "ghas-cli": _detect_ghas_cli(),
-        "vercel": _tool_record("vercel", command="vercel", version_args=["--version"]),
-        "supabase": _tool_record("supabase", command="supabase", version_args=["--version"]),
-        "firebase": _tool_record("firebase", command="firebase", version_args=["--version"], detect_only=True),
-        "gcloud": _tool_record("gcloud", command="gcloud", version_args=["--version"], detect_only=True),
-        "playwright": _detect_playwright(),
+def _inventory_items(payload: dict[str, Any], kind: str) -> list[dict[str, Any]]:
+    return [item for item in payload.get("items", []) if item.get("kind") == kind]
+
+
+def _inventory_skills(payload: dict[str, Any]) -> dict[str, Any]:
+    global_items = [
+        item
+        for item in _inventory_items(payload, "skill")
+        if item.get("source_scope") == "user" and item.get("source_hint") == "npx skills ls -g"
+    ]
+    return {"status": payload.get("summary", {}).get("status", "unknown"), "items": [{"name": item["name"]} for item in global_items]}
+
+
+def _inventory_local_skill_names(payload: dict[str, Any]) -> set[str]:
+    return {
+        item["name"]
+        for item in _inventory_items(payload, "skill")
+        if item.get("source_scope") in {"user", "repo"} and ":" not in item.get("name", "")
     }
-    installed_skills = _installed_skills()
-    config = effective_config()
-    plugins = _enabled_plugins_map(config)
-    mcp_servers = _mcp_servers_map(config)
-    local_skill_names = _local_skill_names()
+
+
+def _inventory_plugins_map(payload: dict[str, Any]) -> dict[str, Any]:
+    return {item["name"]: item for item in _inventory_items(payload, "plugin")}
+
+
+def _inventory_mcp_map(payload: dict[str, Any]) -> dict[str, Any]:
+    return {item["name"]: item for item in _inventory_items(payload, "mcp")}
+
+
+def build_capabilities_report(*, inventory_snapshot: dict[str, Any] | None = None, refresh_inventory: bool = False) -> dict[str, Any]:
+    inventory = inventory_snapshot or load_inventory_snapshot(refresh=refresh_inventory)
+    tools = inventory.get("tool_map", {})
+    installed_skills = _inventory_skills(inventory)
+    plugins = _inventory_plugins_map(inventory)
+    mcp_servers = _inventory_mcp_map(inventory)
+    local_skill_names = _inventory_local_skill_names(inventory)
     capabilities = [
         _capability_record(
             spec,
@@ -979,7 +1018,7 @@ def build_capabilities_report() -> dict[str, Any]:
         )
         for spec in CAPABILITY_SPECS
     ]
-    detect_only_tools = [name for name in ("firebase", "gcloud") if tools[name]["installed"]]
+    detect_only_tools = [name for name in ("aws", "az", "firebase", "gcloud") if name in tools and tools[name]["installed"]]
     overlap_analysis = [
         {
             "capability": capability["key"],
@@ -994,7 +1033,7 @@ def build_capabilities_report() -> dict[str, Any]:
 
     required_tool_statuses = {tools[name]["status"] for name in REQUIRED_TOOL_NAMES if name in tools}
     required_capability_statuses = {entry["status"] for entry in capabilities if entry.get("required", True)}
-    combined_statuses = required_tool_statuses | required_capability_statuses
+    combined_statuses = required_tool_statuses | required_capability_statuses | {inventory.get("summary", {}).get("status", "ok")}
     summary_status = "error" if "error" in combined_statuses else "degraded" if "degraded" in combined_statuses or "missing" in combined_statuses or "disabled" in combined_statuses else "ok"
 
     required_capability_count = sum(1 for entry in capabilities if entry.get("required", True))
@@ -1016,6 +1055,8 @@ def build_capabilities_report() -> dict[str, Any]:
         "schema_version": 2,
         "generated_at": utc_now(),
         "codex_home": str(Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex")).resolve()),
+        "inventory_path": str((Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex")).resolve() / "agentctl" / "state" / "inventory.json")),
+        "inventory_summary": inventory.get("summary", {}),
         "summary": {
             "status": summary_status,
             "installed_skill_count": len(installed_skills["items"]),
@@ -1126,6 +1167,15 @@ def _grouped_capabilities(payload: dict[str, Any]) -> dict[str, list[dict[str, A
     return grouped
 
 
+def _group_status(items: list[dict[str, Any]]) -> str:
+    statuses = {item.get("status", "unknown") for item in items}
+    if "error" in statuses:
+        return "error"
+    if "degraded" in statuses or "missing" in statuses or "disabled" in statuses:
+        return "degraded"
+    return "ok"
+
+
 def _capability_counts(payload: dict[str, Any], *, required_only: bool = False) -> dict[str, int]:
     counts = {"ok": 0, "degraded": 0, "missing": 0, "disabled": 0, "error": 0, "other": 0}
     for item in payload.get("capabilities", []):
@@ -1168,6 +1218,12 @@ def _doctor_notes(payload: dict[str, Any]) -> list[str]:
         )
     elif not codex.get("installed"):
         notes.append("Codex CLI is not detected locally; unattended deep runs need `--worker-command` or `CODEX_WORKFLOW_WORKER_COMMAND`.")
+    guidance = payload.get("guidance_snapshot", {})
+    if guidance and not guidance.get("summary", {}).get("within_budget", True):
+        notes.append("Personal guidance snippets exceed the configured budget; trim files or line count so the control plane stays compact.")
+    inventory = payload.get("inventory_snapshot", {})
+    if inventory and inventory.get("summary", {}).get("status") == "degraded":
+        notes.append("The autodetected inventory is degraded; inspect `loopsmith inventory show` before trusting route coverage.")
     return notes
 
 
@@ -1242,10 +1298,10 @@ def print_capabilities_human(payload: dict[str, Any], *, as_json: bool = False) 
         items = grouped.get(group_key, [])
         if not items:
             continue
-        print(f"- {group.get('label', GROUP_LABELS.get(group_key, group_key.replace('-', ' ').title()))}:")
-        for item in items:
-            optional_tag = " optional" if not item.get("required", True) else ""
-            print(f"  - {item['key']}: `{item['front_door']}` [{item['status']}{optional_tag}]")
+        print(
+            f"- {group.get('label', GROUP_LABELS.get(group_key, group_key.replace('-', ' ').title()))} "
+            f"[{_group_status(items)}] {len(items)} items"
+        )
     print("")
     print(f"Use `{PUBLIC_COMMAND} capability <key>` for a group page or a single capability drill-down page.")
     notes = _doctor_notes(payload)
