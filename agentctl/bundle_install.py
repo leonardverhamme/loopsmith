@@ -85,10 +85,52 @@ def _tag_release_api(repo_url: str, version: str) -> str:
     return f"https://api.github.com/repos/{owner_repo}/releases/tags/{version}"
 
 
+def _github_headers(*, accept: str | None = None, url: str | None = None) -> dict[str, str]:
+    headers = {"User-Agent": f"{PUBLIC_PRODUCT_NAME}-bootstrap"}
+    if accept:
+        headers["Accept"] = accept
+
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not token:
+        try:
+            result = subprocess.run(
+                ["gh", "auth", "token"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode == 0:
+                token = result.stdout.strip()
+        except OSError:
+            token = None
+
+    target = url or ""
+    if token and ("github.com" in target or "api.github.com" in target):
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
 def _fetch_json(url: str) -> dict[str, Any]:
-    request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": f"{PUBLIC_PRODUCT_NAME}-bootstrap"})
+    request = urllib.request.Request(url, headers=_github_headers(accept="application/vnd.github+json", url=url))
     with urllib.request.urlopen(request) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def _release_bundle_candidates(repo_url: str, version: str) -> list[dict[str, str]]:
+    base = repo_url.rstrip("/")
+    asset_names = [
+        f"{RELEASE_BUNDLE_PREFIX}-{version}.zip",
+        f"{PUBLIC_PRODUCT_NAME}-{version}.zip",
+    ]
+    return [
+        {
+            "version": version,
+            "asset_name": asset_name,
+            "download_url": f"{base}/releases/download/{version}/{asset_name}",
+            "repo_url": repo_url,
+        }
+        for asset_name in asset_names
+    ]
 
 
 def _release_metadata(repo_url: str, version: str | None) -> dict[str, Any]:
@@ -311,7 +353,7 @@ def install_bundle(
 
 def download_archive(url: str, destination: Path) -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    request = urllib.request.Request(url, headers={"User-Agent": f"{PUBLIC_PRODUCT_NAME}-bootstrap"})
+    request = urllib.request.Request(url, headers=_github_headers(url=url))
     with urllib.request.urlopen(request) as response, destination.open("wb") as handle:
         shutil.copyfileobj(response, handle)
     return destination
@@ -362,6 +404,27 @@ def bootstrap_bundle(
 
     with tempfile.TemporaryDirectory(prefix=f"{PUBLIC_PRODUCT_NAME}-bootstrap-") as temp_dir:
         temp_root = Path(temp_dir)
+        if version:
+            for index, candidate in enumerate(_release_bundle_candidates(repo_url, version)):
+                archive_path = temp_root / f"bundle-direct-{index}.zip"
+                extract_root = temp_root / f"src-direct-{index}"
+                try:
+                    download_archive(candidate["download_url"], archive_path)
+                    extracted_root = extract_archive(archive_path, extract_root)
+                    return install_bundle(
+                        source_root=extracted_root,
+                        target_root=target_root,
+                        skip_post_checks=skip_post_checks,
+                        source_kind="github-release",
+                        repo_url=repo_url,
+                        version=candidate["version"],
+                        channel=DEFAULT_UPDATE_CHANNEL,
+                        update_source=DEFAULT_UPDATE_SOURCE,
+                        source_ref=candidate["asset_name"],
+                    )
+                except Exception:
+                    continue
+
         archive_path = temp_root / "bundle.zip"
         try:
             release = _release_metadata(repo_url, version)

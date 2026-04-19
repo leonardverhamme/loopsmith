@@ -25,6 +25,18 @@ class InstallBundleTests(unittest.TestCase):
     def test_bundle_items_include_readme(self) -> None:
         self.assertIn("README.md", install_bundle.BUNDLE_ITEMS)
 
+    def test_release_bundle_candidates_use_versioned_download_urls(self) -> None:
+        candidates = bundle_install_module._release_bundle_candidates(
+            "https://github.com/leonardverhamme/loopsmith",
+            "v1.2.3",
+        )
+
+        self.assertEqual(candidates[0]["asset_name"], "loopsmith-bundle-v1.2.3.zip")
+        self.assertEqual(
+            candidates[0]["download_url"],
+            "https://github.com/leonardverhamme/loopsmith/releases/download/v1.2.3/loopsmith-bundle-v1.2.3.zip",
+        )
+
     def test_ensure_plugin_enabled_appends_once(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = Path(temp_dir) / "config.toml"
@@ -82,6 +94,35 @@ class InstallBundleTests(unittest.TestCase):
 
             self.assertEqual(extracted, extract_root)
             self.assertTrue((extract_root / "agentctl" / "agentctl.py").exists())
+
+    @mock.patch("agentctl.bundle_install.install_bundle")
+    @mock.patch("agentctl.bundle_install.extract_archive")
+    @mock.patch("agentctl.bundle_install.download_archive")
+    @mock.patch("agentctl.bundle_install._release_metadata")
+    def test_bootstrap_bundle_prefers_direct_release_asset_for_version(
+        self,
+        release_metadata_mock: mock.Mock,
+        download_mock: mock.Mock,
+        extract_mock: mock.Mock,
+        install_mock: mock.Mock,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target_root = Path(temp_dir) / ".codex"
+            extract_mock.return_value = Path(temp_dir) / "src"
+            install_mock.return_value = {"status": "ok"}
+
+            bundle_install_module.bootstrap_bundle(
+                target_root=target_root,
+                repo_url="https://github.com/leonardverhamme/loopsmith",
+                version="v1.2.3",
+                skip_post_checks=True,
+            )
+
+        self.assertIn(
+            "/releases/download/v1.2.3/loopsmith-bundle-v1.2.3.zip",
+            download_mock.call_args_list[0].args[0],
+        )
+        release_metadata_mock.assert_not_called()
 
     @mock.patch("agentctl.bundle_install.subprocess.run")
     def test_run_post_install_checks_writes_bootstrap_report(self, run_mock: mock.Mock) -> None:
