@@ -41,7 +41,13 @@ jobs:
 
       - name: Resolve package version
         run: |
-          echo "PACKAGE_VERSION=$(python -c \"import tomllib; from pathlib import Path; data = tomllib.loads(Path('pyproject.toml').read_text(encoding='utf-8')); print(data['project']['version'])\")" >> "$GITHUB_ENV"
+          python <<'PY' >> "$GITHUB_ENV"
+          import tomllib
+          from pathlib import Path
+
+          data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          print(f"PACKAGE_VERSION={data['project']['version']}")
+          PY
 
       - name: Clean generated packaging outputs
         run: |
