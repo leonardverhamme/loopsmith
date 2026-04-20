@@ -47,7 +47,7 @@ jobs:
 
       - name: Build package artifacts
         run: |
-          rm -rf "$VERIFY_DIST_DIR"
+          python -c "import shutil; from pathlib import Path; path = Path(r'${{ env.VERIFY_DIST_DIR }}'); shutil.rmtree(path, ignore_errors=True)"
           python -m pip install build
           python -m build --sdist --wheel --outdir "$VERIFY_DIST_DIR"
 

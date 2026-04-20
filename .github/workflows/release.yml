@@ -45,8 +45,7 @@ jobs:
 
       - name: Clean generated packaging outputs
         run: |
-          rm -rf "$RELEASE_DIR" build
-          find . -maxdepth 1 -type d \( -name "*.egg-info" -o -name "*.dist-info" \) -exec rm -rf {} +
+          python -c "import shutil; from pathlib import Path; [shutil.rmtree(path, ignore_errors=True) for path in [Path(r'${{ env.RELEASE_DIR }}'), Path('build'), *Path('.').glob('*.egg-info'), *Path('.').glob('*.dist-info')]]"
 
       - name: Build Python package artifacts
         run: |
