@@ -1,44 +1,23 @@
 ---
 name: refactor-skill
-description: Focused code refactor workflow for one feature area, module, or bounded set of files. Use when modernizing code, splitting long files, extracting helpers or components, renaming APIs, tightening boundaries, removing duplication, or improving structure without changing intended behavior. This is the everyday refactor skill, not the broad migration or multi-module orchestration workflow.
+description: "Use when a bounded feature area or module needs a behavior-preserving refactor: split long files, extract helpers or components, tighten boundaries, remove duplication, or modernize patterns. Not for broad checklist-driven campaigns; use refactor-deep-audit."
 ---
 
 # Refactor Skill
 
-## Skill Stability Rule
+## Stability
 
 - Treat this skill as stable infrastructure.
-- Never create, edit, rename, move, or delete this skill's files during normal task execution.
-- Only touch skill files when the user explicitly asks to change the skill system itself.
-- Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
-- If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
+- Do not edit this skill unless the user explicitly opens `$editskill` for it.
 
 Use this skill for small to medium refactors that should stay behavior-preserving, test-backed, and tightly scoped.
 
-If you cannot load the supporting references for some reason, still follow the defaults in this file.
-
-## What This Skill Covers
-
-- Extracting helpers, services, hooks, utilities, or subcomponents
-- Breaking up long files or functions into smaller units
-- Renaming symbols or APIs inside a bounded area
-- Replacing deprecated patterns with modern equivalents
-- Reducing duplication and clarifying module responsibilities
-- Improving readability, dependency direction, and local structure
-
-## What This Skill Does Not Cover
-
-- Wide-scope migrations across many modules or subsystems
-- Full-repo mechanical rewrites
-- Deep audit or checklist-driven refactor campaigns
-- Feature redesign disguised as refactoring
-
 Use:
 
-- `$refactor-deep-audit` for full structural audits, checklist execution, and broad cleanup campaigns on older repos
-- `$refactor-orchestrator` for manually scoped broad refactors, migrations, and phased multi-module changes
-- `$test-skill` when safety nets need to be added or expanded during the refactor
-- `$docs-skill` when architecture docs or ADRs need to be updated after structural change
+- `$refactor-deep-audit` for repo-wide audits and checklist execution
+- `$refactor-orchestrator` for phased multi-module migrations
+- `$test-skill` when safety nets need to be added or expanded
+- `$docs-skill` when docs or ADRs must change with the structure
 
 ## Bare Invocation Behavior
 
@@ -48,20 +27,15 @@ If the user explicitly invokes `$refactor-skill` with no meaningful extra instru
 2. the behavior constraints and validation path
 3. the smallest high-value refactor to do next
 
-Do not start a broad rewrite in this mode.
-
 ## Required Workflow
 
 1. Inspect the target code first:
-   - current responsibilities, boundaries, call sites, and data flow
-   - existing tests, fixtures, and validation commands
-   - AGENTS and repo docs that constrain the area
+   - responsibilities, boundaries, call sites, data flow, existing tests, validation commands, and any repo constraints
 2. Define the behavior boundary before editing.
-3. Load the references you need from this skill:
+3. Load only the references you need:
    - Always: `references/behavior-preserving.md`, `references/safety-net.md`, `references/scope-control.md`
-   - Common refactor moves: `references/refactor-patterns.md`
-   - When comparing against proven systems: `references/premade-systems.md`
-   - Short reusable prompts: `references/prompt-template.md`
+   - Common moves: `references/refactor-patterns.md`
+   - Comparative lookup only: `references/premade-systems.md`, `references/prompt-template.md`
 4. If coverage is weak, add or update the smallest useful characterization tests before risky edits.
 5. Refactor in small verified steps.
 6. Run the relevant checks after each meaningful step or batch.
@@ -94,4 +68,3 @@ Do not start a broad rewrite in this mode.
 - `references/scope-control.md`
 - `references/premade-systems.md`
 - `references/prompt-template.md`
-

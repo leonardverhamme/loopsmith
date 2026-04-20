@@ -1,158 +1,100 @@
 ---
 name: ui-deep-audit
-description: Full-app UI audit and checklist-driven remediation workflow for React, Next.js, Tailwind, and shadcn/ui apps. Use when auditing an entire app page by page, mapping routes and UI zones, writing or refreshing a markdown checklist file such as docs/ui-deep-audit-checklist.md with `- [ ]` items, executing that checklist until all items are implemented and validated, and only replying `ready` when zero unchecked items remain. Also use when the user asks for deep design or UX criticism, dense operator-console cleanup, queue-like completion tracking, or subagent-based parallel UI audits. If explicitly invoked with no further instructions, run the default full workflow automatically using docs/ui-deep-audit-checklist.md.
+description: Use when a React, Next.js, Tailwind, or shadcn/ui app needs a full UI audit, a canonical checklist, and execute-until-ready remediation across routes, shells, dashboards, forms, tables, and responsive behavior.
 ---
 
 # UI Deep Audit
 
 ## Visible Skill Usage
 
-- When this skill is actively being used in chat, mention `$ui-deep-audit` once in a user-visible update so the human can see the highlighted skill route.
-- Keep that mention concise and do not repeat it in every paragraph.
+- When this skill is actively being used in chat, mention `$ui-deep-audit` once in a user-visible update so the human can see the highlighted route.
+- Keep that mention short and do not repeat it in every paragraph.
 
-## Skill Stability Rule
+## Stability
 
 - Treat this skill as stable infrastructure.
-- Never create, edit, rename, move, or delete this skill's files during normal task execution.
-- Only touch skill files when the user explicitly asks to change the skill system itself.
-- Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
-- If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
+- Do not edit this skill unless the user explicitly opens `$editskill` for it.
 
-## Repo Artifact Rule
+## Repo artifacts
 
-- If this workflow needs helper scripts, UI verification helpers, or generated audit artifacts, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
-- Prefer repo-native locations such as `scripts/`, `tools/`, `output/`, `docs/`, or `.codex-workflows/`.
+- Put audit checklists, screenshots, helpers, and generated artifacts in the target repo, not in `$CODEX_HOME` and not in a skill folder.
 
-## Overview
-
-Use this skill for the heavy workflow that your normal UI skill should not absorb: deep full-app audit, canonical markdown checklist creation, checklist execution, and final closeout.
-
-For UI implementation decisions while working the checklist, load `$ui-skill` and use it as the base implementation skill.
+Use this skill for full-app UI audits, page-by-page checklist execution, dense operator-console cleanup, and execute-until-ready remediation. For implementation choices while working the checklist, load `$ui-skill`.
 
 ## Required Entry Point
 
-- If `agentctl` is available, start or resume this workflow through `agentcli run ui-deep-audit`, not by relying on chat memory alone.
+- If `agentcli` is available, start or resume through `agentcli run ui-deep-audit`.
 - Treat `docs/ui-deep-audit-checklist.md` as the human queue and `.codex-workflows/ui-deep-audit/state.json` as the machine queue.
-- If unattended execution is expected, the outer loop must use a real worker command such as an explicit worker command, the built-in Codex worker wrapper when the Codex runtime is callable, or a configured Codex worker template. A checklist file by itself is not a worker.
-- If `agentcli doctor` reports the autonomous deep-run route as degraded, do not quietly treat manual chat batches as an unattended loop. Fix the worker route first with `--worker-command`, `AGENTCTL_CODEX_WORKER_TEMPLATE`, or `AGENTCTL_CODEX_PATH`.
-- A partial batch executed directly in chat is manual progress, not a running unattended deep audit.
+- Re-read both before each batch. Repair state from the checklist when they disagree.
+- Do not pretend a manual chat batch is an unattended loop.
 
-## Core Modes
+## Default Behavior
 
-- Audit mode: inspect the full app, map pages and UI zones, and write or refresh the checklist file.
-- Execution mode: read the checklist file as the source of truth and work through unchecked items.
-- Closeout mode: verify that no invalid completions remain and only then reply `ready`.
+If the user invokes `$ui-deep-audit` with no meaningful extra instruction:
 
-## Bare Invocation Behavior
-
-If the user explicitly invokes `$ui-deep-audit` with no meaningful extra instruction, run the default workflow automatically:
-
-1. Use `docs/ui-deep-audit-checklist.md` as the checklist path.
-2. If the file does not exist, run a full audit and create it.
-3. If the file exists and contains unchecked items, continue executing the checklist until it is complete or blocked.
-4. If the file exists and every item is checked, run closeout validation.
-5. Only reply `ready` when the closeout rules pass.
-
-## Default File Contract
-
-- Default checklist path: `docs/ui-deep-audit-checklist.md`
-- Default state path: `.codex-workflows/ui-deep-audit/state.json`
-- If the user gives a specific path, use that instead.
-- Treat the checklist file as the queue and source of truth.
-- Re-read the checklist file before each new batch of work instead of trusting chat memory.
-- Re-open the state file at the start of every turn. If checklist and state disagree, repair the state from the checklist before continuing.
+1. Use `docs/ui-deep-audit-checklist.md`.
+2. If it does not exist, audit the app and create it.
+3. If it exists with unchecked items, execute the checklist.
+4. If it exists with zero unchecked items, run closeout validation.
+5. Only reply `ready` when closeout passes.
 
 ## Required Workflow
 
 1. Inspect the app first:
-   - routes, pages, layouts, shell components, navigation, feature modules
-   - global styles, tokens, palette, spacing, radius, typography, charts, tables, forms, AI surfaces
-   - lint, typecheck, test, and browser verification commands
-2. Load the references you need from this skill:
-   - Always: `references/audit-scope.md`, `references/checklist-format.md`, `references/execution-loop.md`, `references/closeout.md`
-   - Short reusable prompts: `references/prompt-shortcuts.md`
-3. Load `$ui-skill` before implementing checklist items so UI fixes stay consistent and dense instead of drifting.
-4. If the checklist file does not exist, or the user asked for a fresh audit, create or refresh it.
+   - routes, layouts, shell, navigation, shared UI, tokens, charts, tables, forms, AI surfaces, and verification commands
+2. Load only the references you need:
+   - Always: `../../docs/agent-cli-os/skill-support/ui-deep-audit/audit-scope.md`, `../../docs/agent-cli-os/skill-support/ui-deep-audit/checklist-format.md`, `../../docs/agent-cli-os/skill-support/ui-deep-audit/execution-loop.md`, `../../docs/agent-cli-os/skill-support/ui-deep-audit/closeout.md`
+   - Prompt shortcuts only when needed: `../../docs/agent-cli-os/skill-support/ui-deep-audit/prompt-shortcuts.md`
+3. Load `$ui-skill` before implementing checklist items.
+4. Create or refresh the checklist if needed.
 5. Group findings by page, then by section or component.
 6. Use markdown checkboxes:
    - `- [ ]` unresolved or blocked
    - `- [x]` implemented and validated
-7. Keep findings concrete, fixable, and implementation-ready.
-8. Before marking anything done, implement it, validate it, and update the checklist file.
-   - For any runnable UI item, include a real browser pass with Playwright before checking it off.
-   - If the Playwright MCP route is locked, stale, or attached to another session, fall back to the Playwright CLI wrapper and start a fresh browser session.
-   - If the current app port is unavailable, unstable, or already occupied, restart the app on another free port and continue the browser validation there.
+7. Work small coherent batches.
+8. Before marking any item done:
+   - implement it
+   - run the smallest correct validation
+   - run a real Playwright browser pass for runnable UI
+   - update the checklist
 9. Continue until zero unchecked items remain.
-10. Only reply `ready` when the closeout rules pass.
 
-## Automatic Mode Selection
+## Audit Standards
 
-When the user does not clearly choose a mode, infer it from the checklist file state:
-
-- No checklist file: audit mode
-- Checklist exists with `- [ ]` items: execution mode
-- Checklist exists with zero `- [ ]` items: closeout mode
-
-## Parallel and Agent Rules
-
-- Do not simulate coverage by repeating the same prompt.
-- Use the checklist file as the stateful queue.
-- If the user explicitly asks for subagents, delegation, parallel work, or deeper coverage, partition the app and use subagents by audit zone or page group.
-- Good audit zones are:
-  - navigation and information architecture
-  - overview and dashboard pages
-  - CRUD and module pages
-  - forms and validation UX
-  - tables, density, and scanability
-  - color, contrast, spacing, radius, and tokens
-  - AI chat and assistant surfaces
-  - responsiveness and mobile behavior
-  - accessibility, focus, and keyboard behavior
-  - consistency and design-system drift
-
-## Audit Output Rules
-
-- Cover the whole app, not just obvious pages.
-- Go page by page, then section by section when needed.
-- Include navigation, IA, overview, user friendliness, readability, scanability, color palette, contrast, corners, radius, spacing, typography, tables, forms, charts, AI surfaces, empty states, responsiveness, accessibility, and consistency.
+- Cover the whole app, not just obvious screens.
 - Prefer actionable defects over abstract design commentary.
-- Treat low-value explainer copy, intro paragraphs, and section blurbs as first-class defects when the page should be communicating through structure instead.
-- Treat stacked topbars, repeated toolbar rows, oversized dashboard headers, and tall summary bands as first-class density defects.
-- Flag layouts where breadcrumbs, tabs, filters, stat cards, and charts consume too much above-the-fold space before the main task or data appears.
-- Deduplicate overlapping findings so the checklist stays workable.
+- Treat low-value explainer copy as a defect when layout and labeling should carry the meaning.
+- Treat density defects as first-class defects, especially stacked topbars, repeated toolbar rows, oversized dashboard headers, tall KPI strips, and top charts that push the main task below the fold.
+- Check borders, radius, padding, legend wrapping, axis-label overflow, and chart-card sizing on overview and analytics pages.
 
-## Execution Rules
+## Dashboard-Specific Audit Checks
 
-- Work from the checklist file, not from memory.
-- Work from the state file and checklist together, not from prior chat claims.
-- Pick a coherent batch of unchecked items.
-- Prefer small coherent batches, usually 2 to 6 related items.
-- Implement the fixes.
-- Run the smallest correct validation.
-- For runnable UI issues, the minimum correct validation includes a real Playwright browser pass on the affected surface.
-- Do not let a locked browser MCP session end the batch; switch to the Playwright CLI path, a fresh session, or another free app port and complete the pass.
-- For dense product and operator surfaces, prefer removing or compressing explanatory copy rather than polishing it.
-- Use labels, counters, badges, column headers, inline helper text, and clearer grouping instead of keeping orientation paragraphs that the layout should replace.
-- Prefer one compact header band that combines title, status, primary actions, filters, tabs, and a light summary instead of multiple stacked bars.
-- Compress or relocate top-of-page charts and summary cards when they crowd out the primary table, form, or workflow surface.
-- Mark items `- [x]` only after implementation and validation.
-- If an item cannot be completed yet, leave it unchecked and append a short blocker note instead of pretending it is done.
-- Keep going until no unchecked items remain.
+Flag a defect when any of these are true:
+
+- top chrome consumes too much of the first viewport before the main task appears
+- more than two stacked header or control bands appear without a strong reason
+- a KPI strip or top chart is large enough that the main table, queue, or form is not visible early enough
+- chart cards use loose borders, oversized padding, or inconsistent radius compared with the rest of the app
+- legends, filters, or tabs create extra rows that should have been merged into the main control band
+- axis labels, legends, or chart labels wrap, clip, or overflow in ways that hurt scanability
+
+## Parallel And Agent Rules
+
+- Use the checklist as the stateful queue.
+- If the user explicitly asks for subagents, delegation, or parallel work, split by audit zone or page group.
 
 ## Closeout Rules
 
 - Do not say `ready` if any `- [ ]` items remain.
-- Do not say `ready` if items were marked complete without evidence of implementation and validation.
-- Do not say `ready` if runnable UI items skipped real browser verification because Playwright MCP was busy or the original app port was blocked.
-- Do not say `ready` if the UI is visually inconsistent after the fixes.
-- Do not say `ready` if internal or operator pages still lean on long explainer paragraphs where the layout, labels, and state design should have carried the meaning.
-- If blocked items remain, say what is blocked and why.
+- Do not say `ready` if items were marked done without implementation and validation.
+- Do not say `ready` if runnable UI skipped real browser verification.
+- Do not say `ready` if operator or dashboard pages still rely on long explainer copy or oversized top chrome.
+- If blockers remain, say what is blocked and why.
 
 ## References
 
-- `references/audit-scope.md`
-- `references/checklist-format.md`
-- `references/execution-loop.md`
-- `references/closeout.md`
-- `references/prompt-shortcuts.md`
-
+- `../../docs/agent-cli-os/skill-support/ui-deep-audit/audit-scope.md`
+- `../../docs/agent-cli-os/skill-support/ui-deep-audit/checklist-format.md`
+- `../../docs/agent-cli-os/skill-support/ui-deep-audit/execution-loop.md`
+- `../../docs/agent-cli-os/skill-support/ui-deep-audit/closeout.md`
+- `../../docs/agent-cli-os/skill-support/ui-deep-audit/prompt-shortcuts.md`

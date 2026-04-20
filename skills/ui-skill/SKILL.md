@@ -1,164 +1,93 @@
 ---
 name: ui-skill
-description: General cross-repo UI implementation and refactoring workflow for React, Next.js, Tailwind, and shadcn/ui apps. Use when adding pages, extending flows, tightening density, removing low-value explainer copy, refactoring existing screens, preserving design-system consistency, or preventing UI drift across projects. Not for full-app checklist audits or execute-until-ready remediation; use ui-deep-audit for that.
+description: Use when building or refactoring dense React, Next.js, Tailwind, or shadcn/ui product screens, flows, and overview pages that need compact, production-grade UI. Not for full-app checklist audits; use ui-deep-audit.
 ---
 
 # UI Skill
 
 ## Visible Skill Usage
 
-- When this skill is actively being used in chat, mention `$ui-skill` once in a user-visible update so the human can see the highlighted skill route.
-- Keep that mention concise and do not repeat it in every paragraph.
+- When this skill is actively being used in chat, mention `$ui-skill` once in a user-visible update so the human can see the highlighted route.
+- Keep that mention short and do not repeat it in every paragraph.
 
 ## Skill Stability Rule
 
 - Treat this skill as stable infrastructure.
-- Never create, edit, rename, move, or delete this skill's files during normal task execution.
-- Only touch skill files when the user explicitly asks to change the skill system itself.
-- Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
-- If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
+- Do not edit, rename, move, or delete this skill during normal task work.
+- Only touch skill files when the user explicitly asks for skill maintenance and explicitly opens `$editskill` for the named skills.
 
 ## Repo Artifact Rule
 
-- If this workflow needs helper scripts, mock data generators, or verification helpers, create them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
-- Prefer repo-native locations such as `scripts/`, `tools/`, `app/testing/`, `src/testing/`, or `.github/scripts/`.
+- Put helpers and verification artifacts in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the Agent CLI OS repo unless that repo is the target.
 
-Use this skill for normal UI work across repos when you want dense, calm, production-grade product UI instead of generic AI-generated dashboard layouts. This skill is repo-aware first and opinionated about density, hierarchy, and product surfaces second.
+## Use This Skill For
 
-If you cannot load the supporting references for some reason, still follow the defaults in this file.
+- Page and flow implementation, UI refactors, dense internal tools, compact overview surfaces, and product-like AI conversation UI.
 
-## What This Skill Covers
+Use `$ui-deep-audit` instead for full-app audits, checklist execution, or execute-until-ready UI remediation.
 
-- Adding a new page, module, settings screen, or workflow step
-- Extending existing UI without design drift
-- Refactoring bloated or inconsistent screens
-- Internal tools, CRUD, admin, ops, and settings screens
-- Dense shadcn or Tailwind product UI
-- Overview and analytics surfaces with justified charts
-- Product-embedded AI conversation UI
-- Browser-verified closeout for changed runnable UI surfaces
-- Final per-task UI review before stopping
+## Default Posture
 
-## Anti-Explainer Copy Rule
-
-- Default to zero intro paragraphs on internal tools, operator consoles, approval queues, CRUD pages, dashboards, and settings screens.
-- Assume the UI should orient the user through layout, section labels, table headers, badges, tabs, counters, and state chips before it uses prose.
-- Treat generic orientation copy such as "this page helps you...", "use this section to...", or "X feeds Y while Z remains authoritative..." as a likely defect unless the user explicitly asked for editorial guidance copy.
-- If explanatory copy is truly required, compress it to the smallest possible inline note, usually one short sentence, and only where the action would otherwise be ambiguous.
-- Prefer dense labels, empty states, inline helper text, or disclosure patterns over standalone explanatory paragraphs.
-
-## Use the Companion Audit Skill When Needed
-
-If the request is any of the following, use `$ui-deep-audit` instead:
-
-- Full-app UI audit
-- Page-by-page UX, design, or readability review
-- Writing or refreshing a checkbox audit file
-- Working a checklist until every item is complete
-- Replying only `ready` when the whole audit backlog is finished
+- Prefer dense, calm, table-first product UI.
+- Keep one main task per screen.
+- Keep one compact header band whenever possible.
+- Use structure, labels, counters, tabs, badges, and state chips before prose.
+- Keep charts secondary to the data model.
+- Make summaries and analytics earn their height.
+- Preserve coherent local patterns before inventing new ones.
 
 ## Required Workflow
 
 1. Inspect the repo first:
-   - `package.json`, `components.json`, global styles, tokens, layouts, shell components, and representative screens
-   - existing verification commands
-2. If shadcn/ui is present or the task is shadcn-oriented, use the official shadcn skill or equivalent project-aware shadcn context first.
-3. Load the references you need from this skill package:
-   - Always: `references/design-tokens.md`, `references/component-rules.md`, `references/a11y-gates.md`, `references/ui-checklist.md`
-   - Dense CRUD or internal-tool UI: `references/dense-product-ui.md`
-   - Analytics or overview screens: `references/dashboard-charts.md`
-   - AI chat or assistant surfaces: `references/ai-conversation-ui.md`
-   - Final review: `references/ui-review.md`
-   - Pattern lookup only: `references/ui-examples.md`, `references/ui-anti-patterns.md`
-   - Next.js App Router only: `references/nextjs-guardrails.md`
-4. Critique the requested UI before generating:
-   - density
-   - copy volume
-   - whether the screen needs any intro copy at all
-   - radius
-   - hierarchy
-   - whether the surface should really be a table, form, chart, chat, or simple detail page
-5. Implement with repo primitives:
-   - reuse the existing primitive layer
-   - preserve existing server or client boundaries
-   - keep route files thin
-   - extend variants before creating wrappers
-6. Run real-browser verification with Playwright whenever the affected UI can run locally:
-   - use `$browser-capability` and `$playwright` for the changed or directly affected flows
-   - verify the real rendered surface, not just code structure or static screenshots
-   - if the Playwright MCP path is locked, stale, or attached to another session, do not stop there
-   - fall back to the Playwright CLI wrapper and start a fresh browser session instead
-   - if the current app port is busy, unstable, or already occupied, restart the app on another free port and continue the visual pass there
-   - use practical repo-native artifacts when helpful, such as screenshots, snapshots, or console output under a repo-local artifact path
-7. Review before stopping:
-   - run the dense UI checklist
-   - run the review reference
-   - verify loading, empty, success, error, disabled, desktop, and narrow viewport states
-   - remove or compress low-signal explainer copy that the structure already makes obvious
-   - report which browser route you used, what you verified, and any remaining unverifiable blockers
+   - `package.json`, `components.json`, global styles, tokens, layouts, shell components, representative screens, and verification commands
+2. Load the references you actually need:
+   - Always: `../../docs/agent-cli-os/skill-support/ui/design-tokens.md`, `../../docs/agent-cli-os/skill-support/ui/component-rules.md`, `../../docs/agent-cli-os/skill-support/ui/a11y-gates.md`, `../../docs/agent-cli-os/skill-support/ui/ui-checklist.md`
+   - Dense product surfaces: `../../docs/agent-cli-os/skill-support/ui/dense-product-ui.md`
+   - Dashboard, overview, or analytics surfaces: `../../docs/agent-cli-os/skill-support/ui/dashboard-charts.md`
+   - AI assistant surfaces: `../../docs/agent-cli-os/skill-support/ui/ai-conversation-ui.md`
+   - Final review: `../../docs/agent-cli-os/skill-support/ui/ui-review.md`
+   - Pattern lookup only: `../../docs/agent-cli-os/skill-support/ui/ui-examples.md`, `../../docs/agent-cli-os/skill-support/ui/ui-anti-patterns.md`
+   - Next.js App Router only: `../../docs/agent-cli-os/skill-support/ui/nextjs-guardrails.md`
+3. Critique before generating:
+   - page type, density, copy volume, hierarchy, header height, and whether the surface should really be a table, form, chart, chat, or detail page
+4. Implement with repo primitives:
+   - reuse the existing primitive layer, keep route files thin, preserve server and client boundaries, and extend existing variants before creating wrappers
+5. Run a real browser pass with `$browser-capability` and `$playwright` when the UI can run locally.
+6. Review before stopping:
+   - loading, empty, success, error, disabled, desktop, and narrow viewport states
+   - density, spacing, borders, radius, and scanability
+   - copy that should be removed instead of polished
 
-## Default Product Posture
+## Dashboard And Overview Rules
 
-- Prefer dense, calm, table-first product UI.
-- For module or entity pages, default to a full-width table-first layout.
-- Keep one primary action per area.
-- Prefer one main task per screen.
-- Use compact spacing and compact controls.
-- Keep top-of-page chrome compact; prefer one dense header zone over stacked title, breadcrumb, tab, filter, stat, and action bars.
-- Use restrained titles, short labels, and almost no explanatory copy.
-- Default internal and operator surfaces to structure-first communication, not paragraph-first communication.
-- Keep charts secondary to the data model.
-- Make dashboard summaries earn their height; header stats, hero bands, and top charts should stay compact unless the page is primarily analytical.
-- Keep AI conversation surfaces compact and product-like, not demo-like.
-
-## Default Density
-
-- Gaps usually `gap-1`, `gap-2`, `gap-3`
-- Padding usually `p-2`, `p-3`
-- Standard row or control height usually `h-8`
-- Icon buttons usually `h-7 w-7` or `h-8 w-8`
-- Most text should be `text-sm`
-- Metadata can drop to `text-xs`
-- Small and medium radius should dominate
+- On operator, CRUD, and workbench pages, the main table, form, queue, or workflow surface should usually appear in the first viewport.
+- Keep top chrome compact. Prefer one dense header band over stacked title, breadcrumb, tab, filter, stat, and action bars.
+- Treat more than two stacked top bars as a defect unless the page has a strong structural reason.
+- Treat a tall KPI strip, hero band, or top chart that pushes the main work below the fold as a defect on non-analytics-first pages.
+- Use `references/dashboard-charts.md` for concrete chart height, border, legend, overflow, and first-viewport checks.
 
 ## Hard Rules
 
-- Do not force a single visual language across unrelated repos, but do force density and clarity when the task is internal product UI.
-- Do not duplicate shadcn guidance locally when project-aware shadcn context already exists.
-- Do not add giant hero sections to internal product pages.
-- Do not wrap tables and forms in unnecessary cards.
-- Do not add long explanatory copy above CRUD tables.
-- Do not place generic explainer paragraphs under page titles on operator, dashboard, queue, CRUD, or settings screens.
-- Do not add lane descriptions or section blurbs that simply restate the label the user already sees.
-- Do not use friendly onboarding copy, "how this works" prose, or policy narration as a substitute for clear structure and status design.
-- Do not stack multiple topbars or toolbar rows when one dense header can carry the title, status, actions, filters, and tabs.
-- Do not let dashboard headers, summary cards, or top-of-page charts consume a large share of the first viewport before the primary work appears.
+- Do not add intro paragraphs to operator, dashboard, queue, CRUD, or settings pages unless the user explicitly asked for editorial guidance.
 - Do not add charts without analytical reason.
-- Do not ship AI chat that feels larger or louder than the rest of the app.
-- Do not default to oversized radii, pill buttons, gradient-heavy AI styling, or wrapper piles.
-- Do not call runnable UI work done without a real browser pass on the affected surface.
-- Do not accept "Playwright was busy" or "the browser MCP was locked" as a stopping point; use the CLI wrapper, a fresh browser session, or another free app port and finish the verification.
-- Do not rely on MCP-only browser access when Playwright CLI can complete the same visual pass more reliably.
-- Do not stop before checking core states and responsive behavior.
-
-## Preserve and Improve
-
-- Preserve coherent existing patterns.
-- Tighten readability, accessibility, and engineering quality.
-- If the repo has no coherent system, introduce a restrained one rather than a flashy one.
+- Do not let top-of-page summary cards or charts dominate the first viewport on workbench pages.
+- Do not wrap tables and forms in unnecessary cards.
+- Do not stack multiple topbars when one compact band can hold the title, status, actions, filters, and tabs.
+- Do not default to oversized radii, pill buttons, or wrapper piles.
+- Do not call runnable UI work done without a real browser pass.
+- Do not stop at "Playwright was busy"; use the CLI wrapper, a fresh browser session, or another free app port and finish the verification.
 
 ## References
 
-- `references/design-tokens.md`
-- `references/component-rules.md`
-- `references/nextjs-guardrails.md` when the repo is Next.js App Router
-- `references/a11y-gates.md`
-- `references/dense-product-ui.md`
-- `references/dashboard-charts.md`
-- `references/ai-conversation-ui.md`
-- `references/ui-review.md`
-- `references/ui-examples.md`
-- `references/ui-anti-patterns.md`
-- `references/ui-checklist.md`
-- `references/prompt-template.md` when the user wants a reusable session prompt
-
+- `../../docs/agent-cli-os/skill-support/ui/design-tokens.md`
+- `../../docs/agent-cli-os/skill-support/ui/component-rules.md`
+- `../../docs/agent-cli-os/skill-support/ui/a11y-gates.md`
+- `../../docs/agent-cli-os/skill-support/ui/dense-product-ui.md`
+- `../../docs/agent-cli-os/skill-support/ui/dashboard-charts.md`
+- `../../docs/agent-cli-os/skill-support/ui/ai-conversation-ui.md`
+- `../../docs/agent-cli-os/skill-support/ui/ui-review.md`
+- `../../docs/agent-cli-os/skill-support/ui/ui-examples.md`
+- `../../docs/agent-cli-os/skill-support/ui/ui-anti-patterns.md`
+- `../../docs/agent-cli-os/skill-support/ui/ui-checklist.md`
+- `../../docs/agent-cli-os/skill-support/ui/nextjs-guardrails.md` when the repo is Next.js App Router
+- `../../docs/agent-cli-os/skill-support/ui/prompt-template.md` when the user wants a reusable session prompt

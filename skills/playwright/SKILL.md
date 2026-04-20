@@ -1,36 +1,30 @@
 ---
 name: "playwright"
-description: "Use when the task requires automating a real browser from the terminal (navigation, form filling, snapshots, screenshots, data extraction, UI-flow debugging) via `playwright-cli` or the bundled wrapper script."
+description: "Use when a task needs real browser automation from the terminal through the local Playwright wrapper: navigation, snapshots, clicks, forms, screenshots, data extraction, or UI-flow debugging."
 ---
-
 
 # Playwright CLI Skill
 
-## Skill Stability Rule
+## Stability
 
 - Treat this skill as stable infrastructure.
-- Never create, edit, rename, move, or delete this skill's files during normal task execution.
-- Only touch skill files when the user explicitly asks to change the skill system itself.
-- Even then, do not edit immediately. First ask for explicit confirmation to open `skill-edit-mode` for the named skill or skills.
-- If that confirmation is absent, refuse the skill-file edit and continue with non-skill work.
+- Do not edit this skill unless the user explicitly opens `$editskill` for it.
 
-## Repo Artifact Rule
+## Repo artifacts
 
-- If browser automation needs helper scripts, snapshots, or saved artifacts, put them in the target repo, not in `$CODEX_HOME`, not in a skill folder, and not in the agentctl bundle unless that bundle repo is the target.
-- Prefer repo-native locations such as `output/playwright/`, `artifacts/browser/`, `tmp/browser/`, or `scripts/`.
+- Put helper scripts, snapshots, and browser artifacts in the target repo, not in `$CODEX_HOME` and not in a skill folder.
 
-Drive a real browser from the terminal using `playwright-cli`. Prefer the `playwright.cmd` wrapper when it is on `PATH`; if the current repo bundles agentctl, use the bundle-local `agentctl/playwright.cmd`.
-Treat this skill as CLI-first automation. Do not pivot to `@playwright/test` unless the user explicitly asks for test files.
+Drive a real browser from the terminal using the wrapper first. Treat this skill as CLI-first automation; do not pivot to `@playwright/test` unless the user explicitly asks for test files.
 
-## Prerequisite check (required)
+## Prerequisite check
 
-Before proposing commands, check whether `npx` is available (the wrapper depends on it):
+Before proposing commands, check whether `npx` is available:
 
 ```bash
 command -v npx >/dev/null 2>&1
 ```
 
-If it is not available, pause and ask the user to install Node.js/npm (which provides `npx`). Provide these steps verbatim:
+If it is not available, pause and ask the user to install Node.js/npm. Provide these steps verbatim:
 
 ```bash
 # Verify Node/npm are installed
@@ -42,9 +36,9 @@ npm install -g @playwright/cli@latest
 playwright-cli --help
 ```
 
-Once `npx` is present, proceed with the wrapper script. A global install of `playwright-cli` is optional.
+Once `npx` is present, proceed with the wrapper script.
 
-## Skill path (set once)
+## Skill path
 
 PowerShell / Windows:
 
@@ -74,8 +68,6 @@ fi
 
 ## Quick start
 
-Use the preferred wrapper:
-
 ```bash
 "$PWCLI" open https://playwright.dev --headed
 "$PWCLI" snapshot
@@ -85,54 +77,37 @@ Use the preferred wrapper:
 "$PWCLI" screenshot
 ```
 
-If the user prefers a global install, this is also valid:
-
-```bash
-npm install -g @playwright/cli@latest
-playwright-cli --help
-```
-
 ## Core workflow
 
 1. Open the page.
 2. Snapshot to get stable element refs.
 3. Interact using refs from the latest snapshot.
 4. Re-snapshot after navigation or significant DOM changes.
-5. Capture artifacts (screenshot, pdf, traces) when useful.
-6. If the browser route is locked, stale, or attached to another session, start a fresh CLI session instead of stopping.
-7. If the current app port is unavailable or already occupied, rerun the app on another free port and continue the browser pass there.
+5. Capture artifacts when useful.
+6. If the browser route is locked or stale, start a fresh CLI session instead of stopping.
+7. If the current app port is unavailable or already occupied, rerun the app on another free port and continue there.
 
-Minimal loop:
-
-```bash
-"$PWCLI" open https://example.com
-"$PWCLI" snapshot
-"$PWCLI" click e3
-"$PWCLI" snapshot
-```
-
-## When to snapshot again
-
-Snapshot again after:
+## Snapshot again after
 
 - navigation
-- clicking elements that change the UI substantially
-- opening/closing modals or menus
+- substantial UI changes
+- opening or closing modals or menus
 - tab switches
 
-Refs can go stale. When a command fails due to a missing ref, snapshot again.
+Refs go stale. When a command fails because a ref is missing, snapshot again.
 
-## Recommended patterns
+## Common patterns
 
 ### Form fill and submit
 
 ```bash
-"$PWCLI" open https://example.com/form
+"$PWCLI" open https://example.com/form --headed
 "$PWCLI" snapshot
 "$PWCLI" fill e1 "user@example.com"
 "$PWCLI" fill e2 "password123"
 "$PWCLI" click e3
 "$PWCLI" snapshot
+"$PWCLI" screenshot
 ```
 
 ### Debug a UI flow with traces
@@ -153,28 +128,12 @@ Refs can go stale. When a command fails due to a missing ref, snapshot again.
 "$PWCLI" snapshot
 ```
 
-## Wrapper script
-
-The preferred global wrapper uses `npx --package @playwright/cli playwright-cli` through:
-
-```text
-playwright.cmd
-```
-
-If the repo bundles agentctl, the equivalent bundle-local path is `agentctl/playwright.cmd`. The legacy Bash skill wrapper still exists for shells that prefer it.
-
-```bash
-"$PWCLI" --help
-```
-
-Prefer the wrapper unless the repository already standardizes on a global install.
-
 ## References
 
 Open only what you need:
 
-- CLI command reference: `references/cli.md`
-- Practical workflows and troubleshooting: `references/workflows.md`
+- CLI command reference: `../../docs/agent-cli-os/skill-support/playwright/cli.md`
+- Practical workflows and troubleshooting: `../../docs/agent-cli-os/skill-support/playwright/workflows.md`
 
 ## Guardrails
 
@@ -185,6 +144,5 @@ Open only what you need:
 - Use `--headed` when a visual check will help.
 - When capturing artifacts in this repo, use `output/playwright/` and avoid introducing new top-level artifact folders.
 - Default to CLI commands and workflows, not Playwright test specs.
-- Do not stop because another Playwright session has the MCP/browser route locked; open a fresh CLI-driven browser session and continue.
+- Do not stop because another Playwright session has the MCP or browser route locked; open a fresh CLI-driven browser session and continue.
 - Do not treat the first chosen localhost port as fixed; if the app is runnable and the port is blocked, switch to another free port and finish the verification.
-
