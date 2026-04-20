@@ -8,6 +8,7 @@ This is the frozen v1 command surface that maintenance checks expect.
 - `doctor` is the shortest health-oriented entrypoint.
 - `capabilities` is the compact grouped menu for capability discovery.
 - `capability <key>` is the drill-down page for a single capability and should be preferred before choosing lower-level vendor tools.
+- `skill-map` is the human-facing one-pager for the grouped menu, local front-door skills, and plugin-family counts.
 - `inventory` is the raw autodetected surface for debugging, not the default front door.
 - `status` is for workflow progress, not general health.
 - `run` is only for deep workflows that use the shared runner/state contract.
@@ -31,6 +32,8 @@ This is the frozen v1 command surface that maintenance checks expect.
   - Show the compact grouped capability menu, not the raw installed inventory.
 - `agentcli capability <key> [--json]`
   - Show the drill-down page for a capability group or a single capability.
+- `agentcli skill-map [--json]`
+  - Generate the human-facing skill/menu map and the matching one-page PDF.
 - `agentcli status [--repo <path>] [--all] [--json]`
   - Inspect repo-local or registry-backed deep workflow state.
 - `agentcli run <workflow> [--repo <path>] [--worker-command <cmd>]`
@@ -48,6 +51,7 @@ Typical sequence:
 
 - `agentcli doctor`
 - `agentcli capabilities` for the compact grouped menu
+- `agentcli skill-map` for the human one-page map of local front-door skills
 - `agentcli inventory show` only when you need the raw detected surface
 - `agentcli status --all` if you need workflow progress
 - `agentcli run <workflow>` when a dedicated deep workflow is the right shape

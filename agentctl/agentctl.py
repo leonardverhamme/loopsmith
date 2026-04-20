@@ -46,6 +46,7 @@ try:
     from .lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
     from .lib.research import run_research
     from .lib.self_check import build_self_check, print_self_check, wrapper_version
+    from .lib.skill_map import print_skill_map_human, write_skill_map_docs
     from .lib.skills_ops import add_skill, check_skills, list_skills, update_skills
     from .lib.workflows import run_workflow, workflow_status
 except ImportError:
@@ -89,6 +90,7 @@ except ImportError:
     from lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
     from lib.research import run_research
     from lib.self_check import build_self_check, print_self_check, wrapper_version
+    from lib.skill_map import print_skill_map_human, write_skill_map_docs
     from lib.skills_ops import add_skill, check_skills, list_skills, update_skills
     from lib.workflows import run_workflow, workflow_status
 
@@ -121,7 +123,7 @@ def add_maintenance_subcommands(maintenance_parser: argparse.ArgumentParser) -> 
     for command_name, help_text in (
         ("check", "Check command/docs/plugin drift and update machine-readable maintenance state"),
         ("audit", "Run the full maintenance pass, refresh docs, and update maintenance state"),
-        ("fix-docs", "Regenerate the human-facing agentctl docs from current machine state"),
+        ("fix-docs", f"Regenerate the human-facing {PUBLIC_DISPLAY_NAME} docs from current machine state"),
         ("render-report", "Render the maintenance Markdown page and JSON report"),
     ):
         parser = maintenance_subparsers.add_parser(command_name, help=help_text)
@@ -167,6 +169,11 @@ def add_inventory_subcommands(inventory_parser: argparse.ArgumentParser) -> None
     item_parser.add_argument("selector", help="Inventory selector, e.g. tool:gh or skill:github:github")
     item_parser.add_argument("--repo", help="Repo root for repo-local inventory resolution")
     item_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+
+def add_skill_map_subcommands(skill_map_parser: argparse.ArgumentParser) -> None:
+    skill_map_parser.add_argument("--repo", help="Repo root for repo-local inventory resolution")
+    skill_map_parser.add_argument("--json", action="store_true", help="Emit JSON")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -225,7 +232,7 @@ def build_parser() -> argparse.ArgumentParser:
     skills_parser = subparsers.add_parser("skills", help="Wrap the official skills tooling with provenance and safety")
     add_skills_subcommands(skills_parser)
 
-    maintenance_parser = subparsers.add_parser("maintenance", help="Audit and refresh agentctl's own docs, packaging, and state")
+    maintenance_parser = subparsers.add_parser("maintenance", help=f"Audit and refresh {PUBLIC_DISPLAY_NAME}'s own docs, packaging, and state")
     add_maintenance_subcommands(maintenance_parser)
 
     config_parser = subparsers.add_parser("config", help="Inspect and update bundled, user, and repo config layers")
@@ -233,6 +240,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     inventory_parser = subparsers.add_parser("inventory", help="Inspect the raw autodetected inventory behind the curated capability menu")
     add_inventory_subcommands(inventory_parser)
+
+    skill_map_parser = subparsers.add_parser("skill-map", help="Generate the human-facing menu and skill map, plus a matching one-page PDF")
+    add_skill_map_subcommands(skill_map_parser)
 
     upgrade_parser = subparsers.add_parser("upgrade", help=f"Upgrade the installed {PUBLIC_DISPLAY_NAME} bundle from its recorded release source")
     upgrade_parser.add_argument("--version", help="Optional explicit release version to install")
@@ -314,6 +324,13 @@ def main() -> int:
         else:  # pragma: no cover
             parser.error(f"unknown inventory command: {args.inventory_command}")
         print_inventory_human(result, as_json=getattr(args, "json", False))
+        return 0
+
+    if args.command == "skill-map":
+        inventory = refresh_inventory_snapshot(args.repo)
+        capabilities = build_capabilities_report(inventory_snapshot=inventory)
+        result = write_skill_map_docs(capabilities, inventory, cwd=args.repo or Path.cwd())
+        print_skill_map_human(result, as_json=args.json)
         return 0
 
     if args.command == "run":

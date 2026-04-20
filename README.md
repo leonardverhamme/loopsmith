@@ -15,15 +15,7 @@ It does not replace the authoritative tools underneath. It routes into them.
 
 ## 5-Minute Setup
 
-Install the public wrapper from the verified public source:
-
-```powershell
-pipx install git+https://github.com/leonardverhamme/agent-cli-os.git
-```
-
-As of April 20, 2026, this GitHub install path is the verified public path. PyPI publishing is wired in CI, but `agent-cli-os` is not yet live on PyPI.
-
-The remaining maintainer-side fix is documented in [docs/agent-cli-os/pypi-publishing.md](docs/agent-cli-os/pypi-publishing.md). Once that PyPI project configuration is in place, the intended public install becomes:
+Install the public wrapper:
 
 ```powershell
 pipx install agent-cli-os
@@ -59,6 +51,7 @@ That is the main onboarding path.
 agentcli doctor --fix
 agentcli capabilities
 agentcli capability <key>
+agentcli skill-map
 agentcli inventory show
 agentcli status --all
 agentcli run <workflow>
@@ -77,7 +70,7 @@ agentcli maintenance audit
 Install on the current machine:
 
 ```powershell
-pipx install git+https://github.com/leonardverhamme/agent-cli-os.git
+pipx install agent-cli-os
 agentcli bootstrap
 agentcli doctor --fix
 ```
@@ -158,12 +151,15 @@ Use:
 
 ```powershell
 agentcli capabilities
+agentcli skill-map
 agentcli capability platforms
 agentcli capability github-advanced-security
 agentcli inventory show --kind tools --scope all
 ```
 
 `agentcli capabilities` is the curated compact front door.
+
+`agentcli skill-map` writes the human-facing menu and skill map to `docs/agent-cli-os/skill-map.md` and the matching one-page PDF to `docs/agent-cli-os/skill-map.pdf`.
 
 `agentcli inventory show` is the raw autodetected surface for debugging and inspection when the curated menu is not enough.
 
@@ -249,6 +245,26 @@ This keeps private user preferences out of:
 
 The goal is better routing with less prompt clutter, not another hidden prompt dump.
 
+## Skill Surface
+
+The important distinction is:
+
+- local front-door skills such as `$ui-skill`, `$ui-deep-audit`, `$context-skill`, `$docs-skill`, and `$test-skill`
+- curated plugin skills that also appear in the Codex `$` picker
+
+That is why the `$` picker is much larger than the compact `agentcli capabilities` menu.
+
+Use:
+
+```powershell
+agentcli skill-map
+agentcli capability ui-workflows
+agentcli capability context-workflows
+agentcli inventory show --kind skills
+```
+
+For intentional skill-system work, use `$editskill`. The older `$skill-edit-mode` name remains as a legacy alias.
+
 ## Deep Workflows
 
 Bundled deep workflows:
@@ -313,6 +329,7 @@ That keeps existing installs and repo assumptions stable while the public produc
 - [docs/agent-cli-os/pypi-publishing.md](docs/agent-cli-os/pypi-publishing.md)
 - [docs/agent-cli-os/skill-governance.md](docs/agent-cli-os/skill-governance.md)
 - [docs/agent-cli-os/inventory.md](docs/agent-cli-os/inventory.md)
+- [docs/agent-cli-os/skill-map.md](docs/agent-cli-os/skill-map.md)
 
 ## Release Model
 

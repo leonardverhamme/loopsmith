@@ -378,6 +378,31 @@ def _mcp_items(config: dict[str, Any]) -> list[dict[str, Any]]:
     return items
 
 
+def _merge_duplicate_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    merged: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for item in items:
+        key = (item["kind"], item["name"], item["source_scope"])
+        existing = merged.get(key)
+        if existing is None:
+            merged[key] = dict(item)
+            continue
+        for field in ("source_path", "source_hint", "version", "front_door_candidate"):
+            if item.get(field) and not existing.get(field):
+                existing[field] = item[field]
+        if item.get("hidden_reason") and not existing.get("hidden_reason"):
+            existing["hidden_reason"] = item["hidden_reason"]
+        if "installed" in item:
+            existing["installed"] = bool(existing.get("installed")) or bool(item.get("installed"))
+        if "configured" in item:
+            existing["configured"] = bool(existing.get("configured")) or bool(item.get("configured"))
+        status_order = {"error": 4, "degraded": 3, "missing": 2, "disabled": 1, "configured": 0, "ok": 0}
+        existing_status = existing.get("status", "ok")
+        incoming_status = item.get("status", "ok")
+        if status_order.get(incoming_status, 0) > status_order.get(existing_status, 0):
+            existing["status"] = incoming_status
+    return sorted(merged.values(), key=lambda item: (item["kind"], item["name"].lower(), item["source_scope"]))
+
+
 def _bucket_range_label(chunk: list[dict[str, Any]]) -> str:
     def first_char(value: str) -> str:
         if not value:
@@ -429,7 +454,7 @@ def build_inventory_snapshot(repo: str | Path | None = None) -> dict[str, Any]:
     plugin_items, plugin_skill_items = _plugin_items(config)
     mcp_items = _mcp_items(config)
 
-    all_items = tool_items + skill_items + local_skill_items + plugin_items + plugin_skill_items + mcp_items
+    all_items = _merge_duplicate_items(tool_items + skill_items + local_skill_items + plugin_items + plugin_skill_items + mcp_items)
     buckets = _apply_bucket_splitting(all_items, max_items=max_items)
 
     kind_counts: dict[str, int] = {}

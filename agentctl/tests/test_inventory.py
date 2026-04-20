@@ -7,7 +7,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from lib.inventory import _apply_bucket_splitting, build_inventory_snapshot, filter_inventory_items, inventory_item
+from lib.inventory import _apply_bucket_splitting, _merge_duplicate_items, build_inventory_snapshot, filter_inventory_items, inventory_item
 
 
 class InventoryTests(unittest.TestCase):
@@ -39,6 +39,35 @@ class InventoryTests(unittest.TestCase):
         assert result is not None
         self.assertEqual(result["kind"], "matches")
         self.assertEqual(len(result["matches"]), 2)
+
+    def test_merge_duplicate_items_collapses_same_skill_scope(self) -> None:
+        items = [
+            {
+                "id": "skill:ui-skill@user",
+                "kind": "skill",
+                "name": "ui-skill",
+                "source_scope": "user",
+                "status": "ok",
+                "installed": True,
+                "source_hint": "npx skills ls -g",
+                "menu_bucket": "skill:user",
+            },
+            {
+                "id": "skill:ui-skill@user",
+                "kind": "skill",
+                "name": "ui-skill",
+                "source_scope": "user",
+                "status": "ok",
+                "installed": True,
+                "source_path": r"C:\Users\leona\.codex\skills\ui-skill\SKILL.md",
+                "menu_bucket": "skill:user",
+            },
+        ]
+        merged = _merge_duplicate_items(items)
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["name"], "ui-skill")
+        self.assertIn("source_hint", merged[0])
+        self.assertIn("source_path", merged[0])
 
     @mock.patch("lib.capabilities.run_command")
     @mock.patch("lib.capabilities._installed_skills")

@@ -43,6 +43,7 @@ from .paths import (
     WORKFLOW_REGISTRY_PATH,
     maintenance_workspace,
 )
+from .skill_map import write_skill_map_docs
 
 
 SCHEMA_VERSION = 1
@@ -56,10 +57,14 @@ MAINTENANCE_DOCS: dict[str, Path] = {
     "overview": AGENTCTL_DOCS_DIR / "overview.md",
     "command-map": AGENTCTL_DOCS_DIR / "command-map.md",
     "inventory": AGENTCTL_DOCS_DIR / "inventory.md",
+    "skill-map": AGENTCTL_DOCS_DIR / "skill-map.md",
     "state-schema": AGENTCTL_DOCS_DIR / "state-schema.md",
     "capability-registry": AGENTCTL_DOCS_DIR / "capability-registry.md",
     "cloud-readiness": AGENTCTL_DOCS_DIR / "cloud-readiness.md",
     "maintenance": AGENTCTL_DOCS_DIR / "maintenance.md",
+}
+GENERATED_BINARY_ASSETS: dict[str, Path] = {
+    "skill-map-pdf": AGENTCTL_DOCS_DIR / "skill-map.pdf",
 }
 REFERENCE_DOCS: dict[str, Path] = {
     "state-schema": STATE_SCHEMA_REFERENCE_PATH,
@@ -76,6 +81,7 @@ COMMAND_GROUPS = [
             {"command": "doctor", "usage": f"{PUBLIC_COMMAND} doctor [--fix] [--json]", "summary": "Check installed tools, wrappers, auth health, and browser readiness, with optional local repair."},
             {"command": "capabilities", "usage": f"{PUBLIC_COMMAND} capabilities [--json]", "summary": "Show the compact grouped capability menu, not the raw installed inventory."},
             {"command": "capability", "usage": f"{PUBLIC_COMMAND} capability <key> [--json]", "summary": "Show the drill-down page for a capability group or a single capability."},
+            {"command": "skill-map", "usage": f"{PUBLIC_COMMAND} skill-map [--json]", "summary": "Generate the human-facing skill/menu map and the matching one-page PDF."},
             {"command": "status", "usage": f"{PUBLIC_COMMAND} status [--repo <path>] [--all] [--json]", "summary": "Inspect repo-local or registry-backed deep workflow state."},
             {"command": "run", "usage": f"{PUBLIC_COMMAND} run <workflow> [--repo <path>] [--worker-command <cmd>]", "summary": "Launch or resume a deep workflow through the shared runner."},
             {"command": "loop", "usage": f"{PUBLIC_COMMAND} loop <name> [--repo <path>] (--task <text> | --task-file <path>)", "summary": "Launch a generic long task through the shared disk-backed loop when no dedicated deep workflow already fits."},
@@ -223,10 +229,17 @@ def _maintenance_docs_map(docs_dir: Path) -> dict[str, Path]:
         "overview": docs_dir / "overview.md",
         "command-map": docs_dir / "command-map.md",
         "inventory": docs_dir / "inventory.md",
+        "skill-map": docs_dir / "skill-map.md",
         "state-schema": docs_dir / "state-schema.md",
         "capability-registry": docs_dir / "capability-registry.md",
         "cloud-readiness": docs_dir / "cloud-readiness.md",
         "maintenance": docs_dir / "maintenance.md",
+    }
+
+
+def _generated_binary_assets_map(docs_dir: Path) -> dict[str, Path]:
+    return {
+        "skill-map-pdf": docs_dir / "skill-map.pdf",
     }
 
 
@@ -280,6 +293,7 @@ def _maintenance_workspace_context(cwd: str | Path | None = None):
     bindings = _workspace_bindings(workspace)
     original = {name: globals()[name] for name in bindings}
     original_docs = dict(MAINTENANCE_DOCS)
+    original_assets = dict(GENERATED_BINARY_ASSETS)
     original_refs = dict(REFERENCE_DOCS)
     module_bindings = (
         (config_layers_module, "CONFIG_PATH", workspace.config_path),
@@ -295,6 +309,8 @@ def _maintenance_workspace_context(cwd: str | Path | None = None):
         globals().update(bindings)
         MAINTENANCE_DOCS.clear()
         MAINTENANCE_DOCS.update(_maintenance_docs_map(workspace.docs_dir))
+        GENERATED_BINARY_ASSETS.clear()
+        GENERATED_BINARY_ASSETS.update(_generated_binary_assets_map(workspace.docs_dir))
         REFERENCE_DOCS.clear()
         REFERENCE_DOCS.update(_reference_docs_map(workspace))
         for module, name, value in module_bindings:
@@ -306,6 +322,8 @@ def _maintenance_workspace_context(cwd: str | Path | None = None):
         globals().update(original)
         MAINTENANCE_DOCS.clear()
         MAINTENANCE_DOCS.update(original_docs)
+        GENERATED_BINARY_ASSETS.clear()
+        GENERATED_BINARY_ASSETS.update(original_assets)
         REFERENCE_DOCS.clear()
         REFERENCE_DOCS.update(original_refs)
 
@@ -333,6 +351,15 @@ def _record_reference(name: str, path: Path) -> dict[str, Any]:
         "path": str(path),
         "exists": path.exists(),
         "size": len(content),
+    }
+
+
+def _record_binary_asset(name: str, path: Path) -> dict[str, Any]:
+    return {
+        "name": name,
+        "path": str(path),
+        "exists": path.exists(),
+        "size": path.stat().st_size if path.exists() else 0,
     }
 
 
@@ -565,6 +592,7 @@ def _known_limitations(capabilities: dict[str, Any]) -> list[str]:
 def _build_findings(
     *,
     docs: list[dict[str, Any]],
+    generated_assets: list[dict[str, Any]],
     references: list[dict[str, Any]],
     manual_guides: list[dict[str, Any]],
     plugin: dict[str, Any],
@@ -594,6 +622,17 @@ def _build_findings(
                 title=f"Non-generated doc: {record['name']}",
                 severity="warn",
                 detail="Doc exists but does not carry the auto-generated marker, so drift cannot be trusted.",
+                path=record["path"],
+            )
+
+    for record in generated_assets:
+        if not record["exists"]:
+            _add_finding(
+                findings,
+                finding_id=f"asset-missing-{record['name']}",
+                title=f"Missing generated asset: {record['name']}",
+                severity="warn",
+                detail="Required generated Agent CLI OS artifact is missing and should be regenerated.",
                 path=record["path"],
             )
 
@@ -822,6 +861,7 @@ def build_maintenance_report() -> dict[str, Any]:
     capabilities = build_capabilities_report(inventory_snapshot=inventory)
     docs = [_record_file(name, path) for name, path in MAINTENANCE_DOCS.items()]
     docs.extend(_capability_docs({"capabilities_snapshot": capabilities}))
+    generated_assets = [_record_binary_asset(name, path) for name, path in GENERATED_BINARY_ASSETS.items()]
     references = [_record_reference(name, path) for name, path in REFERENCE_DOCS.items()]
     manual_guides = _manual_guides_status()
     plugin = _plugin_status()
@@ -831,6 +871,7 @@ def build_maintenance_report() -> dict[str, Any]:
     automation_core_hits = _automation_core_hits()
     findings = _build_findings(
         docs=docs,
+        generated_assets=generated_assets,
         references=references,
         manual_guides=manual_guides,
         plugin=plugin,
@@ -843,7 +884,7 @@ def build_maintenance_report() -> dict[str, Any]:
         capabilities=capabilities,
     )
 
-    total_checks = len(docs) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + 9
+    total_checks = len(docs) + len(generated_assets) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + 9
     blocked_findings = [item for item in findings if item["severity"] == "error"]
     open_findings = len(findings)
     passed_checks = max(total_checks - open_findings, 0)
@@ -868,8 +909,10 @@ def build_maintenance_report() -> dict[str, Any]:
             "guidance": str(GUIDANCE_PATH),
             "maintenance_report": str(MAINTENANCE_REPORT_PATH),
             "maintenance_state": str(MAINTENANCE_STATE_PATH),
+            "skill_map_pdf": str(GENERATED_BINARY_ASSETS["skill-map-pdf"]),
         },
         "docs": docs,
+        "generated_assets": generated_assets,
         "references": references,
         "manual_guides": manual_guides,
         "skills": skills,
@@ -1006,11 +1049,12 @@ def _render_overview(report: dict[str, Any]) -> str:
         f"- `{PUBLIC_COMMAND} doctor` for a compact health check.",
         f"- `{PUBLIC_COMMAND} capabilities` for the grouped top-level capability menu.",
         f"- `{PUBLIC_COMMAND} capability <key>` for a group page or a single capability drill-down page.",
+        f"- `{PUBLIC_COMMAND} skill-map` for the human one-page map of menu groups and local skills.",
         f"- `{PUBLIC_COMMAND} inventory show` when you need the raw autodetected inventory behind the curated menu.",
         f"- `{PUBLIC_COMMAND} status --all` for durable workflow state across repos.",
         f"- `{PUBLIC_COMMAND} maintenance audit` after command, packaging, config, or contract changes.",
         "",
-        "## Manual Guides",
+        "## Guides And Maps",
         "",
         "- [Zero-touch setup](zero-touch-setup.md)",
         "- [Install on another computer](install-on-another-computer.md)",
@@ -1018,10 +1062,12 @@ def _render_overview(report: dict[str, Any]) -> str:
         "- [Maintainer guide](maintainer-guide.md)",
         "- [Control-plane governance](skill-governance.md)",
         "- [Inventory model](inventory.md)",
+        "- [Skill map](skill-map.md)",
         "",
         "## Common Flows",
         "",
         f"- Capability discovery: `{PUBLIC_COMMAND} doctor` then `{PUBLIC_COMMAND} capabilities`.",
+        f"- Human-facing map: `{PUBLIC_COMMAND} skill-map` or `docs/{PUBLIC_DOCS_DIRNAME}/skill-map.md`.",
         f"- Raw installed surface: `{PUBLIC_COMMAND} inventory show` then `{PUBLIC_COMMAND} inventory item <kind>:<name>`.",
         f"- External research: `{PUBLIC_COMMAND} research web|github|scout <query>`.",
         f"- Deep remediation: `{PUBLIC_COMMAND} run <workflow>` plus `.codex-workflows/<workflow>/state.json`.",
@@ -1078,6 +1124,7 @@ def _render_command_map() -> str:
         "- `doctor` is the shortest health-oriented entrypoint.",
         "- `capabilities` is the compact grouped menu for capability discovery.",
         "- `capability <key>` is the drill-down page for a single capability and should be preferred before choosing lower-level vendor tools.",
+        "- `skill-map` is the human-facing one-pager for the grouped menu, local front-door skills, and plugin-family counts.",
         "- `inventory` is the raw autodetected surface for debugging, not the default front door.",
         "- `status` is for workflow progress, not general health.",
         "- `run` is only for deep workflows that use the shared runner/state contract.",
@@ -1107,6 +1154,7 @@ def _render_command_map() -> str:
                     "",
                     f"- `{PUBLIC_COMMAND} doctor`",
                     f"- `{PUBLIC_COMMAND} capabilities` for the compact grouped menu",
+                    f"- `{PUBLIC_COMMAND} skill-map` for the human one-page map of local front-door skills",
                     f"- `{PUBLIC_COMMAND} inventory show` only when you need the raw detected surface",
                     f"- `{PUBLIC_COMMAND} status --all` if you need workflow progress",
                     f"- `{PUBLIC_COMMAND} run <workflow>` when a dedicated deep workflow is the right shape",
@@ -1611,6 +1659,12 @@ def _write_docs(report: dict[str, Any], *, include_all: bool, include_maintenanc
         save_text(MAINTENANCE_DOCS["overview"], _render_overview(report))
         save_text(MAINTENANCE_DOCS["command-map"], _render_command_map())
         save_text(MAINTENANCE_DOCS["inventory"], _render_inventory(report))
+        write_skill_map_docs(
+            report["capabilities_snapshot"],
+            report["inventory_snapshot"],
+            cwd=AGENTCTL_HOME.parent,
+            docs_dir=AGENTCTL_DOCS_DIR,
+        )
         save_text(MAINTENANCE_DOCS["state-schema"], _render_state_schema(report))
         save_text(MAINTENANCE_DOCS["capability-registry"], _render_capability_registry(report))
         save_text(MAINTENANCE_DOCS["cloud-readiness"], _render_cloud_readiness(report))

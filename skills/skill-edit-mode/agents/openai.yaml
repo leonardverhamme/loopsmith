@@ -1,5 +1,4 @@
-﻿interface:
-  display_name: "Skill Edit Mode"
-  short_description: "Create or edit managed skills only after explicit confirmation"
-  default_prompt: "Use $skill-edit-mode only after the user explicitly confirms that skill files should change."
-
+interface:
+  display_name: "Skill Edit Mode (Legacy)"
+  short_description: "Legacy alias; prefer $editskill for managed skill edits after explicit confirmation"
+  default_prompt: "Prefer $editskill. Use $skill-edit-mode only as a compatibility alias after the user explicitly confirms that skill files should change."

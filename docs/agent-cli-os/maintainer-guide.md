@@ -9,6 +9,8 @@ Generated docs:
 - `docs/agent-cli-os/overview.md`
 - `docs/agent-cli-os/command-map.md`
 - `docs/agent-cli-os/inventory.md`
+- `docs/agent-cli-os/skill-map.md`
+- `docs/agent-cli-os/skill-map.pdf`
 - `docs/agent-cli-os/state-schema.md`
 - `docs/agent-cli-os/capability-registry.md`
 - `docs/agent-cli-os/cloud-readiness.md`
@@ -72,7 +74,9 @@ If capability groups or skill front doors change:
 
 - `agentctl/lib/capabilities.py`
 - `agentctl/lib/inventory.py`
+- `agentctl/lib/skill_map.py`
 - generated capability pages
+- generated skill map
 - `AGENTS.md`
 - `docs/agent-cli-os/skill-governance.md`
 - related tests

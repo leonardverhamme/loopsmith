@@ -1309,6 +1309,7 @@ def print_capabilities_human(payload: dict[str, Any], *, as_json: bool = False) 
         )
     print("")
     print(f"Use `{PUBLIC_COMMAND} capability <key>` for a group page or a single capability drill-down page.")
+    print(f"Use `{PUBLIC_COMMAND} skill-map` for the human-facing map of local front-door skills versus the much larger plugin catalog.")
     notes = _doctor_notes(payload)
     if notes:
         print("")

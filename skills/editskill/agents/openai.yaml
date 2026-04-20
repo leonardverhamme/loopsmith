@@ -1,0 +1,4 @@
+interface:
+  display_name: "Edit Skill"
+  short_description: "Preferred front door for managed skill edits after explicit confirmation"
+  default_prompt: "Use $editskill only after the user explicitly confirms that skill files should change."

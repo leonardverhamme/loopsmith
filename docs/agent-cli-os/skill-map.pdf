@@ -1,0 +1,153 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 1 /Kids [3 0 R] >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Length 3742 >>
+stream
+BT
+/F1 8 Tf
+9 TL
+24 563 Td
+(Agent CLI OS Skill Map) Tj
+T*
+() Tj
+T*
+(Curated local front-door skills:) Tj
+T*
+(Core:) Tj
+T*
+(  - Autonomous deep runs: $autonomous-deep-runs-capability | agentcli capability autonomous-deep-runs) Tj
+T*
+(  - Long task loops: $loopsmith | agentcli capability long-task-loops) Tj
+T*
+(  - Skills management: $skills-management-capability | agentcli capability skills-management) Tj
+T*
+(  - Agent CLI OS maintenance: $agentcli-maintenance-engineer | agentcli maintenance check) Tj
+T*
+() Tj
+T*
+(Workflows:) Tj
+T*
+(  - Repo context workflows: $context-skill | -) Tj
+T*
+(  - UI workflows: $ui-skill, $ui-deep-audit | agentcli run ui-deep-audit) Tj
+T*
+(  - Testing workflows: $test-skill, $test-deep-audit | agentcli run test-deep-audit) Tj
+T*
+(  - Documentation workflows: $docs-skill, $docs-deep-audit | agentcli run docs-deep-audit) Tj
+T*
+(  - Refactor workflows: $refactor-skill, $refactor-deep-audit, $refactor-orchestrator | agentcli run refactor-deep-audit) Tj
+T*
+(  - CI/CD workflows: $cicd-skill, $cicd-deep-audit | agentcli run cicd-deep-audit) Tj
+T*
+() Tj
+T*
+(Research:) Tj
+T*
+(  - Research: $research-capability, $internet-researcher, $github-researcher, $web-github-scout | agentcli capability) Tj
+T*
+(research) Tj
+T*
+() Tj
+T*
+(Platforms:) Tj
+T*
+(  - GitHub workflows: $github-capability | agentcli capability github-workflows) Tj
+T*
+(  - GitHub Advanced Security: $github-security-capability | agentcli capability github-advanced-security) Tj
+T*
+(  - Vercel platform: $vercel-capability | agentcli capability vercel-platform) Tj
+T*
+(  - Supabase data: $supabase-capability | agentcli capability supabase-data) Tj
+T*
+(  - Stripe payments: $stripe-capability | agentcli capability stripe-payments) Tj
+T*
+(  - Sentry observability: $sentry-capability | agentcli capability sentry-observability) Tj
+T*
+() Tj
+T*
+(Browser & design:) Tj
+T*
+(  - Browser automation: $browser-capability, $playwright | agentcli capability browser-automation) Tj
+T*
+(  - Figma design: $figma-capability | agentcli capability figma-design) Tj
+T*
+(  - Next.js runtime: $nextjs-runtime-capability | agentcli capability nextjs-runtime) Tj
+T*
+() Tj
+T*
+(Native:) Tj
+T*
+(  - iOS development: $ios-development-capability | agentcli capability ios-development) Tj
+T*
+(  - macOS development: $macos-development-capability | agentcli capability macos-development) Tj
+T*
+(  - Android testing: $android-testing-capability | agentcli capability android-testing) Tj
+T*
+() Tj
+T*
+(Direct local helpers:) Tj
+T*
+(  - $doc: skill is installed but not promoted into the curated front-door menu.) Tj
+T*
+(  - $editskill: Preferred front door for intentional skill-system changes.) Tj
+T*
+(  - $pdf: skill is installed but not promoted into the curated front-door menu.) Tj
+T*
+(  - $skill-edit-mode: Legacy compatibility alias. Prefer `$editskill` in new chats.) Tj
+T*
+(  - $sora: skill is installed but not promoted into the curated front-door menu.) Tj
+T*
+() Tj
+T*
+(Curated plugin catalog summary:) Tj
+T*
+(  - agent-cli-os: 1 skills [ok]) Tj
+T*
+() Tj
+T*
+(Key clarification:) Tj
+T*
+(  - `$ui-skill` and `$ui-deep-audit` are still present. They live under `Workflows -> UI workflows`.) Tj
+T*
+(  - `$context-skill` is still present. It lives under `Workflows -> Repo context workflows`.) Tj
+T*
+(  - The `$` picker looks much larger because Codex also shows curated plugin skills, not just the local Agent CLI OS) Tj
+T*
+(front-door skills.) Tj
+T*
+(  - `$editskill` is the preferred direct helper for intentional skill-system changes. `$skill-edit-mode` stays as a) Tj
+T*
+(legacy alias.) Tj
+T*
+() Tj
+T*
+(Commands: agentcli capabilities | agentcli capability <key> | agentcli inventory show --kind skills) Tj
+T*
+(Generated: 2026-04-20T10:41:24.959074+00:00) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000309 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+4103
+%%EOF

@@ -95,5 +95,5 @@ Update:
 - `AGENTS.md`
 - tests
 
-Use `$skill-edit-mode` only when skill work is explicitly approved.
+Use `$editskill` when skill work is explicitly approved. `$skill-edit-mode` remains a legacy alias only.
 

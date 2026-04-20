@@ -39,15 +39,15 @@ The raw autodetected inventory is stored at `agentctl/state/inventory.json`.
 ```json
 {
   "bucket_count": 6,
-  "hidden_count": 12,
+  "hidden_count": 15,
   "kind_counts": {
     "plugin": 1,
-    "skill": 40,
+    "skill": 42,
     "tool": 16
   },
   "max_bucket_size": 25,
   "status": "ok",
-  "total_items": 57
+  "total_items": 59
 }
 ```
 
@@ -57,4 +57,4 @@ The raw autodetected inventory is stored at `agentctl/state/inventory.json`.
   - 16 detected tools
 - `skills-global`: `ok`
 - `skills-project`: `ok`
-  - 1 project skills
+  - 3 project skills

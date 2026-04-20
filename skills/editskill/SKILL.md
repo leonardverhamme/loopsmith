@@ -1,19 +1,17 @@
 ---
-name: skill-edit-mode
-description: Legacy compatibility alias for the preferred `$editskill` front door. Use only when the user explicitly asks to create, update, move, rename, or otherwise change skill files and has explicitly confirmed that skill editing should open for the named skills.
+name: editskill
+description: Preferred front door for intentional skill-system work. Use only when the user explicitly asks to create, update, rename, move, or otherwise maintain skills and explicitly confirms that skill editing should open for the named skills. This is the preferred alias for the legacy `skill-edit-mode` skill.
 ---
 
-# Skill Edit Mode (Legacy Alias)
+# Edit Skill
 
-Prefer `$editskill` in new chats. This legacy alias stays valid so older instructions and repo docs do not break.
+Use this skill only for intentional work on the skill system itself.
 
 ## Entry Gate
 
 - Do not use this skill just because a task touches tools, docs, or prompts.
 - Only use this skill when the user explicitly asks to change a skill or create a new skill.
-- Even then, require explicit confirmation that skill editing should open for the named skill or skills before editing any files under `skills/` or `plugins/*/skills/`.
-
-If the user has not confirmed, stop and ask for confirmation instead of editing.
+- Require explicit confirmation that skill editing should open for the named skill or skills before editing any files under `skills/` or `plugins/*/skills/`.
 
 ## What This Skill Covers
 
@@ -40,8 +38,12 @@ If the user has not confirmed, stop and ask for confirmation instead of editing.
 - Do not edit curated third-party plugin skills unless the user explicitly asks for that and confirms the exact target.
 - Do not leave a changed skill unvalidated.
 
-## References
+## Compatibility
 
 - Preferred public skill name: `$editskill`
+- Legacy alias kept for compatibility: `$skill-edit-mode`
+
+## References
+
 - Use the built-in `skill-creator` guidance when you need help designing or validating a skill structure.
 - Follow the local `AGENTS.md` rules first when they are stricter than generic skill-creation guidance.

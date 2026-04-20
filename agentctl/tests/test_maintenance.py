@@ -85,10 +85,18 @@ class MaintenanceTests(unittest.TestCase):
                     "overview": docs_dir / "overview.md",
                     "command-map": docs_dir / "command-map.md",
                     "inventory": docs_dir / "inventory.md",
+                    "skill-map": docs_dir / "skill-map.md",
                     "state-schema": docs_dir / "state-schema.md",
                     "capability-registry": docs_dir / "capability-registry.md",
                     "cloud-readiness": docs_dir / "cloud-readiness.md",
                     "maintenance": docs_dir / "maintenance.md",
+                },
+                clear=True,
+            ),
+            mock.patch.dict(
+                maintenance.GENERATED_BINARY_ASSETS,
+                {
+                    "skill-map-pdf": docs_dir / "skill-map.pdf",
                 },
                 clear=True,
             ),
@@ -227,11 +235,14 @@ class MaintenanceTests(unittest.TestCase):
                 overview = (root / "docs" / "agent-cli-os" / "overview.md").read_text(encoding="utf-8")
                 capability_page = (root / "docs" / "agent-cli-os" / "capabilities" / "research.md").read_text(encoding="utf-8")
                 inventory_page = (root / "docs" / "agent-cli-os" / "inventory.md").read_text(encoding="utf-8")
+                skill_map_page = (root / "docs" / "agent-cli-os" / "skill-map.md").read_text(encoding="utf-8")
                 state = json.loads((root / ".codex-workflows" / "agentcli-maintenance" / "state.json").read_text(encoding="utf-8"))
 
             self.assertIn("agent-cli-os:auto-generated", overview)
             self.assertIn("# Research", capability_page)
             self.assertIn("# Agent CLI OS Inventory", inventory_page)
+            self.assertIn("# Agent CLI OS Skill Map", skill_map_page)
+            self.assertTrue((root / "docs" / "agent-cli-os" / "skill-map.pdf").exists())
             self.assertEqual(report["summary"]["status"], "ok")
             self.assertTrue(state["ready_allowed"])
             self.assertEqual(state["status"], "complete")
@@ -293,6 +304,8 @@ class MaintenanceTests(unittest.TestCase):
             self.assertEqual(report["artifacts"]["maintenance_report"], str(workspace.maintenance_report_path))
             self.assertTrue(workspace.maintenance_report_path.exists())
             self.assertTrue((workspace.docs_dir / "overview.md").exists())
+            self.assertTrue((workspace.docs_dir / "skill-map.md").exists())
+            self.assertTrue((workspace.docs_dir / "skill-map.pdf").exists())
             self.assertTrue((workspace.capabilities_docs_dir / "research.md").exists())
 
 

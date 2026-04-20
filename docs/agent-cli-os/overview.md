@@ -15,7 +15,7 @@
 ## Current Status
 
 - Maintenance status: `ok`
-- Checks passed: 84 / 84
+- Checks passed: 86 / 86
 - Open findings: 0
 - Blocked findings: 0
 
@@ -24,11 +24,12 @@
 - `agentcli doctor` for a compact health check.
 - `agentcli capabilities` for the grouped top-level capability menu.
 - `agentcli capability <key>` for a group page or a single capability drill-down page.
+- `agentcli skill-map` for the human one-page map of menu groups and local skills.
 - `agentcli inventory show` when you need the raw autodetected inventory behind the curated menu.
 - `agentcli status --all` for durable workflow state across repos.
 - `agentcli maintenance audit` after command, packaging, config, or contract changes.
 
-## Manual Guides
+## Guides And Maps
 
 - [Zero-touch setup](zero-touch-setup.md)
 - [Install on another computer](install-on-another-computer.md)
@@ -36,10 +37,12 @@
 - [Maintainer guide](maintainer-guide.md)
 - [Control-plane governance](skill-governance.md)
 - [Inventory model](inventory.md)
+- [Skill map](skill-map.md)
 
 ## Common Flows
 
 - Capability discovery: `agentcli doctor` then `agentcli capabilities`.
+- Human-facing map: `agentcli skill-map` or `docs/agent-cli-os/skill-map.md`.
 - Raw installed surface: `agentcli inventory show` then `agentcli inventory item <kind>:<name>`.
 - External research: `agentcli research web|github|scout <query>`.
 - Deep remediation: `agentcli run <workflow>` plus `.codex-workflows/<workflow>/state.json`.

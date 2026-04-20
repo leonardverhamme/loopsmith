@@ -7,5 +7,5 @@
 - After routing, prefer the healthiest authoritative interface that `agentcli` reports. Vendor CLIs remain authoritative for their own systems.
 - Require a real Playwright verification pass for runnable UI or browser-facing work.
 - When asked to add tests, use `$test-skill` and choose the materially needed layers.
-- Never edit `skills/` or `plugins/*/skills/` unless the user explicitly asks for skill work and explicitly opens `$skill-edit-mode`.
+- Never edit `skills/` or `plugins/*/skills/` unless the user explicitly asks for skill work and explicitly opens `$editskill`.
 - After changing control-plane behavior or routing surface, follow `docs/agent-cli-os/maintainer-guide.md` and run `agentcli maintenance audit --json`.
