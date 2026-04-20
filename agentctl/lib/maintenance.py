@@ -8,7 +8,7 @@ from typing import Any
 from . import config_layers as config_layers_module
 from . import guidance as guidance_module
 from . import inventory as inventory_module
-from .branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DOCS_DIRNAME, PUBLIC_PRODUCT_NAME
+from .branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DISPLAY_NAME, PUBLIC_DOCS_DIRNAME, PUBLIC_PRODUCT_NAME
 from .capabilities import CAPABILITY_GROUPS, build_capabilities_report, capability_detail, capability_doc_path, capability_keys
 from .common import load_json, print_json, save_json, save_text, utc_now
 from .config_layers import _load_toml
@@ -30,6 +30,9 @@ from .paths import (
     DOCTOR_REPORT_PATH,
     GUIDANCE_PATH,
     INVENTORY_PATH,
+    LEGACY_AGENTCTL_MAINTENANCE_SKILL_DIR,
+    LEGACY_AGENTCTL_PLUGIN_ROUTER_SKILL_DIR,
+    LEGACY_MAINTENANCE_STATE_PATH,
     MAINTENANCE_CONTRACT_REFERENCE_PATH,
     MAINTENANCE_REPORT_PATH,
     MAINTENANCE_STATE_PATH,
@@ -44,8 +47,11 @@ from .paths import (
 
 SCHEMA_VERSION = 1
 AUTO_MARKER = f"<!-- {PUBLIC_PRODUCT_NAME}:auto-generated -->"
-MAINTENANCE_WORKFLOW_NAME = "agentctl-maintenance"
-MAINTENANCE_SKILL_NAME = "agentctl-maintenance-engineer"
+MAINTENANCE_WORKFLOW_NAME = "agentcli-maintenance"
+LEGACY_MAINTENANCE_WORKFLOW_NAME = "agentctl-maintenance"
+MAINTENANCE_SKILL_NAME = "agentcli-maintenance-engineer"
+LEGACY_MAINTENANCE_SKILL_NAME = "agentctl-maintenance-engineer"
+LEGACY_MAINTENANCE_CAPABILITY_KEY = "agentctl-maintenance"
 MAINTENANCE_DOCS: dict[str, Path] = {
     "overview": AGENTCTL_DOCS_DIR / "overview.md",
     "command-map": AGENTCTL_DOCS_DIR / "command-map.md",
@@ -117,23 +123,23 @@ COMMAND_GROUPS = [
         "items": [
             {"command": "maintenance check", "usage": f"{PUBLIC_COMMAND} maintenance check [--json]", "summary": "Check command/docs/plugin drift and write a machine-readable maintenance report."},
             {"command": "maintenance audit", "usage": f"{PUBLIC_COMMAND} maintenance audit [--json]", "summary": "Run the full maintenance pass, refresh docs, and update maintenance state."},
-            {"command": "maintenance fix-docs", "usage": f"{PUBLIC_COMMAND} maintenance fix-docs [--json]", "summary": f"Regenerate the human-facing {PUBLIC_PRODUCT_NAME} docs from current machine state."},
+            {"command": "maintenance fix-docs", "usage": f"{PUBLIC_COMMAND} maintenance fix-docs [--json]", "summary": f"Regenerate the human-facing {PUBLIC_DISPLAY_NAME} docs from current machine state."},
             {"command": "maintenance render-report", "usage": f"{PUBLIC_COMMAND} maintenance render-report [--json]", "summary": "Render the maintenance Markdown page and JSON report without regenerating every doc."},
         ],
     },
 ]
 CLOUD_READINESS = [
     {
-        "name": "loopsmith core",
+        "name": "agent-cli-os core",
         "classification": "cloud-ready-with-setup",
-        "requirements": ["Python 3.12+", "agentctl bundle files under $CODEX_HOME", "write access to workflow state"],
+        "requirements": ["Python 3.12+", "Agent CLI OS bundle files under $CODEX_HOME", "write access to workflow state"],
         "notes": "Pure Python stdlib control plane. Safe once the environment installs the home bundle.",
     },
     {
         "name": "skills wrapper layer",
         "classification": "cloud-ready-with-setup",
         "requirements": ["Node.js and npx", "skills CLI availability", "network access if installing from remotes"],
-        "notes": f"{PUBLIC_PRODUCT_NAME} wraps official skills tooling rather than replacing it.",
+        "notes": f"{PUBLIC_DISPLAY_NAME} wraps official skills tooling rather than replacing it.",
     },
     {
         "name": "research web",
@@ -244,6 +250,7 @@ def _workspace_bindings(workspace: MaintenanceWorkspace) -> dict[str, Path]:
         "GUIDANCE_PATH": workspace.guidance_path,
         "MAINTENANCE_REPORT_PATH": workspace.maintenance_report_path,
         "MAINTENANCE_STATE_PATH": workspace.maintenance_state_path,
+        "LEGACY_MAINTENANCE_STATE_PATH": workspace.legacy_maintenance_state_path,
         "STATE_SCHEMA_REFERENCE_PATH": workspace.state_schema_reference_path,
         "CAPABILITY_REGISTRY_REFERENCE_PATH": workspace.capability_registry_reference_path,
         "MAINTENANCE_CONTRACT_REFERENCE_PATH": workspace.maintenance_contract_reference_path,
@@ -254,7 +261,9 @@ def _workspace_bindings(workspace: MaintenanceWorkspace) -> dict[str, Path]:
         "AGENTCTL_PLUGIN_DIR": workspace.plugin_dir,
         "AGENTCTL_PLUGIN_MANIFEST_PATH": workspace.plugin_manifest_path,
         "AGENTCTL_PLUGIN_ROUTER_SKILL_DIR": workspace.plugin_router_skill_dir,
+        "LEGACY_AGENTCTL_PLUGIN_ROUTER_SKILL_DIR": workspace.legacy_plugin_router_skill_dir,
         "AGENTCTL_MAINTENANCE_SKILL_DIR": workspace.maintenance_skill_dir,
+        "LEGACY_AGENTCTL_MAINTENANCE_SKILL_DIR": workspace.legacy_maintenance_skill_dir,
     }
 
 
@@ -537,7 +546,7 @@ def _known_limitations(capabilities: dict[str, Any]) -> list[str]:
     if codex.get("installed") and not codex.get("worker_runtime_ready"):
         limitations.append(
             "The default local Codex runtime is not callable here. "
-            "Use `agentctl run --worker-command ...` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs."
+            f"Use `{PUBLIC_COMMAND} run --worker-command ...` or configure `AGENTCTL_CODEX_WORKER_TEMPLATE` for unattended deep runs."
         )
     elif not codex.get("installed"):
         limitations.append(
@@ -574,7 +583,7 @@ def _build_findings(
                 finding_id=f"doc-missing-{record['name']}",
                 title=f"Missing doc: {record['name']}",
                 severity="warn",
-                detail="Required agentctl maintenance doc is missing and should be regenerated.",
+                detail="Required Agent CLI OS maintenance doc is missing and should be regenerated.",
                 path=record["path"],
             )
         elif record["auto_generated"] is False:
@@ -594,7 +603,7 @@ def _build_findings(
                 finding_id=f"reference-missing-{record['name']}",
                 title=f"Missing reference: {record['name']}",
                 severity="warn",
-                detail="A required agentctl reference file is missing.",
+                detail="A required Agent CLI OS reference file is missing.",
                 path=record["path"],
             )
 
@@ -605,7 +614,7 @@ def _build_findings(
                 finding_id=f"manual-guide-missing-{record['name']}",
                 title=f"Missing guide: {record['name']}",
                 severity="warn",
-                detail="A required hand-maintained agentctl guide is missing.",
+                detail="A required hand-maintained Agent CLI OS guide is missing.",
                 path=record["path"],
             )
 
@@ -615,7 +624,7 @@ def _build_findings(
             finding_id="plugin-missing",
             title="Plugin packaging is incomplete",
             severity="error",
-            detail="The local agentctl plugin directory or manifest is missing.",
+            detail="The local Agent CLI OS plugin directory or manifest is missing.",
             path=plugin["manifest_path"],
         )
     if plugin["exists"] and not plugin["router_skill_exists"]:
@@ -624,7 +633,7 @@ def _build_findings(
             finding_id="plugin-router-missing",
             title="Plugin router skill is missing",
             severity="warn",
-            detail="The local plugin exists but does not expose the router skill that makes agentctl discoverable in Codex.",
+            detail="The local plugin exists but does not expose the router skill that makes Agent CLI OS discoverable in Codex.",
             path=plugin["router_skill_path"],
         )
     if plugin["manifest_exists"] and plugin.get("manifest_name") != AGENTCTL_PLUGIN_NAME:
@@ -664,7 +673,7 @@ def _build_findings(
                 finding_id=f"test-missing-{record['name']}",
                 title=f"Missing test: {record['name']}",
                 severity="warn",
-                detail="The agentctl platform test surface is incomplete.",
+                detail="The Agent CLI OS test surface is incomplete.",
                 path=record["path"],
             )
 
@@ -893,6 +902,9 @@ def _remaining_items(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def _save_workflow_registry(state: dict[str, Any]) -> None:
     registry = load_json(WORKFLOW_REGISTRY_PATH, default={})
     key = f"{state['repo_root']}::{state['workflow_name']}"
+    legacy_key = f"{state['repo_root']}::{LEGACY_MAINTENANCE_WORKFLOW_NAME}"
+    if legacy_key != key:
+        registry.pop(legacy_key, None)
     registry[key] = {
         "schema_version": state.get("schema_version", SCHEMA_VERSION),
         "workflow_name": state["workflow_name"],
@@ -932,7 +944,7 @@ def _maintenance_state(report: dict[str, Any]) -> dict[str, Any]:
         "tasks_done": report["summary"]["passed_checks"],
         "tasks_open": report["summary"]["open_findings"],
         "tasks_blocked": report["summary"]["blocked_findings"],
-        "last_batch": ["Refreshed agentctl maintenance report"],
+        "last_batch": [f"Refreshed {PUBLIC_DISPLAY_NAME} maintenance report"],
         "last_validation": {
             "maintenance_status": report["summary"]["status"],
             "capabilities_status": report["capabilities_snapshot"]["summary"]["status"],
@@ -953,8 +965,19 @@ def _maintenance_state(report: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _cleanup_legacy_maintenance_surface() -> None:
+    legacy_capability_doc = AGENTCTL_CAPABILITIES_DOCS_DIR / f"{LEGACY_MAINTENANCE_CAPABILITY_KEY}.md"
+    for path in (LEGACY_MAINTENANCE_STATE_PATH, legacy_capability_doc):
+        if path == MAINTENANCE_STATE_PATH or not path.exists():
+            continue
+        path.unlink()
+        parent = path.parent
+        if parent.exists() and not any(parent.iterdir()):
+            parent.rmdir()
+
+
 def _render_overview(report: dict[str, Any]) -> str:
-    title = PUBLIC_PRODUCT_NAME.title()
+    title = PUBLIC_DISPLAY_NAME
     lines = [
         AUTO_MARKER,
         f"# {title} Overview",
@@ -1002,7 +1025,7 @@ def _render_overview(report: dict[str, Any]) -> str:
         f"- External research: `{PUBLIC_COMMAND} research web|github|scout <query>`.",
         f"- Deep remediation: `{PUBLIC_COMMAND} run <workflow>` plus `.codex-workflows/<workflow>/state.json`.",
         f"- Generic long task: `$loopsmith` then `{PUBLIC_COMMAND} loop <name>` with a task brief on disk.",
-        f"- Control-plane upkeep: `$agentctl-maintenance-engineer` or `{PUBLIC_COMMAND} maintenance audit`.",
+        f"- Control-plane upkeep: `$agentcli-maintenance-engineer` or `{PUBLIC_COMMAND} maintenance audit`.",
         "",
         "## Compatibility",
         "",
@@ -1024,7 +1047,7 @@ def _render_overview(report: dict[str, Any]) -> str:
         "- Inventory snapshot: `agentctl/state/inventory.json`",
         "- Guidance snapshot: `agentctl/state/guidance.json`",
         f"- Maintenance report: `docs/{PUBLIC_DOCS_DIRNAME}/maintenance-report.json`",
-        "- Maintenance state: `.codex-workflows/agentctl-maintenance/state.json`",
+        f"- Maintenance state: `.codex-workflows/{MAINTENANCE_WORKFLOW_NAME}/state.json`",
         "",
         f"## What {title} Does Not Own",
         "",
@@ -1045,7 +1068,7 @@ def _render_overview(report: dict[str, Any]) -> str:
 def _render_command_map() -> str:
     lines = [
         AUTO_MARKER,
-        f"# {PUBLIC_PRODUCT_NAME.title()} Command Map",
+        f"# {PUBLIC_DISPLAY_NAME} Command Map",
         "",
         "This is the frozen v1 command surface that maintenance checks expect.",
         "",
@@ -1141,7 +1164,7 @@ def _render_state_schema(report: dict[str, Any]) -> str:
         reference = "\n".join(reference_lines[1:]).lstrip()
     lines = [
         AUTO_MARKER,
-        f"# {PUBLIC_PRODUCT_NAME.title()} State Schema",
+        f"# {PUBLIC_DISPLAY_NAME} State Schema",
         "",
         "## Deep Workflow State",
         "",
@@ -1149,7 +1172,7 @@ def _render_state_schema(report: dict[str, Any]) -> str:
         "",
         "## Maintenance Report Schema",
         "",
-        f"The maintenance report is stored at `docs/{PUBLIC_DOCS_DIRNAME}/maintenance-report.json` and is mirrored into `.codex-workflows/agentctl-maintenance/state.json`.",
+        f"The maintenance report is stored at `docs/{PUBLIC_DOCS_DIRNAME}/maintenance-report.json` and is mirrored into `.codex-workflows/{MAINTENANCE_WORKFLOW_NAME}/state.json`.",
         "",
         "Top-level report fields:",
         "",
@@ -1211,7 +1234,7 @@ def _render_inventory(report: dict[str, Any]) -> str:
     inventory = report["inventory_snapshot"]
     lines = [
         AUTO_MARKER,
-        f"# {PUBLIC_PRODUCT_NAME.title()} Inventory",
+        f"# {PUBLIC_DISPLAY_NAME} Inventory",
         "",
         "The raw autodetected inventory is stored at `agentctl/state/inventory.json`.",
         "",
@@ -1268,7 +1291,7 @@ def _render_capability_registry(report: dict[str, Any]) -> str:
     capability_items = report["capabilities_snapshot"].get("capabilities", [])
     lines = [
         AUTO_MARKER,
-        f"# {PUBLIC_PRODUCT_NAME.title()} Capability Registry",
+        f"# {PUBLIC_DISPLAY_NAME} Capability Registry",
         "",
         "The machine-readable registry lives at `agentctl/state/capabilities.json` and is derived from the latest raw inventory snapshot.",
         "",
@@ -1462,13 +1485,13 @@ def _render_cloud_readiness(report: dict[str, Any]) -> str:
     browser_status = capabilities_by_key.get("browser-automation", {}).get("status", "unknown")
     lines = [
         AUTO_MARKER,
-        f"# {PUBLIC_PRODUCT_NAME.title()} Cloud Readiness",
+        f"# {PUBLIC_DISPLAY_NAME} Cloud Readiness",
         "",
         "Cloud support is explicit, not assumed. A plugin install is not enough without a cloud environment that provides the required tools and auth.",
         "",
         "## Minimum Cloud Bundle",
         "",
-        "- Python 3.12+ for `agentctl` itself",
+        f"- Python 3.12+ for {PUBLIC_DISPLAY_NAME}",
         "- Node.js and `npx` for the skills wrapper layer",
         "- Playwright plus a Chromium-capable browser route if browser automation is required",
         "- Auth and configuration for any vendor CLI you expect to use in cloud",
@@ -1486,7 +1509,7 @@ def _render_cloud_readiness(report: dict[str, Any]) -> str:
             "",
             "## Cloud Bring-Up Checklist",
             "",
-        "- Install the `agentctl/` bundle under `$CODEX_HOME`.",
+        "- Install the internal `agentctl/` bundle under `$CODEX_HOME`.",
         f"- Verify `{PUBLIC_COMMAND} doctor` is healthy in the cloud environment itself.",
             "- Verify vendor CLI auth before relying on GitHub-, Vercel-, or Supabase-backed flows.",
         "- Verify the browser route before relying on research, UI, or test workflows that need runtime inspection.",
@@ -1507,7 +1530,7 @@ def _render_cloud_readiness(report: dict[str, Any]) -> str:
 def _render_maintenance(report: dict[str, Any]) -> str:
     lines = [
         AUTO_MARKER,
-        f"# {PUBLIC_PRODUCT_NAME.title()} Maintenance",
+        f"# {PUBLIC_DISPLAY_NAME} Maintenance",
         "",
         "## Last Run",
         "",
@@ -1519,7 +1542,7 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "",
         "## When to Run Maintenance",
         "",
-        "- After changing `agentctl` commands, adapters, or state contracts.",
+        f"- After changing {PUBLIC_DISPLAY_NAME} commands, adapters, or state contracts.",
         "- After changing plugin metadata, plugin skills, or packaging layout.",
         "- After adding or removing supported CLIs or browser routes.",
         "- Before trusting cloud-readiness assumptions for a new workflow.",
@@ -1528,7 +1551,7 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "",
         f"1. Run `{PUBLIC_COMMAND} maintenance check` for a quick signal.",
         f"2. If command surface, docs, or packaging changed, run `{PUBLIC_COMMAND} maintenance audit`.",
-        "3. Read `maintenance.md`, `maintenance-report.json`, and `.codex-workflows/agentctl-maintenance/state.json` together.",
+        f"3. Read `maintenance.md`, `maintenance-report.json`, and `.codex-workflows/{MAINTENANCE_WORKFLOW_NAME}/state.json` together.",
         f"4. Inspect `{PUBLIC_COMMAND} inventory show` when a capability surface looks wrong or unexpectedly large.",
         f"5. Inspect `{PUBLIC_COMMAND} self-check` when config, guidance, or menu budgets may be part of the problem.",
         f"6. If findings are doc-only, prefer `{PUBLIC_COMMAND} maintenance fix-docs` over hand edits.",
@@ -1540,7 +1563,7 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "- Keep `agentctl/state/inventory.json` and `agentctl/state/guidance.json` healthy and within budget.",
         "- Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.",
         "- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.",
-        "- Re-run tests for `agentctl` and the shared workflow tools.",
+        f"- Re-run tests for {PUBLIC_DISPLAY_NAME} and the shared workflow tools.",
         "- Re-run at least one CLI-level deep-workflow smoke after changing runner/state/guard behavior.",
         "- Keep `AGENTS.md` aligned with the intended front door.",
         "- If the skill surface changes, keep capability wrappers thin and update `skill-governance.md` in the same change.",
@@ -1555,7 +1578,7 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "## Clean State Expectations",
         "",
         "- `maintenance-report.json` has `status: ok`.",
-        "- `.codex-workflows/agentctl-maintenance/state.json` has `status: complete` and `ready_allowed: true`.",
+        f"- `.codex-workflows/{MAINTENANCE_WORKFLOW_NAME}/state.json` has `status: complete` and `ready_allowed: true`.",
         f"- `{PUBLIC_COMMAND} doctor` stays compact and health-focused.",
         f"- `{PUBLIC_COMMAND} capabilities` stays capability-first.",
         f"- `{PUBLIC_COMMAND} status --all` surfaces durable active workflows and hides stale temp history by default.",
@@ -1604,6 +1627,7 @@ def _persist(report: dict[str, Any]) -> dict[str, Any]:
     state = _maintenance_state(report)
     save_json(MAINTENANCE_STATE_PATH, state)
     _save_workflow_registry(state)
+    _cleanup_legacy_maintenance_surface()
     return report
 
 

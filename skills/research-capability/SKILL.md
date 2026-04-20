@@ -1,6 +1,6 @@
----
+﻿---
 name: research-capability
-description: Navigate the research capability in agentctl. Use when deciding between web research, GitHub research, and mixed scouting before implementation.
+description: Navigate the research capability in Agent CLI OS. Use when deciding between web research, GitHub research, and mixed scouting before implementation.
 ---
 
 # Research Capability
@@ -17,8 +17,8 @@ Use this as the thin navigation layer for research. The actual work still happen
 
 ## Workflow
 
-1. Run `agentctl capability research`.
-2. Read the generated page at `docs/agentctl/capabilities/research.md`.
+1. Run `agentcli capability research`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/research.md`.
 3. Use `$internet-researcher` for current public-web research.
 4. Use `$github-researcher` for repository, issue, release, and code-pattern research.
 5. Use `$web-github-scout` when the task needs both tracks and a merged shortlist.
@@ -28,3 +28,4 @@ Use this as the thin navigation layer for research. The actual work still happen
 - Do not bypass the shared research evidence contract.
 - Do not mix web and GitHub evidence blindly before checking which route the task actually needs.
 - Do not invent a new research front door when `agentctl research` already covers it.
+

@@ -1,4 +1,4 @@
-# Component Rules
+﻿# Component Rules
 
 Apply these rules when composing new screens or refactoring existing ones.
 
@@ -71,3 +71,4 @@ Do not rely on color alone for meaning.
 - Generic gradient-heavy AI visuals by default
 - Empty states that do not suggest a next action
 - Wrapper components that only rename props without improving behavior
+

@@ -1,4 +1,4 @@
----
+﻿---
 name: refactor-orchestrator
 description: Broad refactor and migration orchestration workflow for changes that span multiple modules, packages, or layers. Use when restructuring a subsystem, running a phased migration, decomposing a monolith area, replacing a cross-cutting pattern, or managing a risky multi-step refactor that needs sequencing, tracking, and closeout validation.
 ---
@@ -127,3 +127,4 @@ Deliver:
 - `references/risk-review.md`
 - `references/premade-systems.md`
 - `references/prompt-template.md`
+

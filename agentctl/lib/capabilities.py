@@ -57,11 +57,11 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
         "skills": ["loopsmith"],
         "interfaces": [],
         "availability_mode": "all",
-        "overlap_policy": "Use named deep workflows first. Use the generic loopsmith loop only when the task is large, multi-step, and does not already fit a dedicated workflow skill.",
+        "overlap_policy": "Use named deep workflows first. Use the generic durable loop only when the task is large, multi-step, and does not already fit a dedicated workflow skill.",
         "summary": "Use for oversized or novel tasks that need a durable checklist, state file, and one-batch-at-a-time loop until the queue is truly empty.",
         "routing_notes": [
             f"Start with `$loopsmith`, then launch the durable loop with `{PUBLIC_COMMAND} loop <name>`.",
-            "Prefer `loopsmith run <workflow>` when a dedicated deep workflow already exists, such as UI, docs, test, refactor, or CI/CD audits.",
+            f"Prefer `{PUBLIC_COMMAND} run <workflow>` when a dedicated deep workflow already exists, such as UI, docs, test, refactor, or CI/CD audits.",
             "Store the task brief on disk and let the outer runner own `.codex-workflows/<name>/state.json`, the checklist, and the progress notes.",
         ],
     },
@@ -90,16 +90,21 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
         ],
     },
     {
-        "key": "agentctl-maintenance",
-        "label": "Loopsmith maintenance",
+        "key": "agentcli-maintenance",
+        "label": "Agent CLI OS maintenance",
         "group": "core",
         "required": True,
-        "front_door": "$agentctl-maintenance-engineer",
+        "front_door": "$agentcli-maintenance-engineer",
         "entrypoints": [f"{PUBLIC_COMMAND} maintenance check", f"{PUBLIC_COMMAND} maintenance audit", f"{PUBLIC_COMMAND} maintenance fix-docs"],
-        "skills": ["agentctl-maintenance-engineer"],
+        "skills": ["agentcli-maintenance-engineer"],
         "interfaces": [f"plugin:{PUBLIC_PRODUCT_NAME}"],
         "availability_mode": "all",
         "overlap_policy": "Keep maintenance as one capability surface for docs, packaging, registry health, and platform drift.",
+        "summary": "Use for control-plane maintenance, generated docs refreshes, machine-state audits, packaging drift, and maintenance-report regeneration.",
+        "routing_notes": [
+            f"Start with `$agentcli-maintenance-engineer` when the Agent CLI OS control plane itself changed or looks suspect.",
+            f"Use `{PUBLIC_COMMAND} maintenance audit` to refresh the generated docs, state, and maintenance report together instead of hand-editing generated files.",
+        ],
     },
     {
         "key": "context-workflows",
@@ -461,7 +466,7 @@ MAX_GROUP_ITEMS = 25
 CAPABILITY_CLOUD_READINESS = {
     "autonomous-deep-runs": [],
     "skills-management": ["skills wrapper layer"],
-    "agentctl-maintenance": ["agentctl core"],
+    "agentcli-maintenance": ["agent-cli-os core"],
     "research": ["research web", "research github", "research scout"],
     "browser-automation": ["Playwright CLI", "Playwright MCP"],
     "github-workflows": ["gh"],
@@ -1223,7 +1228,7 @@ def _doctor_notes(payload: dict[str, Any]) -> list[str]:
         notes.append("Personal guidance snippets exceed the configured budget; trim files or line count so the control plane stays compact.")
     inventory = payload.get("inventory_snapshot", {})
     if inventory and inventory.get("summary", {}).get("status") == "degraded":
-        notes.append("The autodetected inventory is degraded; inspect `loopsmith inventory show` before trusting route coverage.")
+        notes.append(f"The autodetected inventory is degraded; inspect `{PUBLIC_COMMAND} inventory show` before trusting route coverage.")
     return notes
 
 

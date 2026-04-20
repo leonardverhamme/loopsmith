@@ -1,6 +1,6 @@
----
+﻿---
 name: figma-capability
-description: Navigate the Figma capability in agentctl. Use when the task is about Figma design context, code-connect, design-system search, or direct Figma MCP operations.
+description: Navigate the Figma capability in Agent CLI OS. Use when the task is about Figma design context, code-connect, design-system search, or direct Figma MCP operations.
 ---
 
 # Figma Capability
@@ -17,12 +17,13 @@ Use this as the thin navigation layer for Figma work. Figma is MCP-backed in thi
 
 ## Workflow
 
-1. Run `agentctl capability figma-design`.
-2. Read the generated page at `docs/agentctl/capabilities/figma-design.md`.
+1. Run `agentcli capability figma-design`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/figma-design.md`.
 3. Use the Figma MCP route described there for design context, code-connect, and direct design operations.
 
 ## Do Not Do
 
 - Do not invent a separate Figma routing layer in this skill.
 - Do not assume local success implies cloud readiness without checking the page.
+
 

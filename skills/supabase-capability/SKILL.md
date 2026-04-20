@@ -1,6 +1,6 @@
----
+﻿---
 name: supabase-capability
-description: Navigate the Supabase capability in agentctl. Use when the task is about local Supabase development, migrations, local stack management, CI/CD setup, or deciding between Supabase CLI and Supabase MCP.
+description: Navigate the Supabase capability in Agent CLI OS. Use when the task is about local Supabase development, migrations, local stack management, CI/CD setup, or deciding between Supabase CLI and Supabase MCP.
 ---
 
 # Supabase Capability
@@ -17,8 +17,8 @@ Use this as the thin navigation layer for Supabase work. Supabase is CLI-first h
 
 ## Workflow
 
-1. Run `agentctl capability supabase-data`.
-2. Read the generated page at `docs/agentctl/capabilities/supabase-data.md`.
+1. Run `agentcli capability supabase-data`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/supabase-data.md`.
 3. Prefer `supabase init` and `supabase start` for local development and stack bring-up.
 4. Use Supabase MCP when the task needs structured project or platform access that the CLI path does not expose cleanly.
 
@@ -33,4 +33,5 @@ Use this as the thin navigation layer for Supabase work. Supabase is CLI-first h
 
 - Do not treat Supabase MCP as mandatory when the CLI already covers the task.
 - Do not duplicate Supabase operational logic in this skill.
+
 

@@ -1,4 +1,5 @@
-interface:
+﻿interface:
   display_name: "Internet Researcher"
   short_description: "Search the web for current docs and examples."
   default_prompt: "Use this skill to research the current web, prioritize primary sources, and return concise sourced findings."
+

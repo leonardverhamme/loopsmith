@@ -1,4 +1,4 @@
-# Accessibility Gates
+﻿# Accessibility Gates
 
 Use this as the final review checklist for any UI change, regardless of repo.
 
@@ -68,3 +68,4 @@ Minimum review before shipping:
 4. Run the repo verification commands required by the scope.
 
 If the user wants stronger enforcement and the repo does not already have it, suggest adding automated checks such as `eslint-plugin-jsx-a11y` or `@axe-core/playwright`.
+

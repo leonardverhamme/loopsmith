@@ -1,4 +1,4 @@
-# Prompt Template
+﻿# Prompt Template
 
 Use this when you want a repeatable short prompt for normal testing work.
 
@@ -23,3 +23,4 @@ Output:
 - commands run
 - remaining risk
 ```
+

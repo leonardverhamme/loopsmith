@@ -1,4 +1,4 @@
----
+﻿---
 name: skill-edit-mode
 description: Safe skill creation and skill maintenance workflow for Codex-managed skills. Use only when the user explicitly asks to create, update, move, rename, or otherwise change skill files and has explicitly confirmed that skill edit mode should open for the named skill or skills.
 ---
@@ -44,3 +44,4 @@ If the user has not confirmed, stop and ask for confirmation instead of editing.
 
 - Use the built-in `skill-creator` guidance when you need help designing or validating a skill structure.
 - Follow the local `AGENTS.md` rules first when they are stricter than generic skill-creation guidance.
+

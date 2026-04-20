@@ -1,4 +1,4 @@
-# Next.js Guardrails
+﻿# Next.js Guardrails
 
 Use this reference only when the current repo is a Next.js App Router project.
 
@@ -67,3 +67,4 @@ For UI work in a Next.js repo:
 - use `npm run test:e2e` or `npm run test:mcp-workflow` for end-to-end flow changes
 
 Playwright is the preferred way to verify real user journeys and navigation behavior.
+

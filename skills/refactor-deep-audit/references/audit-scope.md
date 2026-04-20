@@ -1,4 +1,4 @@
-# Audit Scope
+﻿# Audit Scope
 
 Use this skill when a repo needs a structural cleanup campaign, especially an older codebase with accumulated design debt.
 
@@ -23,3 +23,4 @@ Use this skill when a repo needs a structural cleanup campaign, especially an ol
 ## Good Outcome
 
 The repo becomes easier to navigate, safer to extend, and more LLM-friendly without turning into a speculative rewrite.
+

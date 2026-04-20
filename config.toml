@@ -1,2 +1,2 @@
-[plugins."loopsmith"]
+[plugins."agent-cli-os"]
 enabled = true

@@ -1,6 +1,6 @@
----
+﻿---
 name: github-capability
-description: Navigate the GitHub capability surface in agentctl. Use when the task is about repositories, pull requests, issues, releases, GitHub Actions, or deciding whether to use the GitHub plugin skills or `gh`.
+description: Navigate the GitHub capability surface in Agent CLI OS. Use when the task is about repositories, pull requests, issues, releases, GitHub Actions, or deciding whether to use the GitHub plugin skills or `gh`.
 ---
 
 # GitHub Capability
@@ -13,12 +13,12 @@ description: Navigate the GitHub capability surface in agentctl. Use when the ta
 
 ## Overview
 
-Use this as the thin navigation layer for GitHub work. This skill should route into `agentctl`, the GitHub plugin skills, and `gh` rather than reimplementing GitHub logic itself.
+Use this as the thin navigation layer for GitHub work. This skill should route into `agentcli`, the GitHub plugin skills, and `gh` rather than reimplementing GitHub logic itself.
 
 ## Workflow
 
-1. Run `agentctl capability github-workflows`.
-2. Read the generated page at `docs/agentctl/capabilities/github-workflows.md` under the active `CODEX_HOME`.
+1. Run `agentcli capability github-workflows`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/github-workflows.md` under the active `CODEX_HOME`.
 3. If the task is about GitHub Advanced Security, CodeQL, code scanning, secret scanning, Dependabot alerts, dependency review, or security campaigns, switch to `$github-security-capability`.
 4. If the GitHub plugin skills clearly cover the task, use them.
 5. Otherwise use `gh` for direct repository, issue, PR, or Actions operations.
@@ -27,3 +27,4 @@ Use this as the thin navigation layer for GitHub work. This skill should route i
 
 - Do not duplicate GitHub operational logic in this skill.
 - Do not bypass `agentctl` when health, auth, or overlap is unclear.
+

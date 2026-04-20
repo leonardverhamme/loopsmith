@@ -1,4 +1,4 @@
----
+﻿---
 name: "playwright"
 description: "Use when the task requires automating a real browser from the terminal (navigation, form filling, snapshots, screenshots, data extraction, UI-flow debugging) via `playwright-cli` or the bundled wrapper script."
 ---
@@ -187,3 +187,4 @@ Open only what you need:
 - Default to CLI commands and workflows, not Playwright test specs.
 - Do not stop because another Playwright session has the MCP/browser route locked; open a fresh CLI-driven browser session and continue.
 - Do not treat the first chosen localhost port as fixed; if the app is runnable and the port is blocked, switch to another free port and finish the verification.
+

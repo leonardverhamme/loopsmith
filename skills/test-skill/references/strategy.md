@@ -1,4 +1,4 @@
-# Testing Strategy
+﻿# Testing Strategy
 
 Use this reference to choose the right layer before writing tests.
 
@@ -37,3 +37,4 @@ Do not treat those ratios as law. For modern product apps, a healthy integration
 - web.dev testing strategy guidance:
   - https://web.dev/ta-strategies
   - https://web.dev/ta-what-to-test
+

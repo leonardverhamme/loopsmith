@@ -1,6 +1,6 @@
----
+﻿---
 name: ios-development-capability
-description: Navigate the iOS development capability in agentctl. Use when the task is about local iOS builds, simulator debugging, SwiftUI UI work, or iOS-specific review paths.
+description: Navigate the iOS development capability in Agent CLI OS. Use when the task is about local iOS builds, simulator debugging, SwiftUI UI work, or iOS-specific review paths.
 ---
 
 # iOS Development Capability
@@ -17,11 +17,12 @@ Use this as the thin navigation layer for iOS work. The actual implementation an
 
 ## Workflow
 
-1. Run `agentctl capability ios-development`.
-2. Read the generated page at `docs/agentctl/capabilities/ios-development.md`.
+1. Run `agentcli capability ios-development`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/ios-development.md`.
 3. Route into the specific Build iOS Apps plugin skill that fits the task, such as `$build-ios-apps:ios-debugger-agent` or `$build-ios-apps:swiftui-ui-patterns`.
 
 ## Do Not Do
 
 - Do not duplicate iOS build or simulator procedures in this skill.
 - Do not skip the capability page when choosing between the available iOS plugin skills.
+

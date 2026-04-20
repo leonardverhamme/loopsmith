@@ -1,4 +1,4 @@
-# UI Examples
+﻿# UI Examples
 
 Use these as pattern anchors, not as hard templates.
 
@@ -57,3 +57,4 @@ Notes:
 - Suggestions appear only in the empty state.
 - Sources stay secondary and collapsible.
 - The chat should feel like a work surface inside the product, not a standalone demo.
+

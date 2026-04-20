@@ -1,4 +1,4 @@
-# Refactor Phases
+﻿# Refactor Phases
 
 Broad refactors should be run as waves, not as a single undifferentiated rewrite.
 
@@ -26,3 +26,4 @@ Broad refactors should be run as waves, not as a single undifferentiated rewrite
 - one dependency direction fix
 - one UI shell or feature slice
 - one migration from old path to new path
+

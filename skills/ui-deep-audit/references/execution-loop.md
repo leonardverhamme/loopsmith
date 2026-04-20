@@ -1,4 +1,4 @@
-# Execution Loop
+﻿# Execution Loop
 
 Use this when the task is to work through an existing checklist file until everything is done. In the default bare-invocation workflow, this loop must start immediately after the audit refresh.
 
@@ -32,3 +32,4 @@ Use this when the task is to work through an existing checklist file until every
 - Do not trust prior chat messages over the current checklist file.
 - Do not say `ready` just because a large batch shipped; only the checklist state decides that.
 - Do not stop after the audit refresh unless the user explicitly asked for audit-only behavior.
+

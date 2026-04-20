@@ -1,4 +1,4 @@
----
+﻿---
 name: context-skill
 description: General repo-context maintenance workflow for coding agents and humans. Use when mapping a codebase, updating AGENTS.md, refreshing architecture or repo-map docs, documenting commands and conventions, reducing onboarding friction, or keeping durable repo context aligned with the current code after restructures, new modules, workflow changes, or repeated confusion about where things live. This is a lightweight maintenance skill, not a deep auditor.
 ---
@@ -93,3 +93,4 @@ Do not start a deep checklist workflow in this mode.
 - `references/context-review.md`
 - `references/premade-systems.md`
 - `references/prompt-template.md`
+

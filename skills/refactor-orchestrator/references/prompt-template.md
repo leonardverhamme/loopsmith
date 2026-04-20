@@ -1,4 +1,4 @@
-# Prompt Template
+﻿# Prompt Template
 
 ## Inspect Only
 
@@ -13,3 +13,4 @@ Inspect this repo and identify the highest-value broad refactor candidates, thei
 $refactor-orchestrator
 Refactor <subsystem or migration target> in tracked waves. Preserve behavior, keep a compact plan file if needed, validate each wave, and stop only after closeout.
 ```
+

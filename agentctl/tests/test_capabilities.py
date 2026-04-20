@@ -43,7 +43,7 @@ class CapabilitiesTests(unittest.TestCase):
                 {"kind": "skill", "name": "loopsmith", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                 {"kind": "skill", "name": "autonomous-deep-runs-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                 {"kind": "skill", "name": "skills-management-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
-                {"kind": "skill", "name": "agentctl-maintenance-engineer", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                {"kind": "skill", "name": "agentcli-maintenance-engineer", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                 {"kind": "skill", "name": "research-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                 {"kind": "skill", "name": "internet-researcher", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                 {"kind": "skill", "name": "github-researcher", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
@@ -70,7 +70,7 @@ class CapabilitiesTests(unittest.TestCase):
                 {"kind": "skill", "name": "ios-development-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                 {"kind": "skill", "name": "macos-development-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                 {"kind": "skill", "name": "android-testing-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
-                {"kind": "plugin", "name": "loopsmith", "source_scope": "user", "status": "ok", "enabled": True},
+                {"kind": "plugin", "name": "agent-cli-os", "source_scope": "user", "status": "ok", "enabled": True},
                 {"kind": "plugin", "name": "github@openai-curated", "source_scope": "user", "status": "ok", "enabled": True},
                 {"kind": "mcp", "name": "supabase", "source_scope": "user", "status": "configured", "configured": True},
                 {"kind": "mcp", "name": "playwright", "source_scope": "user", "status": "configured", "configured": True},
@@ -120,7 +120,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIsNotNone(detail)
         assert detail is not None
         self.assertEqual(detail["front_door"], "$loopsmith")
-        self.assertIn("loopsmith loop <name>", detail["entrypoints"])
+        self.assertIn("agentcli loop <name>", detail["entrypoints"])
         self.assertEqual(detail["status"], "ok")
 
     def test_capability_detail_exposes_supabase_cli_first_notes(self) -> None:
@@ -154,11 +154,11 @@ class CapabilitiesTests(unittest.TestCase):
         inventory["items"] = [
             item
             for item in inventory["items"]
-            if not (item["kind"] == "plugin" and item["name"] == "loopsmith")
+            if not (item["kind"] == "plugin" and item["name"] == "agent-cli-os")
         ]
-        inventory["items"].append({"kind": "plugin", "name": "loopsmith", "source_scope": "user", "status": "ok", "configured": True})
+        inventory["items"].append({"kind": "plugin", "name": "agent-cli-os", "source_scope": "user", "status": "ok", "configured": True})
         report = build_capabilities_report(inventory_snapshot=inventory)
-        detail = capability_detail(report, "agentctl-maintenance")
+        detail = capability_detail(report, "agentcli-maintenance")
         self.assertIsNotNone(detail)
         assert detail is not None
         self.assertEqual(detail["status"], "ok")

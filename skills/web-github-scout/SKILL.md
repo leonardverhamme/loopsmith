@@ -1,4 +1,4 @@
----
+﻿---
 name: web-github-scout
 description: Combine internet research with GitHub research to scout the best external references, examples, and tradeoffs for a technical topic. Use when Codex needs to compare docs plus real-world code, build a shortlist of strong sources, study how teams solve a problem in practice, or produce a compact research brief before implementation.
 ---
@@ -23,7 +23,7 @@ Use this skill when the task is broader than a single search and needs both offi
 For deterministic CLI-backed output, prefer:
 
 ```text
-agentctl research scout "<query>"
+agentcli research scout "<query>"
 ```
 
 If `agentctl` is not on `PATH` but the current repo bundles it, use `python agentctl/agentctl.py research scout "<query>"`.
@@ -62,3 +62,4 @@ Return a brief with:
 - Do not dump raw search results.
 - Do not collapse official guidance and community practice into one unsupported conclusion.
 - Escalate to a browser-capable tool only when a source requires real interaction to inspect.
+

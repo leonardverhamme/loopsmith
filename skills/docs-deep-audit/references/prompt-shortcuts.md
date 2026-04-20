@@ -1,4 +1,4 @@
-# Prompt Shortcuts
+﻿# Prompt Shortcuts
 
 ## Bare Invocation
 
@@ -19,3 +19,4 @@ Behavior:
 $docs-deep-audit
 Audit the repo's durable docs into docs/docs-deep-audit-checklist.md. Use checkboxes and do not implement fixes yet.
 ```
+

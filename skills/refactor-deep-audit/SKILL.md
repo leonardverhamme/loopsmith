@@ -1,4 +1,4 @@
----
+﻿---
 name: refactor-deep-audit
 description: "Broad refactor audit and checklist-driven remediation workflow for older repos and multi-module cleanup campaigns. Use when auditing a repo for structural debt, long files, tangled boundaries, outdated patterns, duplicated logic, migration candidates, and decomposition opportunities; when writing or refreshing a markdown checklist such as docs/refactor-deep-audit-checklist.md with `- [ ]` items; when executing that checklist in tracked waves; and when only replying `ready` once zero unchecked items remain. If explicitly invoked with no further instructions, run the default full-cycle workflow automatically using docs/refactor-deep-audit-checklist.md: audit or refresh, execute, keep iterating, and close out."
 ---
@@ -24,10 +24,10 @@ For implementation decisions while working the checklist, load `$refactor-skill`
 
 ## Required Entry Point
 
-- If `agentctl` is available, start or resume this workflow through `agentctl run refactor-deep-audit`, not by relying on chat memory alone.
+- If `agentctl` is available, start or resume this workflow through `agentcli run refactor-deep-audit`, not by relying on chat memory alone.
 - Treat `docs/refactor-deep-audit-checklist.md` as the human queue and `.codex-workflows/refactor-deep-audit/state.json` as the machine queue.
 - If unattended execution is expected, the outer loop must use a real worker command such as an explicit worker command, the built-in Codex worker wrapper when the Codex runtime is callable, or a configured Codex worker template. A checklist file by itself is not a worker.
-- If `agentctl doctor` reports the autonomous deep-run route as degraded, do not quietly treat manual chat batches as an unattended loop. Fix the worker route first with `--worker-command`, `AGENTCTL_CODEX_WORKER_TEMPLATE`, or `AGENTCTL_CODEX_PATH`.
+- If `agentcli doctor` reports the autonomous deep-run route as degraded, do not quietly treat manual chat batches as an unattended loop. Fix the worker route first with `--worker-command`, `AGENTCTL_CODEX_WORKER_TEMPLATE`, or `AGENTCTL_CODEX_PATH`.
 - A partial batch executed directly in chat is manual progress, not a running unattended deep audit.
 
 ## Core Modes
@@ -137,3 +137,4 @@ When the user does not clearly choose a mode:
 - `references/execution-loop.md`
 - `references/closeout.md`
 - `references/prompt-shortcuts.md`
+

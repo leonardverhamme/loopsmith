@@ -1,4 +1,4 @@
-# Browser And E2E
+﻿# Browser And E2E
 
 Use this reference for real-browser verification and persistent end-to-end tests.
 
@@ -51,3 +51,4 @@ Use smoke checks when:
   - https://playwright.dev/docs/next/accessibility-testing
 - OpenAI Playwright skill page:
   - https://skills.sh/openai/skills/playwright
+

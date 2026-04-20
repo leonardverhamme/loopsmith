@@ -1,4 +1,4 @@
-# UI Review
+﻿# UI Review
 
 Load this before you finalize any app UI.
 
@@ -27,3 +27,4 @@ Load this before you finalize any app UI.
 2. Top 5 issues
 3. Minimal patch plan
 4. Revised code targets
+

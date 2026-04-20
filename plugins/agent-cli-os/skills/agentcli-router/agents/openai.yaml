@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent CLI OS Router"
+  short_description: "Route work through Agent CLI OS capability menus, inventory, and durable workflows"
+  default_prompt: "Use $agentcli-router to pick the right Agent CLI OS command, capability page, inventory view, or workflow."

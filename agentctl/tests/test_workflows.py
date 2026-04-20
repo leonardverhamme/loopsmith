@@ -172,14 +172,14 @@ class WorkflowStatusTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             registry_path = Path(temp_dir) / "registry.json"
             durable_repo = Path(temp_dir) / "repo"
-            durable_state = durable_repo / ".codex-workflows" / "agentctl-maintenance" / "state.json"
+            durable_state = durable_repo / ".codex-workflows" / "agentcli-maintenance" / "state.json"
             durable_state.parent.mkdir(parents=True, exist_ok=True)
             durable_state.write_text(
                 json.dumps(
                     {
                         "schema_version": 1,
-                        "workflow_name": "agentctl-maintenance",
-                        "skill_name": "agentctl-maintenance-engineer",
+                        "workflow_name": "agentcli-maintenance",
+                        "skill_name": "agentcli-maintenance-engineer",
                         "repo_root": str(durable_repo),
                         "checklist_path": str(durable_repo / "docs" / "maintenance.md"),
                         "progress_path": str(durable_repo / "docs" / "maintenance-report.json"),
@@ -206,9 +206,9 @@ class WorkflowStatusTests(unittest.TestCase):
             registry_path.write_text(
                 json.dumps(
                     {
-                        f"{durable_repo}::agentctl-maintenance": {
-                            "workflow_name": "agentctl-maintenance",
-                            "skill_name": "agentctl-maintenance-engineer",
+                        f"{durable_repo}::agentcli-maintenance": {
+                            "workflow_name": "agentcli-maintenance",
+                            "skill_name": "agentcli-maintenance-engineer",
                             "repo_root": str(durable_repo),
                             "status": "complete",
                         },
@@ -233,7 +233,7 @@ class WorkflowStatusTests(unittest.TestCase):
         self.assertEqual(result["summary"]["status"], "ok")
         self.assertEqual(result["summary"]["count"], 1)
         self.assertEqual(result["summary"]["historical_count"], 1)
-        self.assertEqual(result["workflows"][0]["workflow_name"], "agentctl-maintenance")
+        self.assertEqual(result["workflows"][0]["workflow_name"], "agentcli-maintenance")
 
     @mock.patch("lib.workflows.subprocess.run")
     @mock.patch("lib.workflows.resolve_codex_worker_command")

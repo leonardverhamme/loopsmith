@@ -7,7 +7,7 @@ from pathlib import Path
 
 try:
     from .bundle_install import default_codex_home, repair_install, upgrade_bundle
-    from .lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_PRODUCT_NAME
+    from .lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DISPLAY_NAME
     from .lib.capabilities import (
         build_capabilities_report,
         capability_detail,
@@ -50,7 +50,7 @@ try:
     from .lib.workflows import run_workflow, workflow_status
 except ImportError:
     from bundle_install import default_codex_home, repair_install, upgrade_bundle
-    from lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_PRODUCT_NAME
+    from lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DISPLAY_NAME
     from lib.capabilities import (
         build_capabilities_report,
         capability_detail,
@@ -170,7 +170,7 @@ def add_inventory_subcommands(inventory_parser: argparse.ArgumentParser) -> None
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=f"{PUBLIC_PRODUCT_NAME} is the capability-first Codex control plane for workflows, research, and installable agent tooling.")
+    parser = argparse.ArgumentParser(description=f"{PUBLIC_DISPLAY_NAME} is the capability-first Codex control plane for workflows, research, and installable agent tooling.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     doctor_parser = subparsers.add_parser("doctor", help="Check installed tools, wrappers, and auth health")
@@ -207,7 +207,7 @@ def build_parser() -> argparse.ArgumentParser:
     loop_parser.add_argument("--checklist", help="Optional checklist path override")
     loop_parser.add_argument("--progress", help="Optional progress path override")
     loop_parser.add_argument("--worker-command", help="Worker command used by the shared loop runner")
-    loop_parser.add_argument("--worker-mode", choices=("auto", "explicit", "codex"), default="auto", help="How loopsmith should resolve the loop worker command")
+    loop_parser.add_argument("--worker-mode", choices=("auto", "explicit", "codex"), default="auto", help="How the public CLI should resolve the loop worker command")
     loop_parser.add_argument("--max-iterations", type=int, default=30)
     loop_parser.add_argument("--max-stagnant", type=int, default=3)
 
@@ -234,7 +234,7 @@ def build_parser() -> argparse.ArgumentParser:
     inventory_parser = subparsers.add_parser("inventory", help="Inspect the raw autodetected inventory behind the curated capability menu")
     add_inventory_subcommands(inventory_parser)
 
-    upgrade_parser = subparsers.add_parser("upgrade", help=f"Upgrade the installed {PUBLIC_PRODUCT_NAME} bundle from its recorded release source")
+    upgrade_parser = subparsers.add_parser("upgrade", help=f"Upgrade the installed {PUBLIC_DISPLAY_NAME} bundle from its recorded release source")
     upgrade_parser.add_argument("--version", help="Optional explicit release version to install")
     upgrade_parser.add_argument("--skip-post-checks", action="store_true", help="Skip post-install checks")
     upgrade_parser.add_argument("--json", action="store_true", help="Emit JSON")
@@ -423,7 +423,7 @@ def main() -> int:
         capabilities = build_capabilities_report(inventory_snapshot=inventory)
         payload = build_self_check(capabilities, inventory=inventory, guidance=guidance)
         result = {
-            "product": PUBLIC_PRODUCT_NAME,
+            "product": PUBLIC_DISPLAY_NAME,
             "public_command": PUBLIC_COMMAND,
             "compatibility_command": COMPATIBILITY_COMMAND,
             "wrapper_version": wrapper_version(),
@@ -432,7 +432,7 @@ def main() -> int:
         if args.json:
             print_json(result)
         else:
-            print(f"{PUBLIC_PRODUCT_NAME} {result['wrapper_version'] or 'unknown'}")
+            print(f"{PUBLIC_DISPLAY_NAME} {result['wrapper_version'] or 'unknown'}")
             print(f"Bundle version: {result['bundle_version'] or 'unknown'}")
             print(f"Commands: `{PUBLIC_COMMAND}` (canonical), `{COMPATIBILITY_COMMAND}` (compatibility)")
         return 0

@@ -1,4 +1,4 @@
-# Execution Loop
+﻿# Execution Loop
 
 Use this when the task is to work through an existing refactor checklist until it is done. In the default bare-invocation workflow, this loop must start immediately after the audit refresh.
 
@@ -31,3 +31,4 @@ Use this when the task is to work through an existing refactor checklist until i
 - Do not mark boxes complete speculatively.
 - Do not trust prior chat messages over the current checklist file.
 - Do not mix feature redesign into a structural refactor wave and still call it complete.
+

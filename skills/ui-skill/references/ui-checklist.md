@@ -1,4 +1,4 @@
-# UI Checklist
+﻿# UI Checklist
 
 ## Spacing
 
@@ -70,3 +70,4 @@
 - Is any copy repeating the obvious?
 - Are radius and density consistent?
 - Do charts or chat surfaces feel larger than the rest of the app?
+

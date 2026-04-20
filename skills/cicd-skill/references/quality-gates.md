@@ -1,4 +1,4 @@
-# Quality Gates
+﻿# Quality Gates
 
 CI should be a faithful gate, not a separate universe.
 
@@ -24,3 +24,4 @@ For most repos:
 - duplicate installs across jobs without value
 - release-only checks blocking every tiny PR unless justified
 - pretending a passing workflow is enough when the underlying command is wrong locally
+

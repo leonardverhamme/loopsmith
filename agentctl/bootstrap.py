@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from .bundle_install import DEFAULT_REPO_URL, bootstrap_bundle, default_codex_home
-from .lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_PRODUCT_NAME
+from .lib.branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DISPLAY_NAME, PUBLIC_DISPLAY_TAGLINE, PUBLIC_PRODUCT_NAME
 
 
 def _installed_entry(codex_home: Path) -> Path:
@@ -23,7 +23,7 @@ def _delegate(args: list[str], codex_home: Path) -> int:
 
 
 def _bootstrap_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog=f"{PUBLIC_COMMAND} bootstrap", description=f"Bootstrap the public {PUBLIC_PRODUCT_NAME} bundle into CODEX_HOME.")
+    parser = argparse.ArgumentParser(prog=f"{PUBLIC_COMMAND} bootstrap", description=f"Bootstrap the public {PUBLIC_DISPLAY_NAME} bundle into CODEX_HOME.")
     parser.add_argument("--codex-home", help="Target CODEX_HOME. Defaults to $CODEX_HOME or ~/.codex")
     parser.add_argument("--source-root", help="Install from a local checkout instead of downloading the public repo archive")
     parser.add_argument("--repo-url", default=DEFAULT_REPO_URL, help="GitHub repo URL used when downloading release assets or fallback archives")
@@ -48,7 +48,7 @@ def _bootstrap(argv: list[str]) -> int:
         ref_type=args.ref_type,
         skip_post_checks=args.skip_post_checks,
     )
-    print(f"Installed {PUBLIC_PRODUCT_NAME} into {target_root}")
+    print(f"Installed {PUBLIC_DISPLAY_NAME} into {target_root}")
     if summary.get("post_checks") is not None:
         print(f"Post-install checks: {summary['status']}")
         print(f"Bootstrap report: {target_root / 'agentctl' / 'state' / 'bootstrap-report.json'}")
@@ -58,7 +58,8 @@ def _bootstrap(argv: list[str]) -> int:
 
 
 def _print_wrapper_help() -> None:
-    print(f"{PUBLIC_PRODUCT_NAME} package wrapper")
+    print(f"{PUBLIC_DISPLAY_NAME} package wrapper")
+    print(PUBLIC_DISPLAY_TAGLINE)
     print("")
     print(f"Use `{PUBLIC_COMMAND} bootstrap` to install the public bundle into CODEX_HOME.")
     print(f"After bootstrap, both `{PUBLIC_COMMAND}` and `{COMPATIBILITY_COMMAND}` delegate to the installed bundle.")
@@ -85,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     if _installed_entry(codex_home).exists():
         return _delegate(args, codex_home)
 
-    print(f"{PUBLIC_PRODUCT_NAME} bundle is not installed in CODEX_HOME.", file=sys.stderr)
+    print(f"{PUBLIC_DISPLAY_NAME} bundle is not installed in CODEX_HOME.", file=sys.stderr)
     print(
         f"Run `{PUBLIC_COMMAND} bootstrap` first (or `{COMPATIBILITY_COMMAND} bootstrap`), "
         f"or use `{PUBLIC_COMMAND} bootstrap --source-root <repo>` from a local checkout.",

@@ -1,4 +1,4 @@
-# Context Review
+﻿# Context Review
 
 Load this before stopping on any context-maintenance task.
 
@@ -16,3 +16,4 @@ Load this before stopping on any context-maintenance task.
 1. Context files updated
 2. Main repo facts added or corrected
 3. Remaining stale or missing context
+

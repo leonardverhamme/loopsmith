@@ -1,6 +1,6 @@
----
+﻿---
 name: github-security-capability
-description: Navigate the GitHub Advanced Security capability surface in agentctl. Use when the task is about GHAS rollout, CodeQL, code scanning, secret scanning, Dependabot alerts, dependency review, or deciding between `gh`, `gh codeql`, `ghas-cli`, and GitHub security APIs.
+description: Navigate the GitHub Advanced Security capability surface in Agent CLI OS. Use when the task is about GHAS rollout, CodeQL, code scanning, secret scanning, Dependabot alerts, dependency review, or deciding between `gh`, `gh codeql`, `ghas-cli`, and GitHub security APIs.
 ---
 
 # GitHub Security Capability
@@ -17,8 +17,8 @@ Use this as the thin navigation layer for GitHub Advanced Security work. The aut
 
 ## Workflow
 
-1. Run `agentctl capability github-advanced-security`.
-2. Read the generated page at `docs/agentctl/capabilities/github-advanced-security.md` under the active `CODEX_HOME`.
+1. Run `agentcli capability github-advanced-security`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/github-advanced-security.md` under the active `CODEX_HOME`.
 3. Prefer `ghas-cli` for GHAS enablement and rollout across many repositories when it is healthy.
 4. Prefer `gh codeql` for local CodeQL CLI management, version pinning, and query workflows.
 5. Prefer `gh api` for code scanning, secret scanning, Dependabot, and dependency review alert inspection or targeted automation.
@@ -35,3 +35,4 @@ Use this as the thin navigation layer for GitHub Advanced Security work. The aut
 - Do not duplicate GHAS operational logic in this skill.
 - Do not silently trust `ghas-cli` if `agentctl` reports it as degraded.
 - Do not bypass `agentctl` when health, auth, or overlap is unclear.
+

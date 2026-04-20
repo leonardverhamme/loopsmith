@@ -1,4 +1,4 @@
-# Prompt Shortcuts
+﻿# Prompt Shortcuts
 
 ## Bare Invocation
 
@@ -19,3 +19,4 @@ Behavior:
 $cicd-deep-audit
 Audit the repo's CI/CD surface into docs/cicd-deep-audit-checklist.md. Use checkboxes and do not implement fixes yet.
 ```
+

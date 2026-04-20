@@ -1,5 +1,6 @@
-interface:
+﻿interface:
   display_name: "Refactor Skill"
   short_description: "Focused code refactor workflow"
   default_prompt: "Use $refactor-skill to refactor this code in small verified steps without changing intended behavior."
   brand_color: "#4E5D4A"
+

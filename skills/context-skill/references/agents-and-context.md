@@ -1,4 +1,4 @@
-# AGENTS And Context
+﻿# AGENTS And Context
 
 Use this reference when deciding what belongs in `AGENTS.md` versus other repo docs.
 
@@ -35,3 +35,4 @@ Use this reference when deciding what belongs in `AGENTS.md` versus other repo d
   - https://openai.com/business/guides-and-resources/how-openai-uses-codex/
 - MCAF explicitly treats context plus AGENTS plus repo docs as the durable system:
   - https://mcaf.managed-code.com/
+

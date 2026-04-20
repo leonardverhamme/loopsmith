@@ -1,4 +1,4 @@
-# Unit And Integration
+﻿# Unit And Integration
 
 Use this reference when the work is mostly backend, business logic, or app-internal behavior.
 
@@ -47,3 +47,4 @@ Rules:
 - Vitest rationale and performance:
   - https://vitest.dev/guide/why
   - https://vitest.dev/blog/
+

@@ -1,6 +1,7 @@
-# loopsmith
+# Agent CLI OS
 
-`loopsmith` is a capability-first Codex control plane for long-running agent work.
+`Agent CLI OS` is a capability-first Codex control plane for long-running agent work.
+`OS` stands for `On Steroids`, not operating system.
 
 It gives agents one stable front door for:
 
@@ -17,28 +18,28 @@ It does not replace the authoritative tools underneath. It routes into them.
 Install the public wrapper:
 
 ```powershell
-pipx install git+https://github.com/leonardverhamme/loopsmith.git
+pipx install git+https://github.com/leonardverhamme/agent-cli-os.git
 ```
 
 Bootstrap the real bundle into your `CODEX_HOME`:
 
 ```powershell
-loopsmith bootstrap
+agentcli bootstrap
 ```
 
 Repair common setup issues and confirm health:
 
 ```powershell
-loopsmith doctor --fix
+agentcli doctor --fix
 ```
 
 That is the main onboarding path.
 
-`loopsmith` is the canonical public command. `agentctl` still works as a compatibility alias for the current migration release.
+`agentcli` is the canonical public command. `loopsmith` still works as a compatibility alias for the current migration release.
 
 ## What You Get
 
-- `loopsmith` as the public wrapper command
+- `agentcli` as the public wrapper command
 - the internal `agentctl/` bundle under `CODEX_HOME`
 - reusable local skills for UI, tests, docs, refactor, CI/CD, research, and maintenance
 - a local plugin shell for Codex routing
@@ -47,20 +48,20 @@ That is the main onboarding path.
 ## Core Commands
 
 ```text
-loopsmith doctor --fix
-loopsmith capabilities
-loopsmith capability <key>
-loopsmith inventory show
-loopsmith status --all
-loopsmith run <workflow>
-loopsmith loop <name> --task "<brief>"
-loopsmith research web <query>
-loopsmith research github <query>
-loopsmith research scout <query>
-loopsmith config show
-loopsmith self-check
-loopsmith upgrade
-loopsmith maintenance audit
+agentcli doctor --fix
+agentcli capabilities
+agentcli capability <key>
+agentcli inventory show
+agentcli status --all
+agentcli run <workflow>
+agentcli loop <name> --task "<brief>"
+agentcli research web <query>
+agentcli research github <query>
+agentcli research scout <query>
+agentcli config show
+agentcli self-check
+agentcli upgrade
+agentcli maintenance audit
 ```
 
 ## Examples
@@ -68,60 +69,60 @@ loopsmith maintenance audit
 Install on the current machine:
 
 ```powershell
-pipx install git+https://github.com/leonardverhamme/loopsmith.git
-loopsmith bootstrap
-loopsmith doctor --fix
+pipx install git+https://github.com/leonardverhamme/agent-cli-os.git
+agentcli bootstrap
+agentcli doctor --fix
 ```
 
 Install on another computer from a local checkout:
 
 ```powershell
-git clone https://github.com/leonardverhamme/loopsmith.git
-cd loopsmith
+git clone https://github.com/leonardverhamme/agent-cli-os.git
+cd agent-cli-os
 python .\scripts\install_bundle.py --codex-home C:\Users\you\.codex
 ```
 
 Bootstrap from a local checkout during development:
 
 ```powershell
-loopsmith bootstrap --source-root C:\path\to\loopsmith
+agentcli bootstrap --source-root C:\path\to\agent-cli-os
 ```
 
 Run a deep workflow:
 
 ```powershell
-loopsmith run docs-deep-audit --repo C:\path\to\repo
+agentcli run docs-deep-audit --repo C:\path\to\repo
 ```
 
 Run a generic long task through the durable loop:
 
 ```powershell
-loopsmith loop repo-cleanup --repo C:\path\to\repo --task "Reduce stale scripts, tighten docs, add missing tests, and keep going until the checklist is empty."
+agentcli loop repo-cleanup --repo C:\path\to\repo --task "Reduce stale scripts, tighten docs, add missing tests, and keep going until the checklist is empty."
 ```
 
 Upgrade later:
 
 ```powershell
-loopsmith upgrade
-loopsmith self-check
+agentcli upgrade
+agentcli self-check
 ```
 
 ## Config Layers
 
-`loopsmith` uses a small structured config system with clear precedence:
+`Agent CLI OS` uses a small structured config system with clear precedence:
 
 1. bundled defaults
 2. user-global config at `$CODEX_HOME/config.toml`
-3. repo-local config at `<repo>/.loopsmith/config.toml`
+3. repo-local config at `<repo>/.agent-cli-os/config.toml`
 
 Use:
 
 ```powershell
-loopsmith config show
-loopsmith config path --scope user
-loopsmith config set worker.mode auto
-loopsmith config set browser.preferred_route cli --scope repo --repo C:\path\to\repo
-loopsmith config unset browser.preferred_route --scope repo --repo C:\path\to\repo
+agentcli config show
+agentcli config path --scope user
+agentcli config set worker.mode auto
+agentcli config set browser.preferred_route cli --scope repo --repo C:\path\to\repo
+agentcli config unset browser.preferred_route --scope repo --repo C:\path\to\repo
 ```
 
 Structured config is intentionally small. Use `AGENTS.md` for natural-language guidance.
@@ -148,17 +149,17 @@ The default capability menu is grouped so the top-level surface stays small:
 Use:
 
 ```powershell
-loopsmith capabilities
-loopsmith capability platforms
-loopsmith capability github-advanced-security
-loopsmith inventory show --kind tools --scope all
+agentcli capabilities
+agentcli capability platforms
+agentcli capability github-advanced-security
+agentcli inventory show --kind tools --scope all
 ```
 
-`loopsmith capabilities` is the curated compact front door.
+`agentcli capabilities` is the curated compact front door.
 
-`loopsmith inventory show` is the raw autodetected surface for debugging and inspection when the curated menu is not enough.
+`agentcli inventory show` is the raw autodetected surface for debugging and inspection when the curated menu is not enough.
 
-The detailed routing notes live in generated capability pages under `docs/loopsmith/capabilities/`.
+The detailed routing notes live in generated capability pages under `docs/agent-cli-os/capabilities/`.
 
 Default menu budgets:
 
@@ -168,7 +169,7 @@ Default menu budgets:
 
 ## Why This Stays Small
 
-`loopsmith` is intentionally split into three layers:
+`Agent CLI OS` is intentionally split into three layers:
 
 - raw autodetected inventory
 - curated capability menu
@@ -186,14 +187,14 @@ It prevents the default route from becoming a giant flat dump of:
 The default menu stays compact because:
 
 - newly detected tools are not promoted automatically
-- raw inventory lives behind `loopsmith inventory show`
+- raw inventory lives behind `agentcli inventory show`
 - top-level output is names-first instead of paragraph-first
 - personal guidance is budgeted instead of appended into skills
 - thin skills stay navigation-first and push detail into docs and drill-down pages
 
 ## Raw Inventory
 
-`loopsmith` now persists the raw autodetected inventory to:
+`Agent CLI OS` now persists the raw autodetected inventory to:
 
 ```text
 agentctl/state/inventory.json
@@ -210,9 +211,9 @@ That snapshot includes:
 Use:
 
 ```powershell
-loopsmith inventory refresh
-loopsmith inventory show --kind all --scope all
-loopsmith inventory item tool:gh
+agentcli inventory refresh
+agentcli inventory show --kind all --scope all
+agentcli inventory item tool:gh
 ```
 
 This is intentionally separate from the curated capability menu.
@@ -221,7 +222,7 @@ This is intentionally separate from the curated capability menu.
 
 Small personal guidance snippets can now be referenced through structured config instead of bloating skills or prompts.
 
-By default, `loopsmith` validates:
+By default, `Agent CLI OS` validates:
 
 - max guidance files
 - max total guidance lines
@@ -255,7 +256,7 @@ Each workflow is disk-backed:
 - checklist or progress markdown in the target repo
 - machine state in `.codex-workflows/<workflow>/state.json`
 
-For unattended execution, the loop still needs a real worker route. `loopsmith` supports:
+For unattended execution, the loop still needs a real worker route. `Agent CLI OS` supports:
 
 - `--worker-command`
 - `CODEX_WORKFLOW_WORKER_COMMAND`
@@ -265,7 +266,7 @@ For unattended execution, the loop still needs a real worker route. `loopsmith` 
 When there is no dedicated deep workflow for the job, use the generic `$loopsmith` skill plus:
 
 ```powershell
-loopsmith loop <name> --repo C:\path\to\repo --task "<brief>"
+agentcli loop <name> --repo C:\path\to\repo --task "<brief>"
 ```
 
 That loop uses the same runner contract, but stores its queue under `docs/<name>-checklist.md`, `docs/<name>-progress.md`, and `.codex-workflows/<name>/state.json`.
@@ -274,7 +275,7 @@ That loop uses the same runner contract, but stores its queue under `docs/<name>
 
 The public wrapper is installable as a Python package.
 
-The real bundle is installed into `CODEX_HOME` by `loopsmith bootstrap` and upgraded by `loopsmith upgrade`.
+The real bundle is installed into `CODEX_HOME` by `agentcli bootstrap` and upgraded by `agentcli upgrade`.
 
 Install metadata is written to:
 
@@ -290,24 +291,24 @@ This release intentionally keeps:
 
 - the internal Python package name as `agentctl`
 - the internal bundle directory as `agentctl/`
-- `agentctl` as a compatibility command alias
+- `agentctl` as a hidden compatibility command alias
 
-That keeps existing installs and repo assumptions stable while the public product name changes to `loopsmith`.
+That keeps existing installs and repo assumptions stable while the public product name changes to `Agent CLI OS`.
 
 ## Documentation Map
 
-- [docs/loopsmith/overview.md](docs/loopsmith/overview.md)
-- [docs/loopsmith/zero-touch-setup.md](docs/loopsmith/zero-touch-setup.md)
-- [docs/loopsmith/install-on-another-computer.md](docs/loopsmith/install-on-another-computer.md)
-- [docs/loopsmith/unattended-worker-setup.md](docs/loopsmith/unattended-worker-setup.md)
-- [docs/loopsmith/maintainer-guide.md](docs/loopsmith/maintainer-guide.md)
-- [docs/loopsmith/skill-governance.md](docs/loopsmith/skill-governance.md)
-- [docs/loopsmith/inventory.md](docs/loopsmith/inventory.md)
+- [docs/agent-cli-os/overview.md](docs/agent-cli-os/overview.md)
+- [docs/agent-cli-os/zero-touch-setup.md](docs/agent-cli-os/zero-touch-setup.md)
+- [docs/agent-cli-os/install-on-another-computer.md](docs/agent-cli-os/install-on-another-computer.md)
+- [docs/agent-cli-os/unattended-worker-setup.md](docs/agent-cli-os/unattended-worker-setup.md)
+- [docs/agent-cli-os/maintainer-guide.md](docs/agent-cli-os/maintainer-guide.md)
+- [docs/agent-cli-os/skill-governance.md](docs/agent-cli-os/skill-governance.md)
+- [docs/agent-cli-os/inventory.md](docs/agent-cli-os/inventory.md)
 
 ## Release Model
 
-- Python package: `loopsmith`
-- canonical repo: `https://github.com/leonardverhamme/loopsmith`
+- Python package: `agent-cli-os`
+- canonical repo: `https://github.com/leonardverhamme/agent-cli-os`
 - GitHub Releases carry the versioned bundle zip used by `bootstrap` and `upgrade`
 - tagged releases build wheel, sdist, bundle zip, checksum, and publish to PyPI
 
@@ -316,8 +317,8 @@ That keeps existing installs and repo assumptions stable while the public produc
 Treat the control plane as a maintained product:
 
 ```powershell
-loopsmith maintenance audit
-loopsmith self-check
+agentcli maintenance audit
+agentcli self-check
 ```
 
 The maintenance pass refreshes generated docs, checks plugin/config health, enforces grouped-menu budgets, and blocks reintroduced sidecar-app coupling in the product surface.
@@ -325,7 +326,7 @@ The maintenance pass refreshes generated docs, checks plugin/config health, enfo
 When changing the source repo itself, run maintenance from the source tree, not through an already installed bundle:
 
 ```powershell
-python -m agentctl.agentctl maintenance audit --json
+agentcli maintenance audit --json
 ```
 
-That source-tree command now refreshes the checked-in docs directly and refuses to retarget maintenance writes outside the real loopsmith repo root.
+That source-tree command now refreshes the checked-in docs directly and refuses to retarget maintenance writes outside the real Agent CLI OS repo root.

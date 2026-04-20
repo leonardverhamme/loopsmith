@@ -1,4 +1,4 @@
-# Prompt Template
+﻿# Prompt Template
 
 Use this when you want a short repeatable prompt for repo context work.
 
@@ -19,3 +19,4 @@ Output:
 - main context improvements
 - remaining stale or missing context
 ```
+

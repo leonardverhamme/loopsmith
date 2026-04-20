@@ -1,5 +1,6 @@
-interface:
+﻿interface:
   display_name: "Docs Skill"
   short_description: "Durable repo docs and ADR maintenance"
   default_prompt: "Use $docs-skill to update durable repo documentation, architecture notes, and ADRs so they stay aligned with the code."
   brand_color: "#5B4F73"
+

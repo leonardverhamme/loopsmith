@@ -1,4 +1,4 @@
-# Closeout
+﻿# Closeout
 
 Use this reference before the final response.
 
@@ -24,3 +24,4 @@ Only reply `ready` when all of the following are true:
 - Remaining unchecked count
 - What was validated
 - Whether the run is truly complete
+

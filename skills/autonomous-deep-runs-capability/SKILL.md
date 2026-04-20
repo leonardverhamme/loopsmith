@@ -1,6 +1,6 @@
----
+﻿---
 name: autonomous-deep-runs-capability
-description: Navigate unattended deep workflow execution in agentctl. Use when launching, resuming, or diagnosing deep audits and their worker-command setup.
+description: Navigate unattended deep workflow execution in Agent CLI OS. Use when launching, resuming, or diagnosing deep audits and their worker-command setup.
 ---
 
 # Autonomous Deep Runs Capability
@@ -17,9 +17,9 @@ Use this as the thin navigation layer for unattended deep workflows. The loop lo
 
 ## Workflow
 
-1. Run `agentctl capability autonomous-deep-runs`.
-2. Read the generated page at `docs/agentctl/capabilities/autonomous-deep-runs.md`.
-3. Launch or resume the workflow with `agentctl run <workflow>`.
+1. Run `agentcli capability autonomous-deep-runs`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/autonomous-deep-runs.md`.
+3. Launch or resume the workflow with `agentcli run <workflow>`.
 4. If unattended execution is needed, provide `--worker-command` or make sure `AGENTCTL_CODEX_WORKER_TEMPLATE` is configured.
 5. Treat the checklist plus `.codex-workflows/<workflow>/state.json` as the durable source of truth, not prior chat claims.
 
@@ -28,3 +28,4 @@ Use this as the thin navigation layer for unattended deep workflows. The loop lo
 - Do not fake an execute-until-done loop with chat memory alone.
 - Do not bypass the guard, checklist, or state contract.
 - Do not claim unattended deep runs are healthy if there is no real worker route.
+

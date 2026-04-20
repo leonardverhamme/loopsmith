@@ -1,5 +1,6 @@
-interface:
+﻿interface:
   display_name: "Context Skill"
   short_description: "Repo context and architecture maintenance"
   default_prompt: "Use $context-skill to inspect this repo, map its structure, and update the durable repo context without bloating AGENTS.md."
   brand_color: "#365B6D"
+

@@ -1,4 +1,4 @@
-# Prompt Template
+﻿# Prompt Template
 
 ## General
 
@@ -20,3 +20,4 @@ Write or update the ADR for <decision>. Keep it short, concrete, and linked to t
 $docs-skill
 Refresh the architecture overview for <subsystem>. Keep it navigational and grounded in the current code.
 ```
+

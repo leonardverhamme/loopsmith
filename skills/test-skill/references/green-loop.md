@@ -1,4 +1,4 @@
-# Green Loop
+﻿# Green Loop
 
 Use this reference when the task is not just to write tests, but to drive the code and tests to a correct green state.
 
@@ -31,3 +31,4 @@ Do not optimize for green tests. Optimize for correct behavior plus green tests.
 - Replacing meaningful assertions with smoke-level checks after a failure
 - Marking broken behavior as expected without product reason
 - Adding retries instead of addressing deterministic failures
+

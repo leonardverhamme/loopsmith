@@ -1,4 +1,4 @@
-# Execution Loop
+﻿# Execution Loop
 
 Use this when the task is to work through an existing test checklist until it is done. In the default bare-invocation workflow, this loop must start immediately after the audit refresh.
 
@@ -35,3 +35,4 @@ Use this when the task is to work through an existing test checklist until it is
 - Do not weaken correct tests just to move the checklist forward.
 - Do not say `ready` just because a large batch shipped; only the checklist state decides that.
 - Do not stop after the audit refresh unless the user explicitly asked for audit-only behavior.
+

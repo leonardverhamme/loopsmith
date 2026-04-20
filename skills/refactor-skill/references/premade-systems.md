@@ -1,4 +1,4 @@
-# Proven Systems Behind This Skill
+﻿# Proven Systems Behind This Skill
 
 This skill is intentionally not invented from scratch. Its shape comes from a few systems that keep repeating the same reliable habits.
 
@@ -56,3 +56,4 @@ Source:
 - validation after each step
 - repo-native commands over invented ones
 - structural cleanup without broad speculative redesign
+

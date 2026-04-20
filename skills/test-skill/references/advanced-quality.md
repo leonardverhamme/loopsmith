@@ -1,4 +1,4 @@
-# Advanced Quality
+﻿# Advanced Quality
 
 Use this reference for the layers that make a suite more trustworthy than basic unit plus e2e coverage.
 
@@ -53,3 +53,4 @@ Use this reference for the layers that make a suite more trustworthy than basic 
   - https://stryker-mutator.io/docs/stryker-js/introduction/
 - Google flakiness guidance:
   - https://testing.googleblog.com/2017/04/
+

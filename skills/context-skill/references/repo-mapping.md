@@ -1,4 +1,4 @@
-# Repo Mapping
+﻿# Repo Mapping
 
 Use this reference when creating or refreshing repo maps and architecture overviews.
 
@@ -28,10 +28,11 @@ Use this reference when creating or refreshing repo maps and architecture overvi
 
 ## Source Notes
 
-- Anthropic’s common workflows emphasize codebase understanding, tracing flows, and onboarding through direct questions:
+- Anthropicâ€™s common workflows emphasize codebase understanding, tracing flows, and onboarding through direct questions:
   - https://code.claude.com/docs/en/tutorials
-- Microsoft’s Deep Wiki plugin is a strong example of generating repo maps, onboarding guides, `Agents.md`, and llms docs from code:
+- Microsoftâ€™s Deep Wiki plugin is a strong example of generating repo maps, onboarding guides, `Agents.md`, and llms docs from code:
   - https://microsoft.github.io/skills/
   - https://github.com/guaijie/deepwiki
 - MCAF architecture-overview shows the value of a navigational `docs/Architecture.md`:
   - https://mcaf.managed-code.com/skills
+

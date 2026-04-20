@@ -17,8 +17,8 @@ from lib import maintenance
 class MaintenanceTests(unittest.TestCase):
     def _workspace(self, root: Path, *, mode: str = "source") -> SimpleNamespace:
         agentctl_home = root / "agentctl"
-        docs_dir = root / "docs" / "loopsmith"
-        plugin_dir = root / "plugins" / "loopsmith"
+        docs_dir = root / "docs" / "agent-cli-os"
+        plugin_dir = root / "plugins" / "agent-cli-os"
         return SimpleNamespace(
             mode=mode,
             root=root,
@@ -36,23 +36,26 @@ class MaintenanceTests(unittest.TestCase):
             inventory_path=agentctl_home / "state" / "inventory.json",
             guidance_path=agentctl_home / "state" / "guidance.json",
             maintenance_report_path=docs_dir / "maintenance-report.json",
-            maintenance_state_path=root / ".codex-workflows" / "agentctl-maintenance" / "state.json",
+            maintenance_state_path=root / ".codex-workflows" / "agentcli-maintenance" / "state.json",
+            legacy_maintenance_state_path=root / ".codex-workflows" / "agentctl-maintenance" / "state.json",
             state_schema_reference_path=agentctl_home / "references" / "state-schema.md",
             capability_registry_reference_path=agentctl_home / "references" / "capability-registry.md",
             maintenance_contract_reference_path=agentctl_home / "references" / "maintenance-contract.md",
             cloud_readiness_reference_path=agentctl_home / "references" / "cloud-readiness.md",
             plugin_dir=plugin_dir,
             plugin_manifest_path=plugin_dir / ".codex-plugin" / "plugin.json",
-            plugin_router_skill_dir=plugin_dir / "skills" / "agentctl-router",
-            maintenance_skill_dir=root / "skills" / "agentctl-maintenance-engineer",
+            plugin_router_skill_dir=plugin_dir / "skills" / "agentcli-router",
+            legacy_plugin_router_skill_dir=plugin_dir / "skills" / "agentctl-router",
+            maintenance_skill_dir=root / "skills" / "agentcli-maintenance-engineer",
+            legacy_maintenance_skill_dir=root / "skills" / "agentctl-maintenance-engineer",
         )
 
     def _patch_paths(self, root: Path) -> list[mock._patch]:
         agentctl_home = root / "agentctl"
-        docs_dir = root / "docs" / "loopsmith"
+        docs_dir = root / "docs" / "agent-cli-os"
         capability_docs_dir = docs_dir / "capabilities"
         refs_dir = agentctl_home / "references"
-        plugin_dir = root / "plugins" / "loopsmith"
+        plugin_dir = root / "plugins" / "agent-cli-os"
         patches = [
             mock.patch.object(maintenance, "AGENTCTL_HOME", agentctl_home),
             mock.patch.object(maintenance, "AGENTCTL_DOCS_DIR", docs_dir),
@@ -62,7 +65,8 @@ class MaintenanceTests(unittest.TestCase):
             mock.patch.object(maintenance, "INVENTORY_PATH", agentctl_home / "state" / "inventory.json"),
             mock.patch.object(maintenance, "GUIDANCE_PATH", agentctl_home / "state" / "guidance.json"),
             mock.patch.object(maintenance, "MAINTENANCE_REPORT_PATH", docs_dir / "maintenance-report.json"),
-            mock.patch.object(maintenance, "MAINTENANCE_STATE_PATH", root / ".codex-workflows" / "agentctl-maintenance" / "state.json"),
+            mock.patch.object(maintenance, "MAINTENANCE_STATE_PATH", root / ".codex-workflows" / "agentcli-maintenance" / "state.json"),
+            mock.patch.object(maintenance, "LEGACY_MAINTENANCE_STATE_PATH", root / ".codex-workflows" / "agentctl-maintenance" / "state.json"),
             mock.patch.object(maintenance, "STATE_SCHEMA_REFERENCE_PATH", refs_dir / "state-schema.md"),
             mock.patch.object(maintenance, "CAPABILITY_REGISTRY_REFERENCE_PATH", refs_dir / "capability-registry.md"),
             mock.patch.object(maintenance, "MAINTENANCE_CONTRACT_REFERENCE_PATH", refs_dir / "maintenance-contract.md"),
@@ -71,8 +75,10 @@ class MaintenanceTests(unittest.TestCase):
             mock.patch.object(maintenance, "WORKFLOW_REGISTRY_PATH", root / "workflow-state" / "registry.json"),
             mock.patch.object(maintenance, "AGENTCTL_PLUGIN_DIR", plugin_dir),
             mock.patch.object(maintenance, "AGENTCTL_PLUGIN_MANIFEST_PATH", plugin_dir / ".codex-plugin" / "plugin.json"),
-            mock.patch.object(maintenance, "AGENTCTL_PLUGIN_ROUTER_SKILL_DIR", plugin_dir / "skills" / "agentctl-router"),
-            mock.patch.object(maintenance, "AGENTCTL_MAINTENANCE_SKILL_DIR", root / "skills" / "agentctl-maintenance-engineer"),
+            mock.patch.object(maintenance, "AGENTCTL_PLUGIN_ROUTER_SKILL_DIR", plugin_dir / "skills" / "agentcli-router"),
+            mock.patch.object(maintenance, "LEGACY_AGENTCTL_PLUGIN_ROUTER_SKILL_DIR", plugin_dir / "skills" / "agentctl-router"),
+            mock.patch.object(maintenance, "AGENTCTL_MAINTENANCE_SKILL_DIR", root / "skills" / "agentcli-maintenance-engineer"),
+            mock.patch.object(maintenance, "LEGACY_AGENTCTL_MAINTENANCE_SKILL_DIR", root / "skills" / "agentctl-maintenance-engineer"),
             mock.patch.dict(
                 maintenance.MAINTENANCE_DOCS,
                 {
@@ -110,7 +116,7 @@ class MaintenanceTests(unittest.TestCase):
             "inventory_summary": {"status": "ok"},
             "capabilities": [
                 {"key": "browser-automation", "status": "ok", "front_door": "$playwright", "overlap_policy": "test", "group": "browser-design"},
-                {"key": "research", "status": "ok", "front_door": "loopsmith research", "overlap_policy": "test", "group": "research"},
+                {"key": "research", "status": "ok", "front_door": "agentcli research", "overlap_policy": "test", "group": "research"},
             ],
             "capability_groups": [
                 {"key": "research", "label": "Research", "count": 1},
@@ -145,7 +151,7 @@ class MaintenanceTests(unittest.TestCase):
             refs_dir.mkdir(parents=True, exist_ok=True)
             for name in ("state-schema.md", "capability-registry.md", "maintenance-contract.md", "cloud-readiness.md"):
                 (refs_dir / name).write_text("reference\n", encoding="utf-8")
-            skill_dir = root / "skills" / "agentctl-maintenance-engineer"
+            skill_dir = root / "skills" / "agentcli-maintenance-engineer"
             skill_dir.mkdir(parents=True, exist_ok=True)
 
             patches = self._patch_paths(root)
@@ -170,11 +176,11 @@ class MaintenanceTests(unittest.TestCase):
             for name in ("state-schema.md", "capability-registry.md", "maintenance-contract.md", "cloud-readiness.md"):
                 (refs_dir / name).write_text("reference\n", encoding="utf-8")
 
-            skill_dir = root / "skills" / "agentctl-maintenance-engineer"
+            skill_dir = root / "skills" / "agentcli-maintenance-engineer"
             skill_dir.mkdir(parents=True, exist_ok=True)
-            plugin_manifest = root / "plugins" / "loopsmith" / ".codex-plugin" / "plugin.json"
+            plugin_manifest = root / "plugins" / "agent-cli-os" / ".codex-plugin" / "plugin.json"
             plugin_manifest.parent.mkdir(parents=True, exist_ok=True)
-            plugin_manifest.write_text(json.dumps({"name": "loopsmith"}), encoding="utf-8")
+            plugin_manifest.write_text(json.dumps({"name": "agent-cli-os"}), encoding="utf-8")
             tests_dir = root / "agentctl" / "tests"
             tests_dir.mkdir(parents=True, exist_ok=True)
             for name in (
@@ -192,13 +198,13 @@ class MaintenanceTests(unittest.TestCase):
                 "test_maintenance.py",
             ):
                 (tests_dir / name).write_text("pass\n", encoding="utf-8")
-            router_skill = root / "plugins" / "loopsmith" / "skills" / "agentctl-router" / "SKILL.md"
+            router_skill = root / "plugins" / "agent-cli-os" / "skills" / "agentcli-router" / "SKILL.md"
             router_skill.parent.mkdir(parents=True, exist_ok=True)
-            router_skill.write_text("---\nname: agentctl-router\ndescription: test\n---\n", encoding="utf-8")
-            (root / "config.toml").write_text('[plugins."loopsmith"]\nenabled = true\n', encoding="utf-8")
-            docs_dir = root / "docs" / "loopsmith"
+            router_skill.write_text("---\nname: agentcli-router\ndescription: test\n---\n", encoding="utf-8")
+            (root / "config.toml").write_text('[plugins."agent-cli-os"]\nenabled = true\n', encoding="utf-8")
+            docs_dir = root / "docs" / "agent-cli-os"
             docs_dir.mkdir(parents=True, exist_ok=True)
-            (root / "README.md").write_text("# loopsmith\n", encoding="utf-8")
+            (root / "README.md").write_text("# Agent CLI OS\n", encoding="utf-8")
             for name in (
                 "zero-touch-setup.md",
                 "install-on-another-computer.md",
@@ -217,14 +223,14 @@ class MaintenanceTests(unittest.TestCase):
                     stack.enter_context(patcher)
                 report = maintenance.maintenance_fix_docs()
 
-                overview = (root / "docs" / "loopsmith" / "overview.md").read_text(encoding="utf-8")
-                capability_page = (root / "docs" / "loopsmith" / "capabilities" / "research.md").read_text(encoding="utf-8")
-                inventory_page = (root / "docs" / "loopsmith" / "inventory.md").read_text(encoding="utf-8")
-                state = json.loads((root / ".codex-workflows" / "agentctl-maintenance" / "state.json").read_text(encoding="utf-8"))
+                overview = (root / "docs" / "agent-cli-os" / "overview.md").read_text(encoding="utf-8")
+                capability_page = (root / "docs" / "agent-cli-os" / "capabilities" / "research.md").read_text(encoding="utf-8")
+                inventory_page = (root / "docs" / "agent-cli-os" / "inventory.md").read_text(encoding="utf-8")
+                state = json.loads((root / ".codex-workflows" / "agentcli-maintenance" / "state.json").read_text(encoding="utf-8"))
 
-            self.assertIn("loopsmith:auto-generated", overview)
+            self.assertIn("agent-cli-os:auto-generated", overview)
             self.assertIn("# Research", capability_page)
-            self.assertIn("# Loopsmith Inventory", inventory_page)
+            self.assertIn("# Agent CLI OS Inventory", inventory_page)
             self.assertEqual(report["summary"]["status"], "ok")
             self.assertTrue(state["ready_allowed"])
             self.assertEqual(state["status"], "complete")
@@ -241,7 +247,7 @@ class MaintenanceTests(unittest.TestCase):
 
             workspace.maintenance_skill_dir.mkdir(parents=True, exist_ok=True)
             workspace.plugin_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-            workspace.plugin_manifest_path.write_text(json.dumps({"name": "loopsmith"}), encoding="utf-8")
+            workspace.plugin_manifest_path.write_text(json.dumps({"name": "agent-cli-os"}), encoding="utf-8")
             tests_dir = workspace.agentctl_home / "tests"
             tests_dir.mkdir(parents=True, exist_ok=True)
             for name in (
@@ -261,9 +267,9 @@ class MaintenanceTests(unittest.TestCase):
                 (tests_dir / name).write_text("pass\n", encoding="utf-8")
             router_skill = workspace.plugin_router_skill_dir / "SKILL.md"
             router_skill.parent.mkdir(parents=True, exist_ok=True)
-            router_skill.write_text("---\nname: agentctl-router\ndescription: test\n---\n", encoding="utf-8")
+            router_skill.write_text("---\nname: agentcli-router\ndescription: test\n---\n", encoding="utf-8")
             workspace.docs_dir.mkdir(parents=True, exist_ok=True)
-            (root / "README.md").write_text("# loopsmith\n", encoding="utf-8")
+            (root / "README.md").write_text("# Agent CLI OS\n", encoding="utf-8")
             for name in (
                 "zero-touch-setup.md",
                 "install-on-another-computer.md",
@@ -272,7 +278,7 @@ class MaintenanceTests(unittest.TestCase):
                 "skill-governance.md",
             ):
                 (workspace.docs_dir / name).write_text(f"# {name}\n", encoding="utf-8")
-            workspace.config_path.write_text('[plugins."loopsmith"]\nenabled = true\n', encoding="utf-8")
+            workspace.config_path.write_text('[plugins."agent-cli-os"]\nenabled = true\n', encoding="utf-8")
 
             with ExitStack() as stack:
                 stack.enter_context(mock.patch.object(maintenance, "build_capabilities_report", return_value=self._capabilities_report()))

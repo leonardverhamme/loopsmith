@@ -1,4 +1,4 @@
-# Dense Product UI
+﻿# Dense Product UI
 
 Load this for internal tools, CRUD and product UIs, admin and ops views, dense app screens, shadcn plus Tailwind pages, Notion-like table-first layouts, and bloated UI refactors.
 
@@ -117,3 +117,4 @@ Revise if any answer is yes:
 - Is the empty state oversized?
 - Are there too many visible actions?
 - Is density inconsistent across the screen?
+

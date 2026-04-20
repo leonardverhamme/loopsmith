@@ -1,4 +1,4 @@
-# Audit Scope
+﻿# Audit Scope
 
 Use this reference to ensure the audit covers the full app rather than only the most obvious screens.
 
@@ -39,3 +39,4 @@ When the user explicitly asks for subagents or deeper parallel coverage, split t
 - Responsive behavior
 - Accessibility and keyboard behavior
 - Consistency and design-system drift
+

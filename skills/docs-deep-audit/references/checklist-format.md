@@ -1,4 +1,4 @@
-# Checklist Format
+﻿# Checklist Format
 
 Use a compact, execution-oriented checklist.
 
@@ -28,3 +28,4 @@ Use a compact, execution-oriented checklist.
 - Keep each item fixable.
 - Only mark an item complete after the doc change and verification are done.
 - Keep blocker notes short and factual.
+

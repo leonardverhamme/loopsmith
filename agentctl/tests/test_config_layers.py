@@ -109,7 +109,7 @@ class ConfigLayerTests(unittest.TestCase):
             payload = json.loads(show_result.stdout)
 
         self.assertEqual(payload["effective"]["browser"]["preferred_route"], "cli")
-        self.assertTrue(payload["paths"]["repo"].endswith(".loopsmith\\config.toml") or payload["paths"]["repo"].endswith(".loopsmith/config.toml"))
+        self.assertTrue(payload["paths"]["repo"].endswith(".agent-cli-os\\config.toml") or payload["paths"]["repo"].endswith(".agent-cli-os/config.toml"))
 
 
 if __name__ == "__main__":

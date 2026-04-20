@@ -1,4 +1,4 @@
-# Proven Systems Behind This Skill
+﻿# Proven Systems Behind This Skill
 
 This skill follows patterns repeated by official agent workflows and strong public engineering skill packs.
 
@@ -44,3 +44,4 @@ The best reusable ADR patterns still come from:
 - [adr.github.io](https://adr.github.io/)
 - [MADR](https://adr.github.io/madr/)
 - [joelparkerhenderson ADR repo](https://github.com/joelparkerhenderson/architecture-decision-record)
+

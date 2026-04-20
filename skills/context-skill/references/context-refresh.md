@@ -1,4 +1,4 @@
-# Context Refresh
+﻿# Context Refresh
 
 Use this reference after structural changes so repo context does not drift.
 
@@ -18,3 +18,4 @@ Use this reference after structural changes so repo context does not drift.
 3. Update architecture or repo-map docs if structure changed.
 4. Remove duplicated or stale context elsewhere.
 5. State what remains implicit and should still be documented later.
+

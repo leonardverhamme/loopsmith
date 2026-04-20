@@ -1,4 +1,4 @@
----
+﻿---
 name: test-deep-audit
 description: "Full-repo test audit and checklist-driven remediation workflow for backend and frontend codebases. Use when auditing the entire repository's test health, mapping current coverage and missing layers, writing or refreshing a markdown checklist such as docs/test-deep-audit-checklist.md with `- [ ]` items, executing that checklist until all items are implemented and validated, and only replying `ready` when zero unchecked items remain. Also use when the user asks for deep test criticism, repo-wide test gap analysis, full automation quality review, or a queue-like workflow for test remediation. If explicitly invoked with no further instructions, run the default full workflow automatically using docs/test-deep-audit-checklist.md: audit the repo, refresh the checklist, execute the checklist, keep iterating until complete or blocked, and then run closeout."
 ---
@@ -24,10 +24,10 @@ For implementation decisions while working the checklist, load `$test-skill` and
 
 ## Required Entry Point
 
-- If `agentctl` is available, start or resume this workflow through `agentctl run test-deep-audit`, not by relying on chat memory alone.
+- If `agentctl` is available, start or resume this workflow through `agentcli run test-deep-audit`, not by relying on chat memory alone.
 - Treat `docs/test-deep-audit-checklist.md` as the human queue and `.codex-workflows/test-deep-audit/state.json` as the machine queue.
 - If unattended execution is expected, the outer loop must use a real worker command such as an explicit worker command, the built-in Codex worker wrapper when the Codex runtime is callable, or a configured Codex worker template. A checklist file by itself is not a worker.
-- If `agentctl doctor` reports the autonomous deep-run route as degraded, do not quietly treat manual chat batches as an unattended loop. Fix the worker route first with `--worker-command`, `AGENTCTL_CODEX_WORKER_TEMPLATE`, or `AGENTCTL_CODEX_PATH`.
+- If `agentcli doctor` reports the autonomous deep-run route as degraded, do not quietly treat manual chat batches as an unattended loop. Fix the worker route first with `--worker-command`, `AGENTCTL_CODEX_WORKER_TEMPLATE`, or `AGENTCTL_CODEX_PATH`.
 - A partial batch executed directly in chat is manual progress, not a running unattended deep audit.
 
 ## Core Modes
@@ -154,3 +154,4 @@ If the user explicitly invokes `$test-deep-audit` with no meaningful extra instr
 - `references/execution-loop.md`
 - `references/closeout.md`
 - `references/prompt-shortcuts.md`
+

@@ -1,19 +1,19 @@
-# Loopsmith Maintenance Contract
+# Agent CLI OS Maintenance Contract
 
-The maintenance subsystem treats the public `loopsmith` control plane as a maintained product.
+The maintenance subsystem treats the public `Agent CLI OS` control plane as a maintained product.
 
 Canonical outputs:
 
-- Human docs: `../../docs/loopsmith/*.md`
-- Machine report: `../../docs/loopsmith/maintenance-report.json`
-- Machine state: `../../.codex-workflows/agentctl-maintenance/state.json`
+- Human docs: `../../docs/agent-cli-os/*.md`
+- Machine report: `../../docs/agent-cli-os/maintenance-report.json`
+- Machine state: `../../.codex-workflows/agentcli-maintenance/state.json`
 
 Required maintenance commands:
 
-- `loopsmith maintenance check`
-- `loopsmith maintenance audit`
-- `loopsmith maintenance fix-docs`
-- `loopsmith maintenance render-report`
+- `agentcli maintenance check`
+- `agentcli maintenance audit`
+- `agentcli maintenance fix-docs`
+- `agentcli maintenance render-report`
 
 Checks covered in v1:
 

@@ -1,4 +1,4 @@
-# AI Conversation UI
+﻿# AI Conversation UI
 
 Load this for ChatGPT-style or product-embedded AI interfaces in shadcn or Tailwind apps.
 
@@ -53,3 +53,4 @@ Revise if any answer is yes:
 - Do sources dominate the screen?
 - Is message padding excessive?
 - Is the welcome state too verbose?
+

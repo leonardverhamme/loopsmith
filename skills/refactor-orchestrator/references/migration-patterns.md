@@ -1,4 +1,4 @@
-# Migration Patterns
+﻿# Migration Patterns
 
 Use these when the refactor is closer to a migration than a local cleanup.
 
@@ -19,3 +19,4 @@ Use these when the refactor is closer to a migration than a local cleanup.
 ## When to Stop
 
 If the migration needs new product behavior, this is no longer just refactoring. Split that work into a separate task.
+

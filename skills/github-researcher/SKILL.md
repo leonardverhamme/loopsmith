@@ -1,4 +1,4 @@
----
+﻿---
 name: github-researcher
 description: Research GitHub repositories, code, issues, pull requests, discussions, and release history. Use when Codex needs external implementation patterns, library usage examples, maintainer guidance, regression history, popular repositories for a topic, or evidence from open-source projects before recommending or writing code.
 ---
@@ -23,7 +23,7 @@ Use this skill to search GitHub deliberately and summarize the strongest externa
 For deterministic CLI-backed output, prefer:
 
 ```text
-agentctl research github "<query>"
+agentcli research github "<query>"
 ```
 
 If `agentctl` is not on `PATH` but the current repo bundles it, use `python agentctl/agentctl.py research github "<query>"`.
@@ -61,3 +61,4 @@ Return findings in this shape when the task is broader than a single link:
 - Stay read-only unless the user asks to clone, patch, or port code.
 - Do not confuse stars with quality; inspect actual code and issue history.
 - Do not paste long code blocks from third-party repositories when a link and short summary will do.
+

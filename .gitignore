@@ -15,8 +15,7 @@ output/
 agentctl/state/capabilities.json
 agentctl/state/doctor-report.json
 agentctl/state/skills-lock.json
-docs/agentctl/maintenance-report.json
-docs/loopsmith/maintenance-report.json
+docs/agent-cli-os/maintenance-report.json
 
 docs/*-checklist.md
 docs/*-progress.md

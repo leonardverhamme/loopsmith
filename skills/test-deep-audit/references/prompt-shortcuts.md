@@ -1,4 +1,4 @@
-# Prompt Shortcuts
+﻿# Prompt Shortcuts
 
 Use these short prompts in the Codex app instead of pasting a giant workflow each time.
 
@@ -34,3 +34,4 @@ Audit the full repo into docs/test-deep-audit-checklist.md. Use subagents in par
 $test-deep-audit
 Open docs/test-deep-audit-checklist.md and complete every unchecked item. Mark boxes done only after implementation and validation. Reply only when the checklist state is accurate.
 ```
+

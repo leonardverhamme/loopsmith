@@ -1,4 +1,4 @@
-# Durable Docs
+﻿# Durable Docs
 
 Good engineering docs reduce repeated re-discovery. They should be concise, navigable, and grounded in the code.
 
@@ -29,3 +29,4 @@ Good engineering docs reduce repeated re-discovery. They should be concise, navi
 - Claude Code has a dedicated documentation workflow and emphasizes checking docs against project standards: [code.claude.com/docs/en/common-workflows](https://code.claude.com/docs/en/common-workflows)
 - OpenAI Codex guidance emphasizes persistent repo context in `AGENTS.md` plus repo-native docs: [openai.com/business/guides-and-resources/how-openai-uses-codex/](https://openai.com/business/guides-and-resources/how-openai-uses-codex/)
 - MCAF treats durable docs and architecture maps as part of the repo's operating system for agents: [mcaf.managed-code.com](https://mcaf.managed-code.com/)
+

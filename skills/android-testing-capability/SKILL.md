@@ -1,6 +1,6 @@
----
+﻿---
 name: android-testing-capability
-description: Navigate the Android testing capability in agentctl. Use when the task is about Android emulator QA, reproduction, screenshots, or log-driven debugging.
+description: Navigate the Android testing capability in Agent CLI OS. Use when the task is about Android emulator QA, reproduction, screenshots, or log-driven debugging.
 ---
 
 # Android Testing Capability
@@ -17,11 +17,12 @@ Use this as the thin navigation layer for Android QA. The actual runbook remains
 
 ## Workflow
 
-1. Run `agentctl capability android-testing`.
-2. Read the generated page at `docs/agentctl/capabilities/android-testing.md`.
+1. Run `agentcli capability android-testing`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/android-testing.md`.
 3. Route into `$test-android-apps:android-emulator-qa` for the actual emulator workflow.
 
 ## Do Not Do
 
 - Do not duplicate Android emulator procedures in this skill.
 - Do not skip the capability page when auth, environment, or overlap is unclear.
+

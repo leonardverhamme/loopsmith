@@ -1,4 +1,4 @@
-# Prompt Template
+﻿# Prompt Template
 
 ## General
 
@@ -20,3 +20,4 @@ Refactor these GitHub Actions workflows to reduce duplication with reusable work
 $cicd-skill
 Tighten the PR quality gates for this repo. Keep feedback fast, avoid guesswork about secrets, and use the existing local commands as the source of truth.
 ```
+

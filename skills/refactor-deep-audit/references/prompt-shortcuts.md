@@ -1,4 +1,4 @@
-# Prompt Shortcuts
+﻿# Prompt Shortcuts
 
 ## Bare Invocation
 
@@ -19,3 +19,4 @@ Behavior:
 $refactor-deep-audit
 Audit this repo for structural cleanup and refactor opportunities into docs/refactor-deep-audit-checklist.md. Use checkboxes and do not implement fixes yet.
 ```
+

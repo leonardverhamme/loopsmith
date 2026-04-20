@@ -1,4 +1,4 @@
-# Closeout
+﻿# Closeout
 
 Use this reference before the final response.
 
@@ -17,3 +17,4 @@ Only reply `ready` when all of the following are true:
 - Do not reply `ready`.
 - Summarize what is still unchecked or blocked.
 - Name the workflows, environments, or validations that still need work.
+

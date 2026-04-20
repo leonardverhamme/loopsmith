@@ -1,4 +1,4 @@
-# Premade Stack
+﻿# Premade Stack
 
 Use this reference when choosing already-made tools or skill packs instead of inventing everything from scratch.
 
@@ -61,3 +61,4 @@ For Codex, the best setup is still:
 4. repo-native test CLIs as the source of truth
 
 Do not replace that with one mega external skill pack.
+

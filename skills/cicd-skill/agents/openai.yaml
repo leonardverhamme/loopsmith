@@ -1,5 +1,6 @@
-interface:
+﻿interface:
   display_name: "CI/CD Skill"
   short_description: "CI/CD and release workflow engineering"
   default_prompt: "Use $cicd-skill to inspect this repo's pipelines, update CI or release automation, and validate the workflow without guessing the stack."
   brand_color: "#3E5866"
+

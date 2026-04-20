@@ -52,8 +52,8 @@ class InventoryTests(unittest.TestCase):
     @mock.patch("lib.capabilities._tool_record")
     @mock.patch("lib.inventory.run_command")
     @mock.patch("lib.inventory.effective_config")
-    @mock.patch("lib.inventory.PLUGINS_DIR", Path(r"C:\__loopsmith_test_plugins__"))
-    @mock.patch("lib.inventory.SKILLS_DIR", Path(r"C:\__loopsmith_test_skills__"))
+    @mock.patch("lib.inventory.PLUGINS_DIR", Path(r"C:\__agent_cli_os_test_plugins__"))
+    @mock.patch("lib.inventory.SKILLS_DIR", Path(r"C:\__agent_cli_os_test_skills__"))
     def test_build_inventory_snapshot_records_expected_kinds(
         self,
         effective_config: mock.Mock,
@@ -71,7 +71,7 @@ class InventoryTests(unittest.TestCase):
     ) -> None:
         effective_config.return_value = {
             "menus": {"max_items": 25},
-            "plugins": {"loopsmith": {"enabled": True}},
+            "plugins": {"agent-cli-os": {"enabled": True}},
             "mcp_servers": {"supabase": {"command": "supabase-mcp"}},
         }
         tool_record.side_effect = lambda name, **_: {"name": name, "installed": True, "status": "ok", "version": "1.0.0", "path": fr"C:\tools\{name}.exe", "command": name}

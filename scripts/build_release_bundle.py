@@ -5,19 +5,23 @@ import hashlib
 import zipfile
 from pathlib import Path
 
+from agentctl.lib.branding import COMPATIBILITY_COMMAND, LEGACY_COMMAND, PUBLIC_COMMAND, PUBLIC_DOCS_DIRNAME, PUBLIC_DISPLAY_NAME, RELEASE_BUNDLE_PREFIX
+
 
 BUNDLE_ITEMS = [
     "agentctl",
     "workflow-tools",
     "skills",
     "plugins",
-    "docs/loopsmith",
+    f"docs/{PUBLIC_DOCS_DIRNAME}",
     "scripts",
     "AGENTS.md",
-    "loopsmith.cmd",
-    "loopsmith.sh",
-    "agentctl.cmd",
-    "agentctl.sh",
+    f"{PUBLIC_COMMAND}.cmd",
+    f"{PUBLIC_COMMAND}.sh",
+    f"{COMPATIBILITY_COMMAND}.cmd",
+    f"{COMPATIBILITY_COMMAND}.sh",
+    f"{LEGACY_COMMAND}.cmd",
+    f"{LEGACY_COMMAND}.sh",
     "README.md",
     "LICENSE",
     "config.toml",
@@ -47,7 +51,7 @@ def sha256_for(path: Path) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Build a zip release bundle for loopsmith.")
+    parser = argparse.ArgumentParser(description=f"Build a zip release bundle for {PUBLIC_DISPLAY_NAME}.")
     parser.add_argument("--version", required=True, help="Version label used in the zip filename, e.g. v1.0.0")
     parser.add_argument("--output-dir", default="dist", help="Output directory for the bundle")
     args = parser.parse_args()
@@ -56,7 +60,7 @@ def main() -> int:
     output_dir = (source_root / args.output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    archive_path = output_dir / f"loopsmith-bundle-{args.version}.zip"
+    archive_path = output_dir / f"{RELEASE_BUNDLE_PREFIX}-{args.version}.zip"
     with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
         for relative in BUNDLE_ITEMS:
             add_path(bundle, source_root, relative)

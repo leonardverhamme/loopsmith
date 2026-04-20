@@ -1,4 +1,4 @@
-# Checklist Format
+﻿# Checklist Format
 
 Use a compact, execution-oriented checklist.
 
@@ -27,3 +27,4 @@ Use a compact, execution-oriented checklist.
 - Group by automation surface, then workflow or environment.
 - Keep each item fixable.
 - Only mark an item complete after the workflow change and validation are done.
+

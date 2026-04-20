@@ -1,4 +1,4 @@
-# Runbooks and Commands
+﻿# Runbooks and Commands
 
 Operational docs are only useful if they can be executed.
 
@@ -26,3 +26,4 @@ Operational docs are only useful if they can be executed.
 - vague phrases like "start the app normally"
 - unnamed secret requirements
 - hidden assumptions about OS, shell, or package manager
+

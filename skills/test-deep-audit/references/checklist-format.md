@@ -1,4 +1,4 @@
-# Checklist Format
+﻿# Checklist Format
 
 The checklist file is the canonical queue. Keep it resumable, easy to hand off, and strict enough that completed boxes mean something.
 
@@ -48,3 +48,4 @@ The checklist file is the canonical queue. Keep it resumable, easy to hand off, 
 - Group by area or subsystem, then by page, package, or file target.
 - Include severity, why it matters, fix target, and validation method.
 - Prefer one issue per checkbox rather than giant multi-problem items.
+

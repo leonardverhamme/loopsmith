@@ -1,5 +1,6 @@
-interface:
+﻿interface:
   display_name: "UI Skill"
   short_description: "General cross-repo UI implementation workflow"
   default_prompt: "Use $ui-skill to inspect this repo's UI system, load official shadcn context first when relevant, then implement or refactor the page without drifting from local UI patterns."
   brand_color: "#102A4A"
+

@@ -1,4 +1,4 @@
-# Risk Review
+﻿# Risk Review
 
 Run this review before making the first broad change.
 
@@ -24,3 +24,4 @@ Slow down or rescope if:
 - the validation path is unclear
 - behavior changes are being mixed into the migration
 - the refactor starts touching ownership boundaries that need an ADR
+

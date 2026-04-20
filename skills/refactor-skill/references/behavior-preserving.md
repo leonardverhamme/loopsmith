@@ -1,4 +1,4 @@
-# Behavior-Preserving Refactors
+﻿# Behavior-Preserving Refactors
 
 This skill follows the repeated pattern across Martin Fowler, Claude Code refactor guidance, and OpenAI Codex guidance:
 
@@ -40,3 +40,4 @@ If the external behavior changes, it is no longer a pure refactor. Treat that as
 - Martin Fowler's long-standing guidance emphasizes small steps and testing frequently: [martinfowler.com/distributedComputing/refactoring.pdf](https://martinfowler.com/distributedComputing/refactoring.pdf)
 - Claude Code's common refactor workflow explicitly recommends small, testable increments and preserving behavior: [code.claude.com/docs/en/common-workflows](https://code.claude.com/docs/en/common-workflows)
 - OpenAI's Codex guidance recommends well-scoped tasks and verifiable output: [openai.com/business/guides-and-resources/how-openai-uses-codex/](https://openai.com/business/guides-and-resources/how-openai-uses-codex/)
+

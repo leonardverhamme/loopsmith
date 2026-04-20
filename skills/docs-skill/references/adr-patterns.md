@@ -1,4 +1,4 @@
-# ADR Patterns
+﻿# ADR Patterns
 
 Use an ADR when the repo needs a durable record of a technical decision, trade-off, or policy shift.
 
@@ -35,3 +35,4 @@ Typical structure:
 ## Practical Use
 
 If the user changed code but did not actually make a durable design decision, do not force an ADR.
+

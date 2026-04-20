@@ -1,4 +1,4 @@
-# Proven Systems Behind This Skill
+﻿# Proven Systems Behind This Skill
 
 This skill is based on the overlap between official CI docs and current agent workflow guidance.
 
@@ -44,3 +44,4 @@ Sources:
 
 - [MCAF concepts](https://mcaf.managed-code.com/)
 - [MCAF skills catalog](https://mcaf.managed-code.com/skills)
+

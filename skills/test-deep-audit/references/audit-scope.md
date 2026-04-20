@@ -1,4 +1,4 @@
-# Audit Scope
+﻿# Audit Scope
 
 Use this reference to ensure the audit covers the full repository and not just a few test files.
 
@@ -36,3 +36,4 @@ When the user explicitly asks for subagents or deeper parallel coverage, split t
 - accessibility and visual
 - contracts and schemas
 - edge cases, mutation, flake, and speed
+

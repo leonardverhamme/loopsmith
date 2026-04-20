@@ -1,4 +1,4 @@
-# Safety Net Before Refactoring
+﻿# Safety Net Before Refactoring
 
 Refactoring is cheap when behavior is observable and expensive when it is not.
 
@@ -31,3 +31,4 @@ Prefer the lightest useful safety net:
 - only change the test when the test itself is wrong, stale, or asserting implementation detail
 
 This matches the same reliability rule already used in `test-skill`.
+

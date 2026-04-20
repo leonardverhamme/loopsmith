@@ -54,7 +54,7 @@ class CliOutputTests(unittest.TestCase):
                         {"kind": "skill", "name": "loopsmith", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "autonomous-deep-runs-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "skills-management-capability", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
-                        {"kind": "skill", "name": "agentctl-maintenance-engineer", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
+                        {"kind": "skill", "name": "agentcli-maintenance-engineer", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "context-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "ui-skill", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "ui-deep-audit", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
@@ -73,7 +73,7 @@ class CliOutputTests(unittest.TestCase):
                         {"kind": "skill", "name": "internet-researcher", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "github-researcher", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "web-github-scout", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
-                        {"kind": "plugin", "name": "loopsmith", "source_scope": "user", "status": "ok", "enabled": True},
+                        {"kind": "plugin", "name": "agent-cli-os", "source_scope": "user", "status": "ok", "enabled": True},
                     ],
                     "menu_buckets": [],
                 },
@@ -90,7 +90,7 @@ class CliOutputTests(unittest.TestCase):
             },
             "detect_only_tools": ["firebase", "gcloud"],
             "capabilities": [
-                {"label": "Research", "status": "ok", "front_door": "agentctl research", "required": True},
+                {"label": "Research", "status": "ok", "front_door": "agentcli research", "required": True},
                 {"label": "Supabase data", "status": "degraded", "front_door": "supabase + Supabase MCP", "required": False},
             ],
         }
@@ -107,7 +107,7 @@ class CliOutputTests(unittest.TestCase):
             "summary": {"status": "ok", "count": 1, "historical_count": 4},
             "workflows": [
                 {
-                    "workflow_name": "agentctl-maintenance",
+                    "workflow_name": "agentcli-maintenance",
                     "status": "complete",
                     "tasks_done": 19,
                     "tasks_total": 19,
@@ -115,7 +115,7 @@ class CliOutputTests(unittest.TestCase):
                     "tasks_blocked": 0,
                     "iteration": 1,
                     "repo_root": r"C:\repo\agentctl",
-                    "checklist_path": r"docs/loopsmith/maintenance.md",
+                    "checklist_path": r"docs/agent-cli-os/maintenance.md",
                 }
             ],
         }
@@ -125,7 +125,7 @@ class CliOutputTests(unittest.TestCase):
         output = buffer.getvalue()
         self.assertIn("Active workflows: 1", output)
         self.assertIn("Historical workflows hidden: 4", output)
-        self.assertIn("agentctl-maintenance: complete", output)
+        self.assertIn("agentcli-maintenance: complete", output)
 
     def test_skills_human_distinguishes_local_and_external_management(self) -> None:
         payload = {
@@ -174,7 +174,7 @@ class CliOutputTests(unittest.TestCase):
             ],
             "capabilities": [
                 {"key": "github-workflows", "label": "GitHub workflows", "status": "ok", "front_door": "$github-capability", "required": False, "group": "platforms"},
-                {"key": "research", "label": "Research", "status": "ok", "front_door": "loopsmith research", "required": True, "group": "research"},
+                {"key": "research", "label": "Research", "status": "ok", "front_door": "agentcli research", "required": True, "group": "research"},
             ],
         }
         buffer = io.StringIO()
@@ -182,7 +182,7 @@ class CliOutputTests(unittest.TestCase):
             print_capabilities_human(payload)
         output = buffer.getvalue()
         self.assertIn("Platforms [ok] 1 items", output)
-        self.assertIn("Use `loopsmith capability <key>`", output)
+        self.assertIn("Use `agentcli capability <key>`", output)
 
     def test_inventory_human_renders_bucketed_raw_inventory(self) -> None:
         payload = {
@@ -207,7 +207,7 @@ class CliOutputTests(unittest.TestCase):
             "label": "Supabase data",
             "status": "ok",
             "front_door": "$supabase-capability",
-            "doc_path": r"C:\repo\docs\loopsmith\capabilities\supabase-data.md",
+            "doc_path": r"C:\repo\docs\agent-cli-os\capabilities\supabase-data.md",
             "summary": "Use for local Supabase stacks and database workflows.",
             "skills": ["supabase-capability"],
             "entrypoints": ["$supabase-capability", "supabase", "Supabase MCP"],

@@ -1,4 +1,4 @@
-# Prompt Template
+﻿# Prompt Template
 
 Use this when you want a repeatable session prompt for general UI work in any compatible web repo.
 
@@ -29,3 +29,4 @@ Output:
 ```
 
 For full-app audits, checkbox backlog generation, or execute-until-ready UI remediation, use `$ui-deep-audit` instead of this skill.
+

@@ -1,4 +1,4 @@
----
+﻿---
 name: test-skill
 description: General cross-repo testing workflow for backend and frontend code. Use when adding or updating tests for new code, when the user says to add all needed tests for a feature or refactor, when fixing bugs with permanent regression coverage, when choosing and applying the right mix of unit, integration, API or contract, end-to-end, browser smoke, accessibility, visual, regression, edge-case, data or migration, and performance-smoke testing, or when tightening CI quality gates without test drift. This skill must select the materially needed test layers itself, add the right tests, run them, and keep iterating until the relevant suites are green, fixing product code when a correct test reveals a defect instead of weakening the test just to pass. Prefer repo-native CLIs first, then dedicated testing CLIs such as Playwright CLI, and only use MCP-style browser control when CLI workflows cannot provide enough signal. Not for full-repo checklist audits or execute-until-done remediation; use test-deep-audit for that.
 ---
@@ -162,3 +162,4 @@ Do not run a full checklist audit in this mode.
 - `references/premade-stack.md`
 - `references/test-review.md`
 - `references/prompt-template.md`
+

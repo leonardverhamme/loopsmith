@@ -1,4 +1,4 @@
-# Audit Scope
+﻿# Audit Scope
 
 Use this skill when the durable documentation surface itself needs a full sweep.
 
@@ -24,3 +24,4 @@ Use this skill when the durable documentation surface itself needs a full sweep.
 ## Good Outcome
 
 The repo should become easier for both humans and agents to navigate without turning into a docs graveyard.
+

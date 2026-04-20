@@ -1,4 +1,4 @@
-# Common Refactor Patterns
+﻿# Common Refactor Patterns
 
 Use the smallest move that improves the design enough.
 
@@ -32,3 +32,4 @@ After each significant move:
 - run the narrowest useful test command
 - run typecheck or lint if the repo treats them as quality gates
 - inspect imports, exports, and call sites for accidental surface changes
+

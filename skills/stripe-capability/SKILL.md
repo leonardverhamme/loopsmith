@@ -1,6 +1,6 @@
----
+﻿---
 name: stripe-capability
-description: Navigate the Stripe capability in agentctl. Use when the task is about payments, subscriptions, Connect, Stripe upgrades, or deciding how to use the Stripe plugin surface.
+description: Navigate the Stripe capability in Agent CLI OS. Use when the task is about payments, subscriptions, Connect, Stripe upgrades, or deciding how to use the Stripe plugin surface.
 ---
 
 # Stripe Capability
@@ -17,12 +17,13 @@ Use this as the thin navigation layer for Stripe work. The real logic stays in t
 
 ## Workflow
 
-1. Run `agentctl capability stripe-payments`.
-2. Read the generated page at `docs/agentctl/capabilities/stripe-payments.md`.
+1. Run `agentcli capability stripe-payments`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/stripe-payments.md`.
 3. Prefer the Stripe plugin skills for design, integration, and upgrade work.
 
 ## Do Not Do
 
 - Do not duplicate Stripe integration guidance here.
 - Do not bypass `agentctl` when checking whether the Stripe surface is available or healthy.
+
 

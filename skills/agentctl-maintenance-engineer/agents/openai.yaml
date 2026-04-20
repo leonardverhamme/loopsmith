@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agentctl Maintenance Engineer"
-  short_description: "Maintain agentctl docs, state, and packaging"
-  default_prompt: "Use $agentctl-maintenance-engineer to audit and refresh the agentctl control plane."

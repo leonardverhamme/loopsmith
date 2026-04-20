@@ -1,4 +1,4 @@
----
+﻿---
 name: internet-researcher
 description: Research current information on the public web and synthesize sourced findings. Use when Codex needs up-to-date documentation, release notes, standards, changelogs, API changes, best-practice comparisons, external examples, bug or regression research, or any answer that should be verified against live online sources. Prefer this skill for read-only research and verification tasks before any code changes.
 ---
@@ -23,7 +23,7 @@ Use this skill to run fast, source-first internet research and return a compact,
 For deterministic CLI-backed output, prefer:
 
 ```text
-agentctl research web "<query>"
+agentcli research web "<query>"
 ```
 
 If `agentctl` is not on `PATH` but the current repo bundles it, use `python agentctl/agentctl.py research web "<query>"`.
@@ -62,3 +62,4 @@ Return findings in this shape when the task is broader than a one-line answer:
 - Do not pretend older cached knowledge is current when the topic can change.
 - Do not overquote sources; summarize and link instead.
 - Escalate to a browser-capable tool only if the needed information cannot be reached reliably through normal web retrieval.
+

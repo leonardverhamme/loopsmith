@@ -1,4 +1,4 @@
-# Release Safety
+﻿# Release Safety
 
 Shipping automation should reduce risk, not just reduce clicks.
 
@@ -24,3 +24,4 @@ Keep steps manual if the repo lacks:
 - secret ownership
 - rollback confidence
 - agreement on automatic deploy triggers
+

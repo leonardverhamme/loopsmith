@@ -1,4 +1,4 @@
-# Proven Systems Behind This Skill
+﻿# Proven Systems Behind This Skill
 
 This orchestrator is based on the overlap between official agent guidance and established refactor practice.
 
@@ -54,3 +54,4 @@ Martin Fowler remains the clearest foundation for broad refactors:
 Source:
 
 - [Refactoring article PDF](https://martinfowler.com/distributedComputing/refactoring.pdf)
+

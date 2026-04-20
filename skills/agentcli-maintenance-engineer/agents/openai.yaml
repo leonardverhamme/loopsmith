@@ -1,0 +1,5 @@
+﻿interface:
+  display_name: "Agent CLI OS Maintenance Engineer"
+  short_description: "Audit and refresh Agent CLI OS docs, state, routing metadata, and packaging"
+  default_prompt: "Use $agentcli-maintenance-engineer to audit, validate, and refresh the Agent CLI OS control plane."
+

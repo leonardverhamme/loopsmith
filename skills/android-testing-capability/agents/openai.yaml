@@ -1,4 +1,5 @@
-interface:
+﻿interface:
   display_name: "Android Testing"
-  short_description: "Route Android emulator QA through agentctl."
-  default_prompt: "Use this skill to navigate Android emulator testing through agentctl, then switch to the Android testing plugin skill."
+  short_description: "Route Android emulator QA through Agent CLI OS."
+  default_prompt: "Use this skill to navigate Android emulator testing through Agent CLI OS, then switch to the Android testing plugin skill."
+

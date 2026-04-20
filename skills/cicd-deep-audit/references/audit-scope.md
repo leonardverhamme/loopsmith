@@ -1,4 +1,4 @@
-# Audit Scope
+﻿# Audit Scope
 
 Use this skill when a repo's automation surface needs a full sweep.
 
@@ -20,3 +20,4 @@ Use this skill when a repo's automation surface needs a full sweep.
 - unsafe deploy or release paths
 - unclear environment promotion or rollback handling
 - hidden assumptions about secrets and infrastructure
+

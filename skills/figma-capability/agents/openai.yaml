@@ -1,5 +1,6 @@
-interface:
+﻿interface:
   display_name: "Figma Capability"
-  short_description: "Route Figma work through agentctl and the Figma MCP surface."
-  default_prompt: "Use this skill to inspect the Figma capability in agentctl, then follow the Figma MCP route it documents."
+  short_description: "Route Figma work through Agent CLI OS and the Figma MCP surface."
+  default_prompt: "Use this skill to inspect the Figma capability in Agent CLI OS, then follow the Figma MCP route it documents."
+
 

@@ -56,7 +56,7 @@ jobs:
       - name: Upload release bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: loopsmith-${{ env.RELEASE_VERSION }}
+          name: agent-cli-os-${{ env.RELEASE_VERSION }}
           path: |
             dist/*.zip
             dist/*.sha256
@@ -76,13 +76,13 @@ jobs:
 
       - name: Smoke bootstrap from released artifacts
         env:
-          BUNDLE_CODEX_HOME: ${{ runner.temp }}/loopsmith-release-home
+          BUNDLE_CODEX_HOME: ${{ runner.temp }}/agent-cli-os-release-home
         run: |
           python -m venv .venv-release
           . .venv-release/bin/activate
           python -m pip install --upgrade pip
           python -m pip install dist/*.whl
-          CODEX_HOME="$BUNDLE_CODEX_HOME" loopsmith bootstrap --version "$RELEASE_VERSION"
+          CODEX_HOME="$BUNDLE_CODEX_HOME" agentcli bootstrap --version "$RELEASE_VERSION"
           export CODEX_HOME="$BUNDLE_CODEX_HOME"
           python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" doctor --json
           python "$BUNDLE_CODEX_HOME/agentctl/agentctl.py" self-check --json

@@ -1,4 +1,4 @@
----
+﻿---
 name: loopsmith
 description: Route very long or multi-step repo work into the loopsmith disk-backed loop. Use when a task is too large for chat-memory-only execution, when another skill needs a durable outer loop, or when a repo-specific checklist and state file should drive work until it is truly done.
 ---
@@ -20,18 +20,18 @@ description: Route very long or multi-step repo work into the loopsmith disk-bac
 ## Workflow
 
 1. If a dedicated deep workflow already exists, prefer it first:
-   - `loopsmith run ui-deep-audit`
-   - `loopsmith run test-deep-audit`
-   - `loopsmith run docs-deep-audit`
-   - `loopsmith run refactor-deep-audit`
-   - `loopsmith run cicd-deep-audit`
+   - `agentcli run ui-deep-audit`
+   - `agentcli run test-deep-audit`
+   - `agentcli run docs-deep-audit`
+   - `agentcli run refactor-deep-audit`
+   - `agentcli run cicd-deep-audit`
 2. If the task is novel or cross-cutting, write a concise task brief to disk or pass it inline.
-3. Launch the generic loop with `loopsmith loop <name> --task-file <path>` or `loopsmith loop <name> --task "<brief>"`.
+3. Launch the generic loop with `agentcli loop <name> --task-file <path>` or `agentcli loop <name> --task "<brief>"`.
 4. Let the outer runner own:
    - `.codex-workflows/<name>/state.json`
    - `docs/<name>-checklist.md`
    - `docs/<name>-progress.md`
-5. Use `loopsmith status --repo <path>` to inspect progress and resume from disk, not from chat memory.
+5. Use `agentcli status --repo <path>` to inspect progress and resume from disk, not from chat memory.
 
 ## Rules
 
@@ -40,3 +40,4 @@ description: Route very long or multi-step repo work into the loopsmith disk-bac
 - Keep the checklist stable and actionable enough for the next pass to resume.
 - Use one coherent validated batch per pass and let the outer runner continue.
 - If the work is blocked, leave the items unchecked and record the blocker instead of pretending the loop is done.
+

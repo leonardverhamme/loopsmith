@@ -1,4 +1,4 @@
-# Agentctl Cloud Readiness Reference
+# Agent CLI OS Cloud Readiness Reference
 
 Cloud support must be explicit, not implied by local success.
 
@@ -11,7 +11,7 @@ Use these classifications:
 
 Current default stance:
 
-- `agentctl` core: `cloud-ready-with-setup`
+- `agent-cli-os` core: `cloud-ready-with-setup`
 - skills wrapper layer: `cloud-ready-with-setup`
 - research web: `cloud-ready-with-setup`
 - research GitHub: `cloud-ready-with-setup`

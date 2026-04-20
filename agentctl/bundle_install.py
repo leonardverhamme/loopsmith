@@ -14,6 +14,8 @@ from typing import Any
 try:
     from .lib.branding import (
         COMPATIBILITY_COMMAND,
+        LEGACY_COMMAND,
+        PUBLIC_DISPLAY_NAME,
         LEGACY_PLUGIN_NAMES,
         LEGACY_REPO_URL,
         PUBLIC_COMMAND,
@@ -28,6 +30,8 @@ try:
 except ImportError:
     from lib.branding import (
         COMPATIBILITY_COMMAND,
+        LEGACY_COMMAND,
+        PUBLIC_DISPLAY_NAME,
         LEGACY_PLUGIN_NAMES,
         LEGACY_REPO_URL,
         PUBLIC_COMMAND,
@@ -53,11 +57,19 @@ BUNDLE_ITEMS = [
     f"{PUBLIC_COMMAND}.sh",
     f"{COMPATIBILITY_COMMAND}.cmd",
     f"{COMPATIBILITY_COMMAND}.sh",
+    f"{LEGACY_COMMAND}.cmd",
+    f"{LEGACY_COMMAND}.sh",
 ]
 
 PLUGIN_SNIPPET = f'\n[plugins."{PUBLIC_PLUGIN_NAME}"]\nenabled = true\n'
 LEGACY_PLUGIN_KEYS = tuple([f'[plugins."{name}"]' for name in LEGACY_PLUGIN_NAMES] + [f"[plugins.{name}]" for name in LEGACY_PLUGIN_NAMES])
 LEGACY_PLUGIN_DIRS = tuple(f"plugins/{name}" for name in LEGACY_PLUGIN_NAMES)
+LEGACY_PUBLIC_SURFACE_PATHS = (
+    "skills/agentctl-maintenance-engineer",
+    f"plugins/{PUBLIC_PLUGIN_NAME}/skills/agentctl-router",
+    ".codex-workflows/agentctl-maintenance",
+    f"docs/{PUBLIC_DOCS_DIRNAME}/capabilities/agentctl-maintenance.md",
+)
 DEFAULT_REPO_URL = PUBLIC_REPO_URL
 DEFAULT_UPDATE_CHANNEL = "latest"
 DEFAULT_UPDATE_SOURCE = "github-release"
@@ -183,6 +195,15 @@ def cleanup_legacy_plugin(target_root: Path) -> list[str]:
         if legacy_path.exists():
             shutil.rmtree(legacy_path)
             removed.append(str(legacy_path))
+    for relative in LEGACY_PUBLIC_SURFACE_PATHS:
+        legacy_path = target_root / relative
+        if legacy_path.is_dir():
+            shutil.rmtree(legacy_path)
+            removed.append(str(legacy_path))
+            continue
+        if legacy_path.exists():
+            legacy_path.unlink()
+            removed.append(str(legacy_path))
     return removed
 
 
@@ -226,8 +247,10 @@ def write_install_metadata(
     payload = {
         "schema_version": 1,
         "product_name": PUBLIC_PRODUCT_NAME,
+        "display_name": PUBLIC_DISPLAY_NAME,
         "public_command": PUBLIC_COMMAND,
         "compatibility_command": COMPATIBILITY_COMMAND,
+        "legacy_command": LEGACY_COMMAND,
         "bundle_dir": "agentctl",
         "installed_at": utc_now(),
         "repo_url": repo_url,

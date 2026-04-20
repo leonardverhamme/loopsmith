@@ -1,4 +1,4 @@
-# Design Tokens
+﻿# Design Tokens
 
 This reference is intentionally reusable. It tells you how to infer a local design system first, and only fall back to a restrained default if the repo has none.
 
@@ -88,3 +88,4 @@ Do not use more type sizes than the screen needs.
 - related items should be visibly grouped
 - dense enterprise UIs can be compact without becoming cramped
 - avoid giant whitespace unless the product is intentionally editorial or marketing-oriented
+

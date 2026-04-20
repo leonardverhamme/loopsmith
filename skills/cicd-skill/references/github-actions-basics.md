@@ -1,4 +1,4 @@
-# GitHub Actions Basics
+﻿# GitHub Actions Basics
 
 This skill defaults to GitHub Actions when the repo uses it, because it remains the most common repo-native CI system in these setups.
 
@@ -20,3 +20,4 @@ This skill defaults to GitHub Actions when the repo uses it, because it remains 
 
 - [Workflow syntax for GitHub Actions](https://docs.github.com/en/actions/reference/workflows-and-actions)
 - [Reusing workflow configurations](https://docs.github.com/en/actions/concepts/workflows-and-actions/reusing-workflow-configurations)
+

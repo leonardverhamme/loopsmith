@@ -1,4 +1,4 @@
-# Workflow Reuse and Matrix
+﻿# Workflow Reuse and Matrix
 
 Use reuse to remove duplication, not to hide clarity.
 
@@ -33,3 +33,4 @@ Avoid matrix expansion when it only slows CI without meaningful extra signal.
 ## Practical Rule
 
 Prefer the smallest reusable unit that reduces copy-paste without making debugging harder.
+

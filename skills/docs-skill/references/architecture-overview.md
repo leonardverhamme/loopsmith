@@ -1,4 +1,4 @@
-# Architecture Overview
+﻿# Architecture Overview
 
 An architecture overview should help a new engineer or agent navigate the system quickly.
 
@@ -32,3 +32,4 @@ Use Mermaid only when it clarifies:
 - major integration relationships
 
 Do not add diagrams just to make the doc look richer.
+

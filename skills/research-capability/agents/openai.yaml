@@ -1,4 +1,5 @@
-interface:
+﻿interface:
   display_name: "Research Capability"
-  short_description: "Route web, GitHub, and mixed research through agentctl."
-  default_prompt: "Use this skill to choose the right research route in agentctl, then switch to the matching research worker skill."
+  short_description: "Route web, GitHub, and mixed research through Agent CLI OS."
+  default_prompt: "Use this skill to choose the right research route in Agent CLI OS, then switch to the matching research worker skill."
+

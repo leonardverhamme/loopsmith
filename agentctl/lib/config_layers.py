@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from .branding import PUBLIC_DOCS_DIRNAME
+from .branding import LEGACY_DOCS_DIRNAME, PUBLIC_DOCS_DIRNAME
 from .common import print_json
 from .paths import CODEX_HOME, CONFIG_PATH
 
@@ -47,6 +47,11 @@ DEFAULT_CONFIG: dict[str, Any] = {
 def repo_config_path(repo: str | Path | None = None) -> Path:
     root = Path(repo).resolve() if repo else Path.cwd().resolve()
     return root / f".{PUBLIC_DOCS_DIRNAME}" / "config.toml"
+
+
+def legacy_repo_config_path(repo: str | Path | None = None) -> Path:
+    root = Path(repo).resolve() if repo else Path.cwd().resolve()
+    return root / f".{LEGACY_DOCS_DIRNAME}" / "config.toml"
 
 
 def _quote_header_key(raw: str) -> str:
@@ -199,10 +204,11 @@ def _unset_nested(payload: dict[str, Any], key: str) -> dict[str, Any]:
 
 
 def layer_payloads(repo: str | Path | None = None) -> dict[str, dict[str, Any]]:
+    repo_payload = _deep_merge(_load_toml(legacy_repo_config_path(repo)), _load_toml(repo_config_path(repo)))
     return {
         "bundled": deepcopy(DEFAULT_CONFIG),
         "user": _load_toml(CONFIG_PATH),
-        "repo": _load_toml(repo_config_path(repo)),
+        "repo": repo_payload,
     }
 
 

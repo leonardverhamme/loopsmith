@@ -1,4 +1,4 @@
-# Playwright CLI Reference
+﻿# Playwright CLI Reference
 
 Use the preferred global wrapper unless the CLI is already installed globally:
 
@@ -132,3 +132,4 @@ Or set an environment variable once:
 export PLAYWRIGHT_CLI_SESSION=todo
 pwcli open https://demo.playwright.dev/todomvc
 ```
+

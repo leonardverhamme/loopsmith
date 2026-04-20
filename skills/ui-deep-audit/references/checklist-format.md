@@ -1,4 +1,4 @@
-# Checklist Format
+﻿# Checklist Format
 
 The checklist file is the canonical queue. Keep it readable, resumable, and easy to hand off to follow-up agents.
 
@@ -50,3 +50,4 @@ The checklist file is the canonical queue. Keep it readable, resumable, and easy
 - Keep every finding concrete and fixable.
 - Include severity, why it matters, target files or areas, and validation method.
 - Prefer one issue per checkbox rather than giant combined items.
+

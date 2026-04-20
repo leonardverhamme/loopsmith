@@ -1,19 +1,23 @@
 from __future__ import annotations
 
-PUBLIC_PRODUCT_NAME = "loopsmith"
-LEGACY_PRODUCT_NAME = "agentctl"
+PUBLIC_DISPLAY_NAME = "Agent CLI OS"
+PUBLIC_DISPLAY_TAGLINE = "OS stands for On Steroids, not operating system."
 
-PUBLIC_COMMAND = "loopsmith"
-COMPATIBILITY_COMMAND = "agentctl"
+PUBLIC_PRODUCT_NAME = "agent-cli-os"
+LEGACY_PRODUCT_NAME = "loopsmith"
 
-PUBLIC_REPO_URL = "https://github.com/leonardverhamme/loopsmith"
-LEGACY_REPO_URL = "https://github.com/leonardverhamme/agentctl"
+PUBLIC_COMMAND = "agentcli"
+COMPATIBILITY_COMMAND = "loopsmith"
+LEGACY_COMMAND = "agentctl"
 
-PUBLIC_PLUGIN_NAME = "loopsmith"
-LEGACY_PLUGIN_NAMES = ("agentctl", "agentctl-platform")
+PUBLIC_REPO_URL = "https://github.com/leonardverhamme/agent-cli-os"
+LEGACY_REPO_URL = "https://github.com/leonardverhamme/loopsmith"
 
-PUBLIC_DOCS_DIRNAME = "loopsmith"
-LEGACY_DOCS_DIRNAME = "agentctl"
+PUBLIC_PLUGIN_NAME = "agent-cli-os"
+LEGACY_PLUGIN_NAMES = ("loopsmith", "agentctl", "agentctl-platform")
+
+PUBLIC_DOCS_DIRNAME = "agent-cli-os"
+LEGACY_DOCS_DIRNAME = "loopsmith"
 
 RELEASE_ASSET_PREFIX = PUBLIC_PRODUCT_NAME
 RELEASE_BUNDLE_PREFIX = f"{PUBLIC_PRODUCT_NAME}-bundle"

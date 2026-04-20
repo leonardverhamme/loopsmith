@@ -38,7 +38,10 @@ GUIDANCE_PATH = STATE_DIR / "guidance.json"
 SKILLS_LOCK_PATH = STATE_DIR / "skills-lock.json"
 INSTALL_METADATA_PATH = STATE_DIR / "install-metadata.json"
 MAINTENANCE_REPORT_PATH = AGENTCTL_DOCS_DIR / "maintenance-report.json"
-MAINTENANCE_STATE_PATH = CODEX_HOME / ".codex-workflows" / "agentctl-maintenance" / "state.json"
+MAINTENANCE_WORKFLOW_DIRNAME = "agentcli-maintenance"
+LEGACY_MAINTENANCE_WORKFLOW_DIRNAME = "agentctl-maintenance"
+MAINTENANCE_STATE_PATH = CODEX_HOME / ".codex-workflows" / MAINTENANCE_WORKFLOW_DIRNAME / "state.json"
+LEGACY_MAINTENANCE_STATE_PATH = CODEX_HOME / ".codex-workflows" / LEGACY_MAINTENANCE_WORKFLOW_DIRNAME / "state.json"
 STATE_SCHEMA_REFERENCE_PATH = REFERENCES_DIR / "state-schema.md"
 CAPABILITY_REGISTRY_REFERENCE_PATH = REFERENCES_DIR / "capability-registry.md"
 MAINTENANCE_CONTRACT_REFERENCE_PATH = REFERENCES_DIR / "maintenance-contract.md"
@@ -46,8 +49,10 @@ CLOUD_READINESS_REFERENCE_PATH = REFERENCES_DIR / "cloud-readiness.md"
 AGENTCTL_PLUGIN_NAME = PUBLIC_PLUGIN_NAME
 AGENTCTL_PLUGIN_DIR = PLUGINS_DIR / AGENTCTL_PLUGIN_NAME
 AGENTCTL_PLUGIN_MANIFEST_PATH = AGENTCTL_PLUGIN_DIR / ".codex-plugin" / "plugin.json"
-AGENTCTL_PLUGIN_ROUTER_SKILL_DIR = AGENTCTL_PLUGIN_DIR / "skills" / "agentctl-router"
-AGENTCTL_MAINTENANCE_SKILL_DIR = SKILLS_DIR / "agentctl-maintenance-engineer"
+AGENTCTL_PLUGIN_ROUTER_SKILL_DIR = AGENTCTL_PLUGIN_DIR / "skills" / "agentcli-router"
+LEGACY_AGENTCTL_PLUGIN_ROUTER_SKILL_DIR = AGENTCTL_PLUGIN_DIR / "skills" / "agentctl-router"
+AGENTCTL_MAINTENANCE_SKILL_DIR = SKILLS_DIR / "agentcli-maintenance-engineer"
+LEGACY_AGENTCTL_MAINTENANCE_SKILL_DIR = SKILLS_DIR / "agentctl-maintenance-engineer"
 LEGACY_PLUGIN_DIRS = tuple(PLUGINS_DIR / name for name in LEGACY_PLUGIN_NAMES)
 
 
@@ -70,6 +75,7 @@ class MaintenanceWorkspace:
     guidance_path: Path
     maintenance_report_path: Path
     maintenance_state_path: Path
+    legacy_maintenance_state_path: Path
     state_schema_reference_path: Path
     capability_registry_reference_path: Path
     maintenance_contract_reference_path: Path
@@ -77,17 +83,22 @@ class MaintenanceWorkspace:
     plugin_dir: Path
     plugin_manifest_path: Path
     plugin_router_skill_dir: Path
+    legacy_plugin_router_skill_dir: Path
     maintenance_skill_dir: Path
+    legacy_maintenance_skill_dir: Path
 
 
 def _source_repo_layout_ok() -> bool:
+    docs_roots = (
+        SOURCE_REPO_ROOT / "docs" / PUBLIC_DOCS_DIRNAME,
+        SOURCE_REPO_ROOT / "docs" / LEGACY_DOCS_DIRNAME,
+    )
     required_paths = (
         SOURCE_REPO_ROOT / ".git",
         SOURCE_REPO_ROOT / "agentctl" / "agentctl.py",
         SOURCE_REPO_ROOT / "agentctl" / "references",
-        SOURCE_REPO_ROOT / "docs" / PUBLIC_DOCS_DIRNAME,
     )
-    return all(path.exists() for path in required_paths)
+    return all(path.exists() for path in required_paths) and any(path.exists() for path in docs_roots)
 
 
 def _workspace_for_root(root: Path, *, mode: str) -> MaintenanceWorkspace:
@@ -115,15 +126,18 @@ def _workspace_for_root(root: Path, *, mode: str) -> MaintenanceWorkspace:
         inventory_path=state_dir / "inventory.json",
         guidance_path=state_dir / "guidance.json",
         maintenance_report_path=docs_dir / "maintenance-report.json",
-        maintenance_state_path=root / ".codex-workflows" / "agentctl-maintenance" / "state.json",
+        maintenance_state_path=root / ".codex-workflows" / MAINTENANCE_WORKFLOW_DIRNAME / "state.json",
+        legacy_maintenance_state_path=root / ".codex-workflows" / LEGACY_MAINTENANCE_WORKFLOW_DIRNAME / "state.json",
         state_schema_reference_path=references_dir / "state-schema.md",
         capability_registry_reference_path=references_dir / "capability-registry.md",
         maintenance_contract_reference_path=references_dir / "maintenance-contract.md",
         cloud_readiness_reference_path=references_dir / "cloud-readiness.md",
         plugin_dir=plugin_dir,
         plugin_manifest_path=plugin_dir / ".codex-plugin" / "plugin.json",
-        plugin_router_skill_dir=plugin_dir / "skills" / "agentctl-router",
-        maintenance_skill_dir=(root / "skills" / "agentctl-maintenance-engineer"),
+        plugin_router_skill_dir=plugin_dir / "skills" / "agentcli-router",
+        legacy_plugin_router_skill_dir=plugin_dir / "skills" / "agentctl-router",
+        maintenance_skill_dir=(root / "skills" / "agentcli-maintenance-engineer"),
+        legacy_maintenance_skill_dir=(root / "skills" / "agentctl-maintenance-engineer"),
     )
 
 

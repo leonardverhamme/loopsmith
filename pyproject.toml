@@ -3,7 +3,7 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "loopsmith"
+name = "agent-cli-os"
 version = "0.1.0"
 description = "Capability-first Codex control plane for long-running developer workflows."
 readme = "README.md"
@@ -25,11 +25,13 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/leonardverhamme/loopsmith"
-Repository = "https://github.com/leonardverhamme/loopsmith"
-Issues = "https://github.com/leonardverhamme/loopsmith/issues"
+Homepage = "https://github.com/leonardverhamme/agent-cli-os"
+Repository = "https://github.com/leonardverhamme/agent-cli-os"
+Issues = "https://github.com/leonardverhamme/agent-cli-os/issues"
 
 [project.scripts]
+agentcli = "agentctl.bootstrap:main"
+agentcli-bootstrap = "agentctl.bootstrap:main"
 loopsmith = "agentctl.bootstrap:main"
 loopsmith-bootstrap = "agentctl.bootstrap:main"
 agentctl = "agentctl.bootstrap:main"

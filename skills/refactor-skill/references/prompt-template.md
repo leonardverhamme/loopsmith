@@ -1,4 +1,4 @@
-# Prompt Template
+﻿# Prompt Template
 
 Use these short forms when the user needs help phrasing a refactor task.
 
@@ -15,3 +15,4 @@ Refactor <files or subsystem> in small verified steps. Preserve behavior, keep t
 $refactor-skill
 Refactor <target area> without changing <user-visible or API-visible behavior>. Add the minimum safety net needed, then keep iterating until the relevant checks are green.
 ```
+

@@ -1,4 +1,4 @@
-# Dashboard Charts
+﻿# Dashboard Charts
 
 Load this for analytics dashboards, overview pages, and chart views inside shadcn or Tailwind apps.
 
@@ -57,3 +57,4 @@ Revise if any answer is yes:
 - Are legends or tooltips verbose?
 - Does a pie chart have too many categories?
 - Does the chart layout break the density of the rest of the app?
+

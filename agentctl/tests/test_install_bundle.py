@@ -27,14 +27,14 @@ class InstallBundleTests(unittest.TestCase):
 
     def test_release_bundle_candidates_use_versioned_download_urls(self) -> None:
         candidates = bundle_install_module._release_bundle_candidates(
-            "https://github.com/leonardverhamme/loopsmith",
+            "https://github.com/leonardverhamme/agent-cli-os",
             "v1.2.3",
         )
 
-        self.assertEqual(candidates[0]["asset_name"], "loopsmith-bundle-v1.2.3.zip")
+        self.assertEqual(candidates[0]["asset_name"], "agent-cli-os-bundle-v1.2.3.zip")
         self.assertEqual(
             candidates[0]["download_url"],
-            "https://github.com/leonardverhamme/loopsmith/releases/download/v1.2.3/loopsmith-bundle-v1.2.3.zip",
+            "https://github.com/leonardverhamme/agent-cli-os/releases/download/v1.2.3/agent-cli-os-bundle-v1.2.3.zip",
         )
 
     def test_ensure_plugin_enabled_appends_once(self) -> None:
@@ -47,7 +47,7 @@ class InstallBundleTests(unittest.TestCase):
             install_bundle.ensure_plugin_enabled(config_path)
             second = config_path.read_text(encoding="utf-8")
 
-        self.assertIn('[plugins."loopsmith"]', first)
+        self.assertIn('[plugins."agent-cli-os"]', first)
         self.assertEqual(first, second)
 
     def test_ensure_plugin_enabled_migrates_legacy_plugin_key(self) -> None:
@@ -58,7 +58,7 @@ class InstallBundleTests(unittest.TestCase):
             install_bundle.ensure_plugin_enabled(config_path)
             updated = config_path.read_text(encoding="utf-8")
 
-        self.assertIn('[plugins."loopsmith"]', updated)
+        self.assertIn('[plugins."agent-cli-os"]', updated)
         self.assertNotIn('agentctl-platform', updated)
 
     def test_cleanup_legacy_plugin_removes_old_directory(self) -> None:
@@ -81,14 +81,16 @@ class InstallBundleTests(unittest.TestCase):
                 bundle.writestr("agentctl/agentctl.py", "print('ok')\n")
                 bundle.writestr("workflow-tools/workflow_runner.py", "# runner\n")
                 bundle.writestr("skills/test-skill/SKILL.md", "# test skill\n")
-                bundle.writestr("plugins/loopsmith/.codex-plugin/plugin.json", "{}\n")
-                bundle.writestr("README.md", "# loopsmith\n")
+                bundle.writestr("plugins/agent-cli-os/.codex-plugin/plugin.json", "{}\n")
+                bundle.writestr("README.md", "# Agent CLI OS\n")
                 bundle.writestr("AGENTS.md", "# agents\n")
+                bundle.writestr("agentcli.cmd", "@echo off\n")
+                bundle.writestr("agentcli.sh", "#!/bin/sh\n")
                 bundle.writestr("loopsmith.cmd", "@echo off\n")
                 bundle.writestr("loopsmith.sh", "#!/bin/sh\n")
                 bundle.writestr("agentctl.cmd", "@echo off\n")
                 bundle.writestr("agentctl.sh", "#!/bin/sh\n")
-                bundle.writestr("docs/loopsmith/overview.md", "# overview\n")
+                bundle.writestr("docs/agent-cli-os/overview.md", "# overview\n")
 
             extracted = bundle_install_module.extract_archive(archive_path, extract_root)
 
@@ -113,13 +115,13 @@ class InstallBundleTests(unittest.TestCase):
 
             bundle_install_module.bootstrap_bundle(
                 target_root=target_root,
-                repo_url="https://github.com/leonardverhamme/loopsmith",
+                repo_url="https://github.com/leonardverhamme/agent-cli-os",
                 version="v1.2.3",
                 skip_post_checks=True,
             )
 
         self.assertIn(
-            "/releases/download/v1.2.3/loopsmith-bundle-v1.2.3.zip",
+            "/releases/download/v1.2.3/agent-cli-os-bundle-v1.2.3.zip",
             download_mock.call_args_list[0].args[0],
         )
         release_metadata_mock.assert_not_called()

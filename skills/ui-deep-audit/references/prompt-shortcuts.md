@@ -1,4 +1,4 @@
-# Prompt Shortcuts
+﻿# Prompt Shortcuts
 
 Use these short prompts in the Codex app instead of pasting a giant workflow each time.
 
@@ -41,3 +41,4 @@ Open docs/ui-deep-audit-checklist.md and complete every unchecked item. Mark box
 $ui-deep-audit
 Re-open docs/ui-deep-audit-checklist.md, verify that no unchecked items remain, and only reply `ready` if the checklist is truly complete and validated.
 ```
+

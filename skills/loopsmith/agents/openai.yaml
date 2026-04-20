@@ -1,4 +1,5 @@
-interface:
+﻿interface:
   display_name: "Loopsmith"
   short_description: "Route very long tasks into the durable loopsmith execution loop."
   default_prompt: "Use this skill when the task is too large for chat memory alone and should run through the loopsmith disk-backed loop until the checklist is really empty."
+

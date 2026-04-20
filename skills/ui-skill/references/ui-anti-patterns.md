@@ -1,4 +1,4 @@
-# UI Anti-Patterns
+﻿# UI Anti-Patterns
 
 ## Card-Inside-Card CRUD
 
@@ -72,3 +72,4 @@ Why it is bad:
 
 What to do instead:
 - Default to `rounded-sm` and `rounded-md`, with `rounded-lg` only when justified.
+

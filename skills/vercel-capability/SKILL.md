@@ -1,6 +1,6 @@
----
+﻿---
 name: vercel-capability
-description: Navigate the Vercel platform capability in agentctl. Use when the task is about deployments, linking, logs, env vars, domains, Vercel platform operations, or deciding between Vercel plugin skills and the Vercel CLI.
+description: Navigate the Vercel platform capability in Agent CLI OS. Use when the task is about deployments, linking, logs, env vars, domains, Vercel platform operations, or deciding between Vercel plugin skills and the Vercel CLI.
 ---
 
 # Vercel Capability
@@ -17,8 +17,8 @@ Use this as the thin navigation layer for Vercel work. The real logic stays in t
 
 ## Workflow
 
-1. Run `agentctl capability vercel-platform`.
-2. Read the generated page at `docs/agentctl/capabilities/vercel-platform.md`.
+1. Run `agentcli capability vercel-platform`.
+2. Read the generated page at `docs/agent-cli-os/capabilities/vercel-platform.md`.
 3. Prefer the Vercel plugin skills when they already model the task well.
 4. Use `vercel` for direct CLI operations such as linking, deployments, logs, or env work.
 
@@ -26,4 +26,5 @@ Use this as the thin navigation layer for Vercel work. The real logic stays in t
 
 - Do not duplicate Vercel deployment logic in this skill.
 - Do not bypass `agentctl` when deciding whether plugin, CLI, or MCP-backed Vercel tooling is the right route.
+
 

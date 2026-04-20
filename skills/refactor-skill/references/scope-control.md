@@ -1,4 +1,4 @@
-# Scope Control
+﻿# Scope Control
 
 This skill exists because most refactor tasks should stay small.
 
@@ -30,3 +30,4 @@ OpenAI's Codex guidance repeatedly recommends well-scoped tasks and a lightweigh
 
 - [How OpenAI uses Codex](https://openai.com/business/guides-and-resources/how-openai-uses-codex/)
 - [Introducing Codex](https://openai.com/index/introducing-codex/)
+

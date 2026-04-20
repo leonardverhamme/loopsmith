@@ -1,0 +1,34 @@
+{
+  "name": "agent-cli-os",
+  "version": "0.1.0",
+  "description": "Codex plugin for the Agent CLI OS control plane, maintenance skill, and routing guidance.",
+  "author": {
+    "name": "Leona"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agent-cli-os",
+    "agentctl",
+    "codex",
+    "skills",
+    "maintenance",
+    "workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agent CLI OS",
+    "shortDescription": "Control-plane plugin for Agent CLI OS workflows",
+    "longDescription": "Expose Agent CLI OS as the front door for capability discovery, maintenance, research routing, and deep workflow launch, while keeping skills, vendor CLIs, Playwright, and Codex as the authoritative execution layers.",
+    "developerName": "Leona",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use $agentctl-router to pick the right agentctl command or workflow.",
+      "Use $agentctl-router to check whether maintenance or a deep workflow is the next step."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

@@ -1,4 +1,4 @@
-# Checklist Format
+﻿# Checklist Format
 
 When this skill needs a durable state file, keep it compact and execution-oriented.
 
@@ -34,3 +34,4 @@ Short statement of the structural outcome and invariant.
 - Track waves, not every tiny edit.
 - Only mark a box complete after the wave is implemented and verified.
 - Reopen a box if later validation shows the wave is not actually done.
+
