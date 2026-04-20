@@ -1,4 +1,4 @@
-﻿---
+---
 name: vercel-capability
 description: Navigate the Vercel platform capability in Agent CLI OS. Use when the task is about deployments, linking, logs, env vars, domains, Vercel platform operations, or deciding between Vercel plugin skills and the Vercel CLI.
 ---

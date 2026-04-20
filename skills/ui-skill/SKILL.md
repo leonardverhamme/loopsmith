@@ -1,4 +1,4 @@
-﻿---
+---
 name: ui-skill
 description: General cross-repo UI implementation and refactoring workflow for React, Next.js, Tailwind, and shadcn/ui apps. Use when adding pages, extending flows, tightening density, removing low-value explainer copy, refactoring existing screens, preserving design-system consistency, or preventing UI drift across projects. Not for full-app checklist audits or execute-until-ready remediation; use ui-deep-audit for that.
 ---

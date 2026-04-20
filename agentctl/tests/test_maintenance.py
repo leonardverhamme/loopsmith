@@ -73,6 +73,7 @@ class MaintenanceTests(unittest.TestCase):
             mock.patch.object(maintenance, "CLOUD_READINESS_REFERENCE_PATH", refs_dir / "cloud-readiness.md"),
             mock.patch.object(maintenance, "CONFIG_PATH", root / "config.toml"),
             mock.patch.object(maintenance, "WORKFLOW_REGISTRY_PATH", root / "workflow-state" / "registry.json"),
+            mock.patch.object(maintenance, "SKILLS_DIR", root / "skills"),
             mock.patch.object(maintenance, "AGENTCTL_PLUGIN_DIR", plugin_dir),
             mock.patch.object(maintenance, "AGENTCTL_PLUGIN_MANIFEST_PATH", plugin_dir / ".codex-plugin" / "plugin.json"),
             mock.patch.object(maintenance, "AGENTCTL_PLUGIN_ROUTER_SKILL_DIR", plugin_dir / "skills" / "agentcli-router"),
@@ -161,6 +162,9 @@ class MaintenanceTests(unittest.TestCase):
                 (refs_dir / name).write_text("reference\n", encoding="utf-8")
             skill_dir = root / "skills" / "agentcli-maintenance-engineer"
             skill_dir.mkdir(parents=True, exist_ok=True)
+            broken_skill = root / "skills" / "ui-skill" / "SKILL.md"
+            broken_skill.parent.mkdir(parents=True, exist_ok=True)
+            broken_skill.write_bytes(b"\xef\xbb\xbf---\nname: ui-skill\ndescription: test\n---\n")
 
             patches = self._patch_paths(root)
             with ExitStack() as stack:
@@ -174,6 +178,7 @@ class MaintenanceTests(unittest.TestCase):
             finding_ids = {finding["id"] for finding in report["findings"]}
             self.assertIn("doc-missing-overview", finding_ids)
             self.assertIn("plugin-missing", finding_ids)
+            self.assertIn("skill-loader-ui-skill", finding_ids)
             self.assertEqual(report["summary"]["status"], "error")
 
     def test_fix_docs_writes_docs_and_state(self) -> None:

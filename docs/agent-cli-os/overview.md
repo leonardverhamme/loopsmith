@@ -15,7 +15,7 @@
 ## Current Status
 
 - Maintenance status: `ok`
-- Checks passed: 88 / 88
+- Checks passed: 129 / 129
 - Open findings: 0
 - Blocked findings: 0
 

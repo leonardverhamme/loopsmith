@@ -141,7 +141,7 @@ iOS, macOS, and Android development/testing capability front doors.
 {
   "configured_mcp_count": 0,
   "enabled_plugin_count": 0,
-  "installed_skill_count": 6,
+  "installed_skill_count": 38,
   "local_skill_count": 39,
   "max_group_size": 7,
   "optional_attention_count": 9,

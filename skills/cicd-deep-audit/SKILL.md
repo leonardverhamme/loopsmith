@@ -1,4 +1,4 @@
-﻿---
+---
 name: cicd-deep-audit
 description: "Full-repo CI/CD audit and checklist-driven remediation workflow for pipelines, release automation, workflow reuse, quality gates, environments, and deployment safety. Use when auditing an older repo's automation surface, writing or refreshing a markdown checklist such as docs/cicd-deep-audit-checklist.md with `- [ ]` items, executing that checklist until the automation posture is materially better, and only replying `ready` when zero unchecked items remain. If explicitly invoked with no further instructions, run the default full-cycle workflow automatically using docs/cicd-deep-audit-checklist.md: audit or refresh, execute, keep iterating, and close out."
 ---

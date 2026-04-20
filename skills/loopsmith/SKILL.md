@@ -1,4 +1,4 @@
-﻿---
+---
 name: loopsmith
 description: Route very long or multi-step repo work into the loopsmith disk-backed loop. Use when a task is too large for chat-memory-only execution, when another skill needs a durable outer loop, or when a repo-specific checklist and state file should drive work until it is truly done.
 ---

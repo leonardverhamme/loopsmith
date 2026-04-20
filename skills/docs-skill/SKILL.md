@@ -1,4 +1,4 @@
-﻿---
+---
 name: docs-skill
 description: Durable repo documentation workflow for README updates, architecture notes, ADRs, runbooks, onboarding docs, developer guides, and command references that must stay aligned with the code. Use when code changes create doc drift, when a decision needs an ADR, or when repo-native documentation should become clearer and more navigable.
 ---

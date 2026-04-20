@@ -1,4 +1,4 @@
-﻿---
+---
 name: test-deep-audit
 description: "Full-repo test audit and checklist-driven remediation workflow for backend and frontend codebases. Use when auditing the entire repository's test health, mapping current coverage and missing layers, writing or refreshing a markdown checklist such as docs/test-deep-audit-checklist.md with `- [ ]` items, executing that checklist until all items are implemented and validated, and only replying `ready` when zero unchecked items remain. Also use when the user asks for deep test criticism, repo-wide test gap analysis, full automation quality review, or a queue-like workflow for test remediation. If explicitly invoked with no further instructions, run the default full workflow automatically using docs/test-deep-audit-checklist.md: audit the repo, refresh the checklist, execute the checklist, keep iterating until complete or blocked, and then run closeout."
 ---

@@ -222,6 +222,7 @@ CLOUD_READINESS = [
 ]
 AUTOMATION_CORE_PATTERN = "automation" + "-core"
 CAPABILITY_SKILL_LINE_BUDGET = 160
+UTF8_BOM = b"\xef\xbb\xbf"
 
 
 def _maintenance_docs_map(docs_dir: Path) -> dict[str, Path]:
@@ -424,6 +425,27 @@ def _capability_skill_budget() -> list[dict[str, Any]]:
     return records
 
 
+def _skill_loader_health() -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    roots = (SKILLS_DIR, AGENTCTL_PLUGIN_DIR / "skills")
+    for root in roots:
+        if not root.exists():
+            continue
+        for skill_path in sorted(root.rglob("SKILL.md")):
+            raw = skill_path.read_bytes()
+            records.append(
+                {
+                    "name": skill_path.parent.name,
+                    "path": str(skill_path),
+                    "scope": "plugin" if AGENTCTL_PLUGIN_DIR in skill_path.parents else "local",
+                    "has_utf8_bom": raw.startswith(UTF8_BOM),
+                    "frontmatter_at_byte_zero": raw.startswith(b"---"),
+                    "loader_compatible": raw.startswith(b"---"),
+                }
+            )
+    return records
+
+
 def _repo_scan_files() -> list[Path]:
     repo_root = AGENTCTL_HOME.parent
     roots = [
@@ -599,6 +621,7 @@ def _build_findings(
     skills: list[dict[str, Any]],
     tests: list[dict[str, Any]],
     capability_skill_budget: list[dict[str, Any]],
+    skill_loader_health: list[dict[str, Any]],
     automation_core_hits: list[dict[str, Any]],
     inventory: dict[str, Any],
     guidance: dict[str, Any],
@@ -809,6 +832,23 @@ def _build_findings(
                 path=record["path"],
             )
 
+    for record in skill_loader_health:
+        if not record["loader_compatible"]:
+            detail = (
+                "The official skills loader requires `SKILL.md` frontmatter to start with `---` at byte zero. "
+                "This file is skipped by `npx skills ls` and Codex Desktop."
+            )
+            if record["has_utf8_bom"]:
+                detail += " It currently starts with a UTF-8 BOM."
+            _add_finding(
+                findings,
+                finding_id=f"skill-loader-{record['name']}",
+                title=f"Skill loader incompatibility: {record['name']}",
+                severity="error",
+                detail=detail,
+                path=record["path"],
+            )
+
     menu_budget = capabilities.get("menu_budget", {})
     visible_group_count = capabilities.get("summary", {}).get("visible_group_count", 0)
     max_group_size = capabilities.get("summary", {}).get("max_group_size", 0)
@@ -868,6 +908,7 @@ def build_maintenance_report() -> dict[str, Any]:
     skills = _skills_status()
     tests = _tests_status()
     capability_skill_budget = _capability_skill_budget()
+    skill_loader_health = _skill_loader_health()
     automation_core_hits = _automation_core_hits()
     findings = _build_findings(
         docs=docs,
@@ -878,13 +919,14 @@ def build_maintenance_report() -> dict[str, Any]:
         skills=skills,
         tests=tests,
         capability_skill_budget=capability_skill_budget,
+        skill_loader_health=skill_loader_health,
         automation_core_hits=automation_core_hits,
         inventory=inventory,
         guidance=guidance,
         capabilities=capabilities,
     )
 
-    total_checks = len(docs) + len(generated_assets) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + 9
+    total_checks = len(docs) + len(generated_assets) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + len(skill_loader_health) + 9
     blocked_findings = [item for item in findings if item["severity"] == "error"]
     open_findings = len(findings)
     passed_checks = max(total_checks - open_findings, 0)
@@ -917,6 +959,7 @@ def build_maintenance_report() -> dict[str, Any]:
         "manual_guides": manual_guides,
         "skills": skills,
         "capability_skill_budget": capability_skill_budget,
+        "skill_loader_health": skill_loader_health,
         "plugin": plugin,
         "tests": tests,
         "cloud_readiness": CLOUD_READINESS,

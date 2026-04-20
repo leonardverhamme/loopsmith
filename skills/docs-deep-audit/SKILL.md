@@ -1,4 +1,4 @@
-﻿---
+---
 name: docs-deep-audit
 description: "Full-repo documentation audit and checklist-driven remediation workflow for durable engineering docs, ADRs, architecture overviews, runbooks, README files, and developer guides. Use when auditing an older repo's documentation surface, writing or refreshing a markdown checklist such as docs/docs-deep-audit-checklist.md with `- [ ]` items, executing that checklist until the durable docs are aligned with the code, and only replying `ready` when zero unchecked items remain. If explicitly invoked with no further instructions, run the default full-cycle workflow automatically using docs/docs-deep-audit-checklist.md: audit or refresh, execute, keep iterating, and close out."
 ---

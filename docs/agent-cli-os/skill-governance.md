@@ -67,6 +67,12 @@ If a new surface makes the default experience noisier without making the route c
 
 Do not put long manuals into thin capability skills.
 
+Keep `SKILL.md` loader-compatible:
+
+- frontmatter must start with `---` at byte zero
+- do not save `SKILL.md` with a UTF-8 BOM
+- if a skill disappears from the official skills list, check byte-zero frontmatter before blaming routing or app cache
+
 ## Personal Guidance Rules
 
 Use structured config to point to small guidance snippet directories.

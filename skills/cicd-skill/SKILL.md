@@ -1,4 +1,4 @@
-﻿---
+---
 name: cicd-skill
 description: CI/CD and release workflow engineering for repo-native pipelines such as GitHub Actions and platform deployment configs. Use when adding or tightening build, test, lint, typecheck, package, preview, release, or deploy automation; when deduplicating workflows with reusable components; or when improving quality gates, concurrency, caching, and release safety without guessing the stack.
 ---

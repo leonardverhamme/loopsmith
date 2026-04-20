@@ -1,4 +1,4 @@
-﻿---
+---
 name: github-security-capability
 description: Navigate the GitHub Advanced Security capability surface in Agent CLI OS. Use when the task is about GHAS rollout, CodeQL, code scanning, secret scanning, Dependabot alerts, dependency review, or deciding between `gh`, `gh codeql`, `ghas-cli`, and GitHub security APIs.
 ---

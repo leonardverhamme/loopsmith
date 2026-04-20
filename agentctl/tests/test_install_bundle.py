@@ -97,6 +97,21 @@ class InstallBundleTests(unittest.TestCase):
             self.assertEqual(extracted, extract_root)
             self.assertTrue((extract_root / "agentctl" / "agentctl.py").exists())
 
+    def test_copy_item_strips_utf8_bom_from_skill_files(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source_root = root / "source"
+            target_root = root / "target"
+            skill_path = source_root / "skills" / "ui-skill" / "SKILL.md"
+            skill_path.parent.mkdir(parents=True, exist_ok=True)
+            skill_path.write_bytes(b"\xef\xbb\xbf---\nname: ui-skill\ndescription: test\n---\n")
+
+            bundle_install_module.copy_item(source_root, target_root, "skills")
+
+            copied = target_root / "skills" / "ui-skill" / "SKILL.md"
+            self.assertTrue(copied.exists())
+            self.assertEqual(copied.read_bytes(), b"---\nname: ui-skill\ndescription: test\n---\n")
+
     @mock.patch("agentctl.bundle_install.install_bundle")
     @mock.patch("agentctl.bundle_install.extract_archive")
     @mock.patch("agentctl.bundle_install.download_archive")

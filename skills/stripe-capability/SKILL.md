@@ -1,4 +1,4 @@
-﻿---
+---
 name: stripe-capability
 description: Navigate the Stripe capability in Agent CLI OS. Use when the task is about payments, subscriptions, Connect, Stripe upgrades, or deciding how to use the Stripe plugin surface.
 ---

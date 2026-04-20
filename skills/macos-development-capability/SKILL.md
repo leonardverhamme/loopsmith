@@ -1,4 +1,4 @@
-﻿---
+---
 name: macos-development-capability
 description: Navigate the macOS development capability in Agent CLI OS. Use when the task is about macOS builds, packaging, desktop debugging, or SwiftUI/AppKit work.
 ---

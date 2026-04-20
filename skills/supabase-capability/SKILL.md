@@ -1,4 +1,4 @@
-﻿---
+---
 name: supabase-capability
 description: Navigate the Supabase capability in Agent CLI OS. Use when the task is about local Supabase development, migrations, local stack management, CI/CD setup, or deciding between Supabase CLI and Supabase MCP.
 ---

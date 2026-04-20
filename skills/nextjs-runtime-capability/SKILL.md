@@ -1,4 +1,4 @@
-﻿---
+---
 name: nextjs-runtime-capability
 description: Navigate the Next.js runtime capability in Agent CLI OS. Use when the task is about a running Next.js dev server, route introspection, or Next.js runtime/build diagnostics.
 ---

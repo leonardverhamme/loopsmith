@@ -1,4 +1,4 @@
-﻿---
+---
 name: figma-capability
 description: Navigate the Figma capability in Agent CLI OS. Use when the task is about Figma design context, code-connect, design-system search, or direct Figma MCP operations.
 ---

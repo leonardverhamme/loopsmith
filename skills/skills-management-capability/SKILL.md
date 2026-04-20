@@ -1,4 +1,4 @@
-﻿---
+---
 name: skills-management-capability
 description: Navigate skill installation and maintenance in Agent CLI OS. Use when listing, adding, checking, or updating skills and their provenance.
 ---

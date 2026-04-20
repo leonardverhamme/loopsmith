@@ -1,4 +1,4 @@
-﻿---
+---
 name: ios-development-capability
 description: Navigate the iOS development capability in Agent CLI OS. Use when the task is about local iOS builds, simulator debugging, SwiftUI UI work, or iOS-specific review paths.
 ---

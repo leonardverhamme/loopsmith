@@ -1,4 +1,4 @@
-﻿---
+---
 name: internet-researcher
 description: Research current information on the public web and synthesize sourced findings. Use when Codex needs up-to-date documentation, release notes, standards, changelogs, API changes, best-practice comparisons, external examples, bug or regression research, or any answer that should be verified against live online sources. Prefer this skill for read-only research and verification tasks before any code changes.
 ---

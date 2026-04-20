@@ -73,6 +73,7 @@ LEGACY_PUBLIC_SURFACE_PATHS = (
 DEFAULT_REPO_URL = PUBLIC_REPO_URL
 DEFAULT_UPDATE_CHANNEL = "latest"
 DEFAULT_UPDATE_SOURCE = "github-release"
+UTF8_BOM = b"\xef\xbb\xbf"
 
 
 def repo_root() -> Path:
@@ -85,6 +86,25 @@ def default_codex_home() -> Path:
 
 def install_metadata_path(target_root: Path) -> Path:
     return target_root / "agentctl" / "state" / "install-metadata.json"
+
+
+def _strip_utf8_bom(path: Path) -> bool:
+    raw = path.read_bytes()
+    if not raw.startswith(UTF8_BOM):
+        return False
+    path.write_bytes(raw[len(UTF8_BOM) :])
+    return True
+
+
+def _normalize_skill_files(path: Path) -> None:
+    if path.is_file():
+        if path.name == "SKILL.md":
+            _strip_utf8_bom(path)
+        return
+    if not path.exists():
+        return
+    for skill_path in path.rglob("SKILL.md"):
+        _strip_utf8_bom(skill_path)
 
 
 def _latest_release_api(repo_url: str) -> str:
@@ -171,9 +191,11 @@ def copy_item(source_root: Path, target_root: Path, relative: str) -> None:
     if source.is_dir():
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(source, target, dirs_exist_ok=True)
+        _normalize_skill_files(target)
     else:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+        _normalize_skill_files(target)
 
 
 def ensure_plugin_enabled(config_path: Path) -> None:

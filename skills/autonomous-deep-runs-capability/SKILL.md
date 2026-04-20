@@ -1,4 +1,4 @@
-﻿---
+---
 name: autonomous-deep-runs-capability
 description: Navigate unattended deep workflow execution in Agent CLI OS. Use when launching, resuming, or diagnosing deep audits and their worker-command setup.
 ---

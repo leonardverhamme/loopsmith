@@ -1,4 +1,4 @@
-﻿---
+---
 name: github-capability
 description: Navigate the GitHub capability surface in Agent CLI OS. Use when the task is about repositories, pull requests, issues, releases, GitHub Actions, or deciding whether to use the GitHub plugin skills or `gh`.
 ---

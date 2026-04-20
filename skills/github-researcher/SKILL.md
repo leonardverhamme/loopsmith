@@ -1,4 +1,4 @@
-﻿---
+---
 name: github-researcher
 description: Research GitHub repositories, code, issues, pull requests, discussions, and release history. Use when Codex needs external implementation patterns, library usage examples, maintainer guidance, regression history, popular repositories for a topic, or evidence from open-source projects before recommending or writing code.
 ---

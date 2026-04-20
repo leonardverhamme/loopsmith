@@ -1,4 +1,4 @@
-﻿---
+---
 name: android-testing-capability
 description: Navigate the Android testing capability in Agent CLI OS. Use when the task is about Android emulator QA, reproduction, screenshots, or log-driven debugging.
 ---

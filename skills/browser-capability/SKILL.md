@@ -1,4 +1,4 @@
-﻿---
+---
 name: browser-capability
 description: Navigate the browser automation capability in Agent CLI OS. Use when the task needs real-browser automation, screenshots, runtime UI verification, or deciding between Playwright CLI and Playwright MCP.
 ---

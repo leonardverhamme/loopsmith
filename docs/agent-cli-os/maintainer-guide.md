@@ -90,6 +90,12 @@ If autodetection, menu budgets, or guidance snippets change:
 - generated docs via `agentcli maintenance audit`
 - related tests
 
+If skill files stop appearing in the official skills list:
+
+- check `SKILL.md` starts with `---` at byte zero
+- remove any UTF-8 BOM before frontmatter
+- verify with `npx skills ls -g --json`, not only Agent CLI OS inventory
+
 If the generic long-task loop changes:
 
 - `agentctl/agentctl.py`

@@ -1,4 +1,4 @@
-﻿---
+---
 name: sentry-capability
 description: Navigate the Sentry capability in Agent CLI OS. Use when the task starts from a production error, event, or issue and you need the Sentry capability front door before taking action.
 ---

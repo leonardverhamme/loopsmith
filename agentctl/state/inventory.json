@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-20T13:24:59.510937+00:00",
+  "generated_at": "2026-04-20T14:02:45.009551+00:00",
   "items": [
     {
       "configured": true,
@@ -32,8 +32,104 @@
       "id": "skill:agentcli-maintenance-engineer@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo",
+      "menu_bucket": "skill:repo:a-s",
       "name": "agentcli-maintenance-engineer",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$android-testing-capability",
+      "hidden_reason": null,
+      "id": "skill:android-testing-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "android-testing-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$autonomous-deep-runs-capability",
+      "hidden_reason": null,
+      "id": "skill:autonomous-deep-runs-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "autonomous-deep-runs-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$browser-capability",
+      "hidden_reason": null,
+      "id": "skill:browser-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "browser-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$cicd-skill / $cicd-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:cicd-deep-audit@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "cicd-deep-audit",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$cicd-skill / $cicd-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:cicd-skill@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "cicd-skill",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$context-skill",
+      "hidden_reason": null,
+      "id": "skill:context-skill@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "context-skill",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$docs-skill / $docs-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:docs-deep-audit@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "docs-deep-audit",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$docs-skill / $docs-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:docs-skill@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "docs-skill",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
       "status": "ok"
@@ -44,8 +140,188 @@
       "id": "skill:editskill@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo",
+      "menu_bucket": "skill:repo:a-s",
       "name": "editskill",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$figma-capability",
+      "hidden_reason": null,
+      "id": "skill:figma-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "figma-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$github-capability",
+      "hidden_reason": null,
+      "id": "skill:github-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "github-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$research-capability",
+      "hidden_reason": null,
+      "id": "skill:github-researcher@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "github-researcher",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$github-security-capability",
+      "hidden_reason": null,
+      "id": "skill:github-security-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "github-security-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$research-capability",
+      "hidden_reason": null,
+      "id": "skill:internet-researcher@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "internet-researcher",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$ios-development-capability",
+      "hidden_reason": null,
+      "id": "skill:ios-development-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "ios-development-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$loopsmith",
+      "hidden_reason": null,
+      "id": "skill:loopsmith@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "loopsmith",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$macos-development-capability",
+      "hidden_reason": null,
+      "id": "skill:macos-development-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "macos-development-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$nextjs-runtime-capability",
+      "hidden_reason": null,
+      "id": "skill:nextjs-runtime-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "nextjs-runtime-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$browser-capability",
+      "hidden_reason": null,
+      "id": "skill:playwright@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "playwright",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$refactor-skill / $refactor-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:refactor-deep-audit@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "refactor-deep-audit",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$refactor-skill / $refactor-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:refactor-orchestrator@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "refactor-orchestrator",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$refactor-skill / $refactor-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:refactor-skill@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "refactor-skill",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$research-capability",
+      "hidden_reason": null,
+      "id": "skill:research-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "research-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$sentry-capability",
+      "hidden_reason": null,
+      "id": "skill:sentry-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-s",
+      "name": "sentry-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
       "status": "ok"
@@ -56,8 +332,116 @@
       "id": "skill:skill-edit-mode@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo",
+      "menu_bucket": "skill:repo:s-w",
       "name": "skill-edit-mode",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$skills-management-capability",
+      "hidden_reason": null,
+      "id": "skill:skills-management-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "skills-management-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$stripe-capability",
+      "hidden_reason": null,
+      "id": "skill:stripe-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "stripe-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$supabase-capability",
+      "hidden_reason": null,
+      "id": "skill:supabase-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "supabase-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$test-skill / $test-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:test-deep-audit@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "test-deep-audit",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$test-skill / $test-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:test-skill@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "test-skill",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$ui-skill / $ui-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:ui-deep-audit@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "ui-deep-audit",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$ui-skill / $ui-deep-audit",
+      "hidden_reason": null,
+      "id": "skill:ui-skill@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "ui-skill",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$vercel-capability",
+      "hidden_reason": null,
+      "id": "skill:vercel-capability@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "vercel-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": "$research-capability",
+      "hidden_reason": null,
+      "id": "skill:web-github-scout@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:s-w",
+      "name": "web-github-scout",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
       "status": "ok"
@@ -83,6 +467,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "android-testing-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\android-testing-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -95,6 +480,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "autonomous-deep-runs-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\autonomous-deep-runs-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -107,6 +493,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "browser-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\browser-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -119,6 +506,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "cicd-deep-audit",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\cicd-deep-audit\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -131,6 +519,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "cicd-skill",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\cicd-skill\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -143,6 +532,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "context-skill",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\context-skill\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -167,6 +557,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "docs-deep-audit",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\docs-deep-audit\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -179,6 +570,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "docs-skill",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\docs-skill\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -204,6 +596,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "figma-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\figma-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -216,6 +609,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "github-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\github-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -228,6 +622,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "github-researcher",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\github-researcher\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -240,6 +635,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "github-security-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\github-security-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -252,6 +648,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "internet-researcher",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\internet-researcher\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -264,6 +661,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "ios-development-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\ios-development-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -276,6 +674,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "loopsmith",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\loopsmith\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -288,6 +687,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "macos-development-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\macos-development-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -300,6 +700,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "nextjs-runtime-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\nextjs-runtime-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -324,6 +725,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "playwright",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\playwright\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -336,6 +738,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "refactor-deep-audit",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\refactor-deep-audit\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -348,6 +751,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "refactor-orchestrator",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\refactor-orchestrator\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -360,6 +764,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:a-r",
       "name": "refactor-skill",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\refactor-skill\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -372,6 +777,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "research-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\research-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -384,6 +790,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "sentry-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\sentry-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -409,6 +816,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "skills-management-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\skills-management-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -433,6 +841,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "stripe-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\stripe-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -445,6 +854,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "supabase-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\supabase-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -457,6 +867,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "test-deep-audit",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\test-deep-audit\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -469,6 +880,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "test-skill",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\test-skill\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -481,6 +893,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "ui-deep-audit",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\ui-deep-audit\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -493,6 +906,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "ui-skill",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\ui-skill\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -505,6 +919,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "vercel-capability",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\vercel-capability\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -517,6 +932,7 @@
       "kind": "skill",
       "menu_bucket": "skill:user:r-w",
       "name": "web-github-scout",
+      "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\web-github-scout\\SKILL.md",
       "source_scope": "user",
       "status": "ok"
@@ -785,14 +1201,54 @@
     },
     {
       "base_bucket": "skill:repo",
-      "count": 3,
+      "count": 25,
       "item_ids": [
         "skill:agentcli-maintenance-engineer@repo",
+        "skill:android-testing-capability@repo",
+        "skill:autonomous-deep-runs-capability@repo",
+        "skill:browser-capability@repo",
+        "skill:cicd-deep-audit@repo",
+        "skill:cicd-skill@repo",
+        "skill:context-skill@repo",
+        "skill:docs-deep-audit@repo",
+        "skill:docs-skill@repo",
         "skill:editskill@repo",
-        "skill:skill-edit-mode@repo"
+        "skill:figma-capability@repo",
+        "skill:github-capability@repo",
+        "skill:github-researcher@repo",
+        "skill:github-security-capability@repo",
+        "skill:internet-researcher@repo",
+        "skill:ios-development-capability@repo",
+        "skill:loopsmith@repo",
+        "skill:macos-development-capability@repo",
+        "skill:nextjs-runtime-capability@repo",
+        "skill:playwright@repo",
+        "skill:refactor-deep-audit@repo",
+        "skill:refactor-orchestrator@repo",
+        "skill:refactor-skill@repo",
+        "skill:research-capability@repo",
+        "skill:sentry-capability@repo"
       ],
-      "key": "skill:repo",
-      "split": false
+      "key": "skill:repo:a-s",
+      "split": true
+    },
+    {
+      "base_bucket": "skill:repo",
+      "count": 10,
+      "item_ids": [
+        "skill:skill-edit-mode@repo",
+        "skill:skills-management-capability@repo",
+        "skill:stripe-capability@repo",
+        "skill:supabase-capability@repo",
+        "skill:test-deep-audit@repo",
+        "skill:test-skill@repo",
+        "skill:ui-deep-audit@repo",
+        "skill:ui-skill@repo",
+        "skill:vercel-capability@repo",
+        "skill:web-github-scout@repo"
+      ],
+      "key": "skill:repo:s-w",
+      "split": true
     },
     {
       "base_bucket": "skill:user",
@@ -892,22 +1348,22 @@
       "status": "ok"
     },
     {
-      "detail": "3 project skills",
+      "detail": "35 project skills",
       "name": "skills-project",
       "status": "ok"
     }
   ],
   "summary": {
-    "bucket_count": 6,
+    "bucket_count": 7,
     "hidden_count": 15,
     "kind_counts": {
       "plugin": 1,
-      "skill": 42,
+      "skill": 74,
       "tool": 18
     },
     "max_bucket_size": 25,
     "status": "ok",
-    "total_items": 61
+    "total_items": 93
   },
   "tool_map": {
     "aws": {

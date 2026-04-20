@@ -1,4 +1,4 @@
-﻿---
+---
 name: refactor-deep-audit
 description: "Broad refactor audit and checklist-driven remediation workflow for older repos and multi-module cleanup campaigns. Use when auditing a repo for structural debt, long files, tangled boundaries, outdated patterns, duplicated logic, migration candidates, and decomposition opportunities; when writing or refreshing a markdown checklist such as docs/refactor-deep-audit-checklist.md with `- [ ]` items; when executing that checklist in tracked waves; and when only replying `ready` once zero unchecked items remain. If explicitly invoked with no further instructions, run the default full-cycle workflow automatically using docs/refactor-deep-audit-checklist.md: audit or refresh, execute, keep iterating, and close out."
 ---

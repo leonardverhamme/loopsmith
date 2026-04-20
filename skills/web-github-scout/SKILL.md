@@ -1,4 +1,4 @@
-﻿---
+---
 name: web-github-scout
 description: Combine internet research with GitHub research to scout the best external references, examples, and tradeoffs for a technical topic. Use when Codex needs to compare docs plus real-world code, build a shortlist of strong sources, study how teams solve a problem in practice, or produce a compact research brief before implementation.
 ---

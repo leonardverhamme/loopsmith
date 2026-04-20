@@ -1,4 +1,4 @@
-﻿---
+---
 name: ui-deep-audit
 description: Full-app UI audit and checklist-driven remediation workflow for React, Next.js, Tailwind, and shadcn/ui apps. Use when auditing an entire app page by page, mapping routes and UI zones, writing or refreshing a markdown checklist file such as docs/ui-deep-audit-checklist.md with `- [ ]` items, executing that checklist until all items are implemented and validated, and only replying `ready` when zero unchecked items remain. Also use when the user asks for deep design or UX criticism, dense operator-console cleanup, queue-like completion tracking, or subagent-based parallel UI audits. If explicitly invoked with no further instructions, run the default full workflow automatically using docs/ui-deep-audit-checklist.md.
 ---

@@ -1,4 +1,4 @@
-﻿---
+---
 name: research-capability
 description: Navigate the research capability in Agent CLI OS. Use when deciding between web research, GitHub research, and mixed scouting before implementation.
 ---

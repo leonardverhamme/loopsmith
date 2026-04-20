@@ -1,4 +1,4 @@
-﻿---
+---
 name: refactor-skill
 description: Focused code refactor workflow for one feature area, module, or bounded set of files. Use when modernizing code, splitting long files, extracting helpers or components, renaming APIs, tightening boundaries, removing duplication, or improving structure without changing intended behavior. This is the everyday refactor skill, not the broad migration or multi-module orchestration workflow.
 ---
