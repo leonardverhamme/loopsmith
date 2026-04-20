@@ -254,6 +254,8 @@ The important distinction is:
 
 That is why the `$` picker is much larger than the compact `agentcli capabilities` menu.
 
+When an agent actively routes through one of those local front-door skills, it should mention the literal `$skill-name` once in chat so the human can see the highlighted skill route immediately.
+
 Use:
 
 ```powershell

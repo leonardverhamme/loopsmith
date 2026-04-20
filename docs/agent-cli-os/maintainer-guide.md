@@ -141,6 +141,7 @@ Tagged releases should:
 - keep raw inventory separate from the curated menu
 - keep personal guidance snippets within budget
 - keep thin capability skills short and navigation-first
+- when a front-door skill is actually used, make the assistant mention the literal `$skill-name` once in chat so the human can see the highlighted route
 - put detail in generated pages and docs, not in every `SKILL.md`
 - fail maintenance if removed sidecar-app coupling reappears in the product surface
 

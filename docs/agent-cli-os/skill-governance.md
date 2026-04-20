@@ -24,6 +24,8 @@ Not:
 
 `$loopsmith` remains the one intentional generic exception. It is only the front door for durable long-task loops and should continue to route into `agentcli loop <name>`.
 
+When a front-door skill is actually used in a chat, mention it once with the literal `$skill-name` in a user-visible update so the highlighted skill usage stays obvious to the human.
+
 ## Menu Rules
 
 Default maintenance budgets:
