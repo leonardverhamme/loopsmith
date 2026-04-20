@@ -104,9 +104,11 @@ If the request is any of the following, use `$ui-deep-audit` instead:
 - Keep one primary action per area.
 - Prefer one main task per screen.
 - Use compact spacing and compact controls.
+- Keep top-of-page chrome compact; prefer one dense header zone over stacked title, breadcrumb, tab, filter, stat, and action bars.
 - Use restrained titles, short labels, and almost no explanatory copy.
 - Default internal and operator surfaces to structure-first communication, not paragraph-first communication.
 - Keep charts secondary to the data model.
+- Make dashboard summaries earn their height; header stats, hero bands, and top charts should stay compact unless the page is primarily analytical.
 - Keep AI conversation surfaces compact and product-like, not demo-like.
 
 ## Default Density
@@ -129,6 +131,8 @@ If the request is any of the following, use `$ui-deep-audit` instead:
 - Do not place generic explainer paragraphs under page titles on operator, dashboard, queue, CRUD, or settings screens.
 - Do not add lane descriptions or section blurbs that simply restate the label the user already sees.
 - Do not use friendly onboarding copy, "how this works" prose, or policy narration as a substitute for clear structure and status design.
+- Do not stack multiple topbars or toolbar rows when one dense header can carry the title, status, actions, filters, and tabs.
+- Do not let dashboard headers, summary cards, or top-of-page charts consume a large share of the first viewport before the primary work appears.
 - Do not add charts without analytical reason.
 - Do not ship AI chat that feels larger or louder than the rest of the app.
 - Do not default to oversized radii, pill buttons, gradient-heavy AI styling, or wrapper piles.

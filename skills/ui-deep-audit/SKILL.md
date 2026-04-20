@@ -117,6 +117,8 @@ When the user does not clearly choose a mode, infer it from the checklist file s
 - Include navigation, IA, overview, user friendliness, readability, scanability, color palette, contrast, corners, radius, spacing, typography, tables, forms, charts, AI surfaces, empty states, responsiveness, accessibility, and consistency.
 - Prefer actionable defects over abstract design commentary.
 - Treat low-value explainer copy, intro paragraphs, and section blurbs as first-class defects when the page should be communicating through structure instead.
+- Treat stacked topbars, repeated toolbar rows, oversized dashboard headers, and tall summary bands as first-class density defects.
+- Flag layouts where breadcrumbs, tabs, filters, stat cards, and charts consume too much above-the-fold space before the main task or data appears.
 - Deduplicate overlapping findings so the checklist stays workable.
 
 ## Execution Rules
@@ -131,6 +133,8 @@ When the user does not clearly choose a mode, infer it from the checklist file s
 - Do not let a locked browser MCP session end the batch; switch to the Playwright CLI path, a fresh session, or another free app port and complete the pass.
 - For dense product and operator surfaces, prefer removing or compressing explanatory copy rather than polishing it.
 - Use labels, counters, badges, column headers, inline helper text, and clearer grouping instead of keeping orientation paragraphs that the layout should replace.
+- Prefer one compact header band that combines title, status, primary actions, filters, tabs, and a light summary instead of multiple stacked bars.
+- Compress or relocate top-of-page charts and summary cards when they crowd out the primary table, form, or workflow surface.
 - Mark items `- [x]` only after implementation and validation.
 - If an item cannot be completed yet, leave it unchecked and append a short blocker note instead of pretending it is done.
 - Keep going until no unchecked items remain.
