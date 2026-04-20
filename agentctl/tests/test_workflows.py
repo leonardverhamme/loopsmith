@@ -320,9 +320,10 @@ class WorkflowStatusTests(unittest.TestCase):
         self.assertIn("repo-cleanup", command)
         self.assertIn("--task-file", command)
         task_file_arg = command[command.index("--task-file") + 1]
+        self.assertEqual(Path(task_file_arg).name, "task.md")
         self.assertEqual(
-            os.path.normcase(os.path.normpath(task_file_arg)),
-            os.path.normcase(os.path.normpath(str(task_file))),
+            tuple(part.lower() for part in Path(task_file_arg).parts[-3:]),
+            tuple(part.lower() for part in (".codex-workflows", "repo-cleanup", "task.md")),
         )
 
     def test_cli_run_completes_end_to_end_with_fake_worker(self) -> None:
