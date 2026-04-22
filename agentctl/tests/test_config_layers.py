@@ -58,6 +58,43 @@ class ConfigLayerTests(unittest.TestCase):
 
         self.assertEqual(effective["browser"]["preferred_route"], "mcp")
         self.assertEqual(effective["updates"]["source"], "github-release")
+        self.assertEqual(effective["repo_intel"]["graph_dir"], "graphify-out")
+        self.assertEqual(effective["repo_intel"]["update_policy"], "ensure")
+        self.assertTrue(effective["computer_intel"]["enabled"])
+        self.assertEqual(effective["computer_intel"]["scan_scope"], "laptop")
+        self.assertEqual(effective["computer_intel"]["directory_budget"], 250000)
+        self.assertEqual(effective["computer_intel"]["search_limit"], 80)
+        self.assertEqual(effective["computer_intel"]["live_search_limit"], 120)
+
+    def test_trusted_projects_reads_user_config(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            codex_home = Path(temp_dir) / ".codex"
+            project_root = Path(temp_dir) / "repo"
+            other_root = Path(temp_dir) / "other"
+            codex_home.mkdir(parents=True, exist_ok=True)
+            project_root.mkdir(parents=True, exist_ok=True)
+            other_root.mkdir(parents=True, exist_ok=True)
+            config_path = codex_home / "config.toml"
+            config_path.write_text(
+                "\n".join(
+                    [
+                        "schema_version = 1",
+                        "",
+                        f'[projects."{project_root}"]',
+                        'trust_level = "trusted"',
+                        "",
+                        f'[projects."{other_root}"]',
+                        'trust_level = "read-only"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(config_layers, "CONFIG_PATH", config_path):
+                trusted = config_layers.trusted_projects()
+
+        self.assertEqual(trusted, [{"path": str(project_root.resolve()), "trust_level": "trusted"}])
 
     def test_cli_config_set_and_show_repo_scope(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

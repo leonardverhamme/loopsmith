@@ -41,6 +41,24 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "max_items": 25,
         "names_only": True,
     },
+    "repo_intel": {
+        "enabled": True,
+        "graph_engine": "graphify",
+        "graph_dir": "graphify-out",
+        "manifest_dir": ".agentcli",
+        "write_agents_hint": True,
+        "obsidian_export": False,
+        "obsidian_vault_root": "",
+        "update_policy": "ensure",
+        "hooks_default": "off",
+    },
+    "computer_intel": {
+        "enabled": True,
+        "scan_scope": "laptop",
+        "directory_budget": 250000,
+        "search_limit": 80,
+        "live_search_limit": 120,
+    },
 }
 
 
@@ -300,6 +318,23 @@ def repair_user_config() -> dict[str, Any]:
     else:
         path = CONFIG_PATH
     return {"status": "ok", "path": str(path), "changed": changed}
+
+
+def trusted_projects() -> list[dict[str, Any]]:
+    payload = _load_toml(CONFIG_PATH)
+    projects = payload.get("projects", {})
+    trusted: list[dict[str, Any]] = []
+    for raw_path, meta in projects.items():
+        if not isinstance(meta, dict) or meta.get("trust_level") != "trusted":
+            continue
+        trusted.append(
+            {
+                "path": str(Path(raw_path).expanduser().resolve()),
+                "trust_level": "trusted",
+            }
+        )
+    trusted.sort(key=lambda item: item["path"].lower())
+    return trusted
 
 
 def print_config_human(payload: dict[str, Any], *, as_json: bool = False) -> None:

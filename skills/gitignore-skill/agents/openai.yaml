@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gitignore Hygiene"
+  short_description: "Keep repo junk out of commits"
+  default_prompt: "Use $gitignore-skill to audit and tighten this repo's .gitignore without hiding real source files."

@@ -10,6 +10,8 @@ Keep three layers separate:
 - curated capability menu
 - thin front-door skills
 
+Raw inventory should stay app-aware: local CLIs, skills, plugins, MCPs, and app connectors discovered from local `.app.json` metadata plus enabled plugin/config state.
+
 Do not collapse those into one flat surface.
 
 ## Front-Door Skill Rule

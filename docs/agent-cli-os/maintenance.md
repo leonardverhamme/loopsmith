@@ -3,10 +3,10 @@
 
 ## Last Run
 
-- Generated: `2026-04-20T14:43:19.770480+00:00`
-- Status: `ok`
-- Checks passed: 130 / 130
-- Open findings: 0
+- Generated: `2026-04-22T11:59:13.847560+00:00`
+- Status: `degraded`
+- Checks passed: 149 / 150
+- Open findings: 1
 - Blocked findings: 0
 
 ## When to Run Maintenance
@@ -21,7 +21,7 @@
 1. Run `agentcli maintenance check` for a quick signal.
 2. If command surface, docs, or packaging changed, run `agentcli maintenance audit`.
 3. Read `maintenance.md`, `maintenance-report.json`, and `.codex-workflows/agentcli-maintenance/state.json` together.
-4. Inspect `agentcli inventory show` when a capability surface looks wrong or unexpectedly large.
+4. Inspect `agentcli inventory show` when a capability surface or app-aware inventory looks wrong or unexpectedly large.
 5. Remember that maintenance now includes a safe mirrored `npx skills ls -g --json` check for the current local skill tree.
 6. Inspect `agentcli self-check` when config, guidance, or menu budgets may be part of the problem.
 7. If findings are doc-only, prefer `agentcli maintenance fix-docs` over hand edits.
@@ -31,8 +31,8 @@
 
 - Refresh `docs/agent-cli-os/*.md` from machine state.
 - Keep `agentctl/state/inventory.json` and `agentctl/state/guidance.json` healthy and within budget.
-- Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.
-- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.
+- Review hand-maintained guides such as `README.md`, `repo-intel.md`, `repo-intel-automation.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.
+- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code, especially after repo-intel state or command-contract changes.
 - Re-run tests for Agent CLI OS and the shared workflow tools.
 - Re-run at least one CLI-level deep-workflow smoke after changing runner/state/guard behavior.
 - Keep `AGENTS.md` aligned with the intended front door.
@@ -55,7 +55,10 @@
 
 ## Maintenance Checklist
 
-- [x] No open maintenance findings remain.
+- [ ] Trusted repo-intel audit is not healthy
+  - Severity: `warn`
+  - Detail: Trusted repos should stay graph-backed by default so agents can route repo-first before broad raw-file search. Current non-fresh counts: stale_code=3. Run `agentcli repo-intel audit --all-trusted --fix`.
+  - Path: `C:\Users\leona\.codex\agentctl\state\workspace-graph.json`
 
 ## Known Limitations
 

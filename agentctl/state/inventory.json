@@ -1,6 +1,90 @@
 {
-  "generated_at": "2026-04-20T14:43:17.942241+00:00",
+  "generated_at": "2026-04-22T11:58:57.529337+00:00",
   "items": [
+    {
+      "configured": true,
+      "connector_id": "connector_76869538009648d5b282a4bb21c3d157",
+      "front_door_candidate": "$github-capability",
+      "hidden_reason": null,
+      "id": "app:github@user",
+      "kind": "app",
+      "menu_bucket": "app:user",
+      "name": "github",
+      "source_hint": "codex_apps_tools cache",
+      "source_path": "C:\\Users\\leona\\.codex\\.tmp\\plugins\\plugins\\github\\.app.json",
+      "source_scope": "user",
+      "status": "ok"
+    },
+    {
+      "configured": true,
+      "connector_id": "connector_2128aebfecb84f64a069897515042a44",
+      "front_door_candidate": null,
+      "hidden_reason": "active app connector is detected for diagnostics only and is not auto-promoted into the curated front-door menu.",
+      "id": "app:gmail@user",
+      "kind": "app",
+      "menu_bucket": "app:user",
+      "name": "gmail",
+      "source_hint": "codex_apps_tools cache",
+      "source_path": "C:\\Users\\leona\\.codex\\.tmp\\plugins\\plugins\\gmail\\.app.json",
+      "source_scope": "user",
+      "status": "ok"
+    },
+    {
+      "configured": true,
+      "connector_id": "connector_947e0d954944416db111db556030eea6",
+      "front_door_candidate": null,
+      "hidden_reason": "active app connector is detected for diagnostics only and is not auto-promoted into the curated front-door menu.",
+      "id": "app:google-calendar@user",
+      "kind": "app",
+      "menu_bucket": "app:user",
+      "name": "google-calendar",
+      "source_hint": "codex_apps_tools cache",
+      "source_path": "C:\\Users\\leona\\.codex\\.tmp\\plugins\\plugins\\google-calendar\\.app.json",
+      "source_scope": "user",
+      "status": "ok"
+    },
+    {
+      "configured": true,
+      "connector_id": "asdk_app_69c18c28f1188191bf5b8445c4ab0a2e",
+      "front_door_candidate": null,
+      "hidden_reason": "active app connector is detected for diagnostics only and is not auto-promoted into the curated front-door menu.",
+      "id": "app:notion@user",
+      "kind": "app",
+      "menu_bucket": "app:user",
+      "name": "notion",
+      "source_hint": "codex_apps_tools cache",
+      "source_path": "C:\\Users\\leona\\.codex\\.tmp\\plugins\\plugins\\notion\\.app.json",
+      "source_scope": "user",
+      "status": "ok"
+    },
+    {
+      "configured": true,
+      "connector_id": "connector_690ab09fa43c8191bca40280e4563238",
+      "front_door_candidate": "$stripe-capability",
+      "hidden_reason": null,
+      "id": "app:stripe@user",
+      "kind": "app",
+      "menu_bucket": "app:user",
+      "name": "stripe",
+      "source_hint": "codex_apps_tools cache",
+      "source_path": "C:\\Users\\leona\\.codex\\.tmp\\plugins\\plugins\\stripe\\.app.json",
+      "source_scope": "user",
+      "status": "ok"
+    },
+    {
+      "configured": true,
+      "connector_id": "connector_690a90ec05c881918afb6a55dc9bbaa1",
+      "front_door_candidate": "$browser-capability",
+      "hidden_reason": null,
+      "id": "app:vercel@user",
+      "kind": "app",
+      "menu_bucket": "app:user",
+      "name": "vercel",
+      "source_hint": "codex_apps_tools cache",
+      "source_path": "C:\\Users\\leona\\.codex\\.tmp\\plugins\\plugins\\vercel\\.app.json",
+      "source_scope": "user",
+      "status": "ok"
+    },
     {
       "configured": true,
       "front_door_candidate": "$agentcli-maintenance-engineer",
@@ -32,7 +116,7 @@
       "id": "skill:agentcli-maintenance-engineer@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "agentcli-maintenance-engineer",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -44,7 +128,7 @@
       "id": "skill:android-testing-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "android-testing-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -56,7 +140,7 @@
       "id": "skill:autonomous-deep-runs-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "autonomous-deep-runs-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -68,7 +152,7 @@
       "id": "skill:browser-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "browser-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -80,7 +164,7 @@
       "id": "skill:cicd-deep-audit@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "cicd-deep-audit",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -92,7 +176,7 @@
       "id": "skill:cicd-skill@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "cicd-skill",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -104,7 +188,7 @@
       "id": "skill:context-skill@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "context-skill",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -116,7 +200,7 @@
       "id": "skill:docs-deep-audit@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "docs-deep-audit",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -128,7 +212,7 @@
       "id": "skill:docs-skill@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "docs-skill",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -140,7 +224,7 @@
       "id": "skill:editskill@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "editskill",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -152,7 +236,7 @@
       "id": "skill:figma-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "figma-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -164,7 +248,7 @@
       "id": "skill:github-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "github-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -176,7 +260,7 @@
       "id": "skill:github-researcher@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "github-researcher",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -188,8 +272,20 @@
       "id": "skill:github-security-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "github-security-capability",
+      "source_hint": "npx skills ls",
+      "source_scope": "repo",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": null,
+      "hidden_reason": "skill is installed but not promoted into the curated front-door menu.",
+      "id": "skill:gitignore-skill@repo",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:repo:a-r",
+      "name": "gitignore-skill",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
       "status": "ok"
@@ -200,7 +296,7 @@
       "id": "skill:internet-researcher@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "internet-researcher",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -212,7 +308,7 @@
       "id": "skill:ios-development-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "ios-development-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -224,7 +320,7 @@
       "id": "skill:loopsmith@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "loopsmith",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -236,7 +332,7 @@
       "id": "skill:macos-development-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "macos-development-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -248,7 +344,7 @@
       "id": "skill:nextjs-runtime-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "nextjs-runtime-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -260,7 +356,7 @@
       "id": "skill:playwright@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "playwright",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -272,7 +368,7 @@
       "id": "skill:refactor-deep-audit@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "refactor-deep-audit",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -284,7 +380,7 @@
       "id": "skill:refactor-orchestrator@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "refactor-orchestrator",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -296,7 +392,7 @@
       "id": "skill:refactor-skill@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "refactor-skill",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -308,7 +404,7 @@
       "id": "skill:research-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:a-r",
       "name": "research-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -320,7 +416,7 @@
       "id": "skill:sentry-capability@repo",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:repo:a-s",
+      "menu_bucket": "skill:repo:s-w",
       "name": "sentry-capability",
       "source_hint": "npx skills ls",
       "source_scope": "repo",
@@ -641,6 +737,31 @@
       "status": "ok"
     },
     {
+      "front_door_candidate": null,
+      "hidden_reason": "skill is installed but not promoted into the curated front-door menu.",
+      "id": "skill:gitignore-skill@user",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:user:a-r",
+      "name": "gitignore-skill",
+      "source_hint": "npx skills ls -g",
+      "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\gitignore-skill\\SKILL.md",
+      "source_scope": "user",
+      "status": "ok"
+    },
+    {
+      "front_door_candidate": null,
+      "hidden_reason": "skill is installed but not promoted into the curated front-door menu.",
+      "id": "skill:graphify@user",
+      "installed": true,
+      "kind": "skill",
+      "menu_bucket": "skill:user:a-r",
+      "name": "graphify",
+      "source_hint": "npx skills ls -g",
+      "source_scope": "user",
+      "status": "ok"
+    },
+    {
       "front_door_candidate": "$research-capability",
       "hidden_reason": null,
       "id": "skill:internet-researcher@user",
@@ -749,7 +870,7 @@
       "id": "skill:refactor-orchestrator@user",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:user:a-r",
+      "menu_bucket": "skill:user:r-w",
       "name": "refactor-orchestrator",
       "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\refactor-orchestrator\\SKILL.md",
@@ -762,7 +883,7 @@
       "id": "skill:refactor-skill@user",
       "installed": true,
       "kind": "skill",
-      "menu_bucket": "skill:user:a-r",
+      "menu_bucket": "skill:user:r-w",
       "name": "refactor-skill",
       "source_hint": "npx skills ls -g",
       "source_path": "C:\\Users\\leona\\Documents\\Playground\\agentctl\\skills\\refactor-skill\\SKILL.md",
@@ -1069,6 +1190,20 @@
       "version": "Usage: cli.py [OPTIONS] COMMAND [ARGS]..."
     },
     {
+      "front_door_candidate": "agentcli repo-intel",
+      "hidden_reason": null,
+      "id": "tool:graphify@system",
+      "installed": true,
+      "kind": "tool",
+      "menu_bucket": "tool:system",
+      "name": "graphify",
+      "source_hint": "graphify",
+      "source_path": "C:\\Users\\leona\\AppData\\Roaming\\Python\\Scripts\\graphify.CMD",
+      "source_scope": "system",
+      "status": "ok",
+      "version": "Usage: graphify <command>"
+    },
+    {
       "front_door_candidate": null,
       "hidden_reason": "detected for diagnostics only; no curated front door is registered yet.",
       "id": "tool:node@system",
@@ -1095,6 +1230,19 @@
       "source_scope": "system",
       "status": "ok",
       "version": "11.8.0"
+    },
+    {
+      "front_door_candidate": null,
+      "hidden_reason": "detected for diagnostics only; no curated front door is registered yet.",
+      "id": "tool:obsidian@system",
+      "installed": true,
+      "kind": "tool",
+      "menu_bucket": "tool:system",
+      "name": "obsidian",
+      "source_hint": "obsidian",
+      "source_path": "C:\\Program Files\\Obsidian\\Obsidian.exe",
+      "source_scope": "system",
+      "status": "ok"
     },
     {
       "front_door_candidate": "$browser-capability",
@@ -1182,6 +1330,20 @@
   ],
   "menu_buckets": [
     {
+      "base_bucket": "app:user",
+      "count": 6,
+      "item_ids": [
+        "app:github@user",
+        "app:gmail@user",
+        "app:google-calendar@user",
+        "app:notion@user",
+        "app:stripe@user",
+        "app:vercel@user"
+      ],
+      "key": "app:user",
+      "split": false
+    },
+    {
       "base_bucket": "plugin:user",
       "count": 1,
       "item_ids": [
@@ -1217,6 +1379,7 @@
         "skill:github-capability@repo",
         "skill:github-researcher@repo",
         "skill:github-security-capability@repo",
+        "skill:gitignore-skill@repo",
         "skill:internet-researcher@repo",
         "skill:ios-development-capability@repo",
         "skill:loopsmith@repo",
@@ -1226,16 +1389,16 @@
         "skill:refactor-deep-audit@repo",
         "skill:refactor-orchestrator@repo",
         "skill:refactor-skill@repo",
-        "skill:research-capability@repo",
-        "skill:sentry-capability@repo"
+        "skill:research-capability@repo"
       ],
-      "key": "skill:repo:a-s",
+      "key": "skill:repo:a-r",
       "split": true
     },
     {
       "base_bucket": "skill:repo",
-      "count": 10,
+      "count": 11,
       "item_ids": [
+        "skill:sentry-capability@repo",
         "skill:skill-edit-mode@repo",
         "skill:skills-management-capability@repo",
         "skill:stripe-capability@repo",
@@ -1269,6 +1432,8 @@
         "skill:github-capability@user",
         "skill:github-researcher@user",
         "skill:github-security-capability@user",
+        "skill:gitignore-skill@user",
+        "skill:graphify@user",
         "skill:internet-researcher@user",
         "skill:ios-development-capability@user",
         "skill:loopsmith@user",
@@ -1276,17 +1441,17 @@
         "skill:nextjs-runtime-capability@user",
         "skill:pdf@user",
         "skill:playwright@user",
-        "skill:refactor-deep-audit@user",
-        "skill:refactor-orchestrator@user",
-        "skill:refactor-skill@user"
+        "skill:refactor-deep-audit@user"
       ],
       "key": "skill:user:a-r",
       "split": true
     },
     {
       "base_bucket": "skill:user",
-      "count": 13,
+      "count": 15,
       "item_ids": [
+        "skill:refactor-orchestrator@user",
+        "skill:refactor-skill@user",
         "skill:research-capability@user",
         "skill:sentry-capability@user",
         "skill:skill-edit-mode@user",
@@ -1306,7 +1471,7 @@
     },
     {
       "base_bucket": "tool:system",
-      "count": 18,
+      "count": 20,
       "item_ids": [
         "tool:aws@system",
         "tool:az@system",
@@ -1318,8 +1483,10 @@
         "tool:gh@system",
         "tool:gh-codeql@system",
         "tool:ghas-cli@system",
+        "tool:graphify@system",
         "tool:node@system",
         "tool:npx@system",
+        "tool:obsidian@system",
         "tool:playwright@system",
         "tool:plugin-eval@system",
         "tool:python@system",
@@ -1338,7 +1505,7 @@
   "schema_version": 1,
   "sources": [
     {
-      "detail": "18 detected tools",
+      "detail": "20 detected tools",
       "name": "tools",
       "status": "ok"
     },
@@ -1348,22 +1515,33 @@
       "status": "ok"
     },
     {
-      "detail": "35 project skills",
+      "detail": "36 project skills",
       "name": "skills-project",
+      "status": "ok"
+    },
+    {
+      "detail": "100 manifests, 101 mapped connectors",
+      "name": "apps-temp",
+      "status": "ok"
+    },
+    {
+      "detail": "6 active connectors, 6 helper connectors ignored, 1 cache files",
+      "name": "apps-active",
       "status": "ok"
     }
   ],
   "summary": {
-    "bucket_count": 7,
-    "hidden_count": 15,
+    "bucket_count": 8,
+    "hidden_count": 22,
     "kind_counts": {
+      "app": 6,
       "plugin": 1,
-      "skill": 74,
-      "tool": 18
+      "skill": 77,
+      "tool": 20
     },
     "max_bucket_size": 25,
     "status": "ok",
-    "total_items": 93
+    "total_items": 104
   },
   "tool_map": {
     "aws": {
@@ -1478,6 +1656,14 @@
       "status": "ok",
       "version": "Usage: cli.py [OPTIONS] COMMAND [ARGS]..."
     },
+    "graphify": {
+      "command": "graphify",
+      "installed": true,
+      "name": "graphify",
+      "path": "C:\\Users\\leona\\AppData\\Roaming\\Python\\Scripts\\graphify.CMD",
+      "status": "ok",
+      "version": "Usage: graphify <command>"
+    },
     "node": {
       "auth": "unknown",
       "command": "node",
@@ -1497,6 +1683,13 @@
       "path": "C:\\Program Files\\nodejs\\npx.CMD",
       "status": "ok",
       "version": "11.8.0"
+    },
+    "obsidian": {
+      "command": "obsidian",
+      "installed": true,
+      "name": "obsidian",
+      "path": "C:\\Program Files\\Obsidian\\Obsidian.exe",
+      "status": "ok"
     },
     "playwright": {
       "browser_binaries": {

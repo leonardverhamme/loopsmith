@@ -31,6 +31,12 @@ Control-plane entrypoints for install health, maintenance, and unattended worker
 - `plugin-evaluation` uses `$plugin-eval:plugin-eval` and is currently `missing`.
   - Overlap policy: Keep plugin and skill evaluation behind one chat-first route instead of scattering analysis, budget, and benchmark commands through the default menu.
   - Page: `docs/agent-cli-os/capabilities/plugin-evaluation.md`
+- `repo-intelligence` uses `agentcli repo-intel` and is currently `ok`.
+  - Overlap policy: Keep repo intelligence as a CLI-first subsystem. Graphify is the indexing engine, Obsidian is a secondary export/view layer, and AGENTS guidance should stay a tiny routing hint only.
+  - Page: `docs/agent-cli-os/capabilities/repo-intelligence.md`
+- `computer-intelligence` uses `agentcli computer-intel` and is currently `ok`.
+  - Overlap policy: Keep the machine-wide laptop discovery layer separate from per-repo Graphify graphs. Use the global index for whole-computer discovery and repo selection, then drop into repo-intel for repo-specific graph work.
+  - Page: `docs/agent-cli-os/capabilities/computer-intelligence.md`
 
 ### Workflows
 
@@ -141,11 +147,11 @@ iOS, macOS, and Android development/testing capability front doors.
 {
   "configured_mcp_count": 0,
   "enabled_plugin_count": 0,
-  "installed_skill_count": 38,
-  "local_skill_count": 39,
+  "installed_skill_count": 40,
+  "local_skill_count": 41,
   "max_group_size": 7,
   "optional_attention_count": 9,
-  "optional_capability_count": 14,
+  "optional_capability_count": 16,
   "required_capability_count": 11,
   "status": "ok",
   "visible_group_count": 6

@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -12,12 +13,14 @@ from typing import Any
 from . import config_layers as config_layers_module
 from . import guidance as guidance_module
 from . import inventory as inventory_module
+from . import paths as paths_module
 from .branding import COMPATIBILITY_COMMAND, PUBLIC_COMMAND, PUBLIC_DISPLAY_NAME, PUBLIC_DOCS_DIRNAME, PUBLIC_PRODUCT_NAME
 from .capabilities import CAPABILITY_GROUPS, build_capabilities_report, capability_detail, capability_doc_path, capability_keys
 from .common import load_json, print_json, save_json, save_text, utc_now
 from .config_layers import _load_toml
 from .guidance import GUIDANCE_SCHEMA_VERSION, refresh_guidance_snapshot
 from .inventory import INVENTORY_SCHEMA_VERSION, refresh_inventory_snapshot
+from .repo_intel import repo_intel_audit
 from .paths import (
     AGENTCTL_CAPABILITIES_DOCS_DIR,
     AGENTCTL_DOCS_DIR,
@@ -29,6 +32,7 @@ from .paths import (
     AGENTCTL_PLUGIN_ROUTER_SKILL_DIR,
     CAPABILITIES_PATH,
     CAPABILITY_REGISTRY_REFERENCE_PATH,
+    COMPUTER_GRAPH_PATH,
     CLOUD_READINESS_REFERENCE_PATH,
     CONFIG_PATH,
     DOCTOR_REPORT_PATH,
@@ -44,6 +48,7 @@ from .paths import (
     SKILLS_DIR,
     SOURCE_REPO_ROOT,
     STATE_SCHEMA_REFERENCE_PATH,
+    WORKSPACE_GRAPH_PATH,
     WORKFLOW_REGISTRY_PATH,
     maintenance_workspace,
 )
@@ -106,8 +111,27 @@ COMMAND_GROUPS = [
         "group": "inventory",
         "items": [
             {"command": "inventory refresh", "usage": f"{PUBLIC_COMMAND} inventory refresh [--repo <path>] [--json]", "summary": "Refresh and persist the raw autodetected inventory snapshot."},
-            {"command": "inventory show", "usage": f"{PUBLIC_COMMAND} inventory show [--kind tools|skills|plugins|mcp|all] [--scope user|repo|all] [--json]", "summary": "Inspect the raw autodetected inventory behind the curated capability menu."},
+            {"command": "inventory show", "usage": f"{PUBLIC_COMMAND} inventory show [--kind tools|skills|plugins|apps|mcp|all] [--scope user|repo|all] [--json]", "summary": "Inspect the raw app-aware inventory behind the curated capability menu."},
             {"command": "inventory item", "usage": f"{PUBLIC_COMMAND} inventory item <kind>:<name> [--json]", "summary": "Show one raw inventory record."},
+        ],
+    },
+    {
+        "group": "repo-intel",
+        "items": [
+            {"command": "repo-intel status", "usage": f"{PUBLIC_COMMAND} repo-intel status [--repo <path>] [--json]", "summary": "Inspect Graphify-backed repo-intel health for one repo."},
+            {"command": "repo-intel ensure", "usage": f"{PUBLIC_COMMAND} repo-intel ensure [--repo <path>] [--json]", "summary": "Create or refresh repo-intel artifacts for one repo, including `.graphifyignore`, managed `.gitignore` hygiene, manifest state, and the tiny AGENTS hint."},
+            {"command": "repo-intel update", "usage": f"{PUBLIC_COMMAND} repo-intel update [--repo <path>] [--code-only|--semantic|--full] [--json]", "summary": "Refresh repo-intel artifacts using the lightest valid Graphify path for the current repo state."},
+            {"command": "repo-intel query", "usage": f"{PUBLIC_COMMAND} repo-intel query <question> [--repo <path>] [--budget N] [--dfs] [--json]", "summary": "Query the local repo graph through Graphify instead of falling back to broad raw-file search."},
+            {"command": "repo-intel audit", "usage": f"{PUBLIC_COMMAND} repo-intel audit [--repo <path> | --all-trusted | --all-discovered] [--fix] [--json]", "summary": "Audit repo-intel and managed repo-hygiene status for one repo, every trusted repo, or every discovered repo from the machine-wide registry."},
+            {"command": "repo-intel serve", "usage": f"{PUBLIC_COMMAND} repo-intel serve [--repo <path>] [--json]", "summary": "Prepare or launch the local Graphify MCP server for the current repo graph."},
+        ],
+    },
+    {
+        "group": "computer-intel",
+        "items": [
+            {"command": "computer-intel status", "usage": f"{PUBLIC_COMMAND} computer-intel status [--json]", "summary": "Inspect the machine-wide laptop discovery index and its scan coverage."},
+            {"command": "computer-intel refresh", "usage": f"{PUBLIC_COMMAND} computer-intel refresh [--json]", "summary": "Refresh the machine-wide laptop discovery index without replacing per-repo Graphify graphs."},
+            {"command": "computer-intel search", "usage": f"{PUBLIC_COMMAND} computer-intel search <query> [--kind all|repo|vault|graph|service|root|path] [--limit N] [--json]", "summary": "Search the machine-wide discovery surface to find repos, vaults, Graphify exports, services, or matching paths anywhere on the laptop."},
         ],
     },
     {
@@ -200,6 +224,18 @@ CLOUD_READINESS = [
         "notes": "Useful for GHAS enablement and rollout at scale, but local Windows packaging should be verified before you rely on it as the primary path.",
     },
     {
+        "name": "graphify",
+        "classification": "cloud-ready-with-setup",
+        "requirements": ["Graphify CLI", "repo-local write access", "model/API access when semantic extraction is required"],
+        "notes": "Repo-intel uses Graphify as an optional engine. Base Agent CLI OS install and CI should still work when Graphify is absent.",
+    },
+    {
+        "name": "obsidian",
+        "classification": "optional-local-only",
+        "requirements": ["Local Obsidian install or vault path"],
+        "notes": "Obsidian is a secondary repo-intel export/view layer, not the canonical repo graph store.",
+    },
+    {
         "name": "vercel",
         "classification": "cloud-ready-with-setup",
         "requirements": ["Vercel CLI", "Vercel auth"],
@@ -228,6 +264,10 @@ AUTOMATION_CORE_PATTERN = "automation" + "-core"
 CAPABILITY_SKILL_LINE_BUDGET = 160
 UTF8_BOM = b"\xef\xbb\xbf"
 SKILLS_LOADER_TIMEOUT_SECONDS = 60
+PUBLIC_COMMAND_DRIFT_PATTERN = re.compile(
+    r"(?<![\w$./\\-])(?:agentctl|loopsmith)\s+"
+    r"(?:doctor|capabilities|capability|computer-intel|config|inventory|maintenance|overview|repo-intel|research|run|self-check|skill-map|skills|status|upgrade|version)\b"
+)
 
 
 def _maintenance_docs_map(docs_dir: Path) -> dict[str, Path]:
@@ -267,6 +307,8 @@ def _workspace_bindings(workspace: MaintenanceWorkspace) -> dict[str, Path]:
         "DOCTOR_REPORT_PATH": workspace.doctor_report_path,
         "INVENTORY_PATH": workspace.inventory_path,
         "GUIDANCE_PATH": workspace.guidance_path,
+        "WORKSPACE_GRAPH_PATH": workspace.workspace_graph_path,
+        "COMPUTER_GRAPH_PATH": workspace.computer_graph_path,
         "MAINTENANCE_REPORT_PATH": workspace.maintenance_report_path,
         "MAINTENANCE_STATE_PATH": workspace.maintenance_state_path,
         "LEGACY_MAINTENANCE_STATE_PATH": workspace.legacy_maintenance_state_path,
@@ -373,6 +415,9 @@ def _manual_guides_map() -> dict[str, Path]:
     repo_root = AGENTCTL_HOME.parent
     return {
         "readme": repo_root / "README.md",
+        "repo-intel": AGENTCTL_DOCS_DIR / "repo-intel.md",
+        "computer-intel": AGENTCTL_DOCS_DIR / "computer-intel.md",
+        "repo-intel-automation": AGENTCTL_DOCS_DIR / "repo-intel-automation.md",
         "zero-touch-setup": AGENTCTL_DOCS_DIR / "zero-touch-setup.md",
         "install-on-another-computer": AGENTCTL_DOCS_DIR / "install-on-another-computer.md",
         "unattended-worker-setup": AGENTCTL_DOCS_DIR / "unattended-worker-setup.md",
@@ -595,13 +640,20 @@ def _automation_core_hits() -> list[dict[str, Any]]:
         AGENTCTL_HOME / "state" / "bootstrap-report.json",
         CAPABILITIES_PATH,
         DOCTOR_REPORT_PATH,
+        GUIDANCE_PATH,
+        INVENTORY_PATH,
         MAINTENANCE_REPORT_PATH,
         MAINTENANCE_STATE_PATH,
+        COMPUTER_GRAPH_PATH,
+        WORKSPACE_GRAPH_PATH,
+        WORKFLOW_REGISTRY_PATH,
     }
     excluded_paths = {MAINTENANCE_DOCS["maintenance"].resolve(), maintenance_source, maintenance_report}
     excluded_paths.update(path.resolve() for path in machine_artifacts)
     for path in _repo_scan_files():
         if path in excluded_paths:
+            continue
+        if "tests" in path.parts:
             continue
         if path.suffix.lower() not in {".md", ".py", ".toml", ".json", ".yml", ".yaml", ".cmd", ".sh"}:
             continue
@@ -626,6 +678,41 @@ def _automation_core_hits() -> list[dict[str, Any]]:
                 ):
                     continue
                 hits.append({"path": str(path), "line": index, "snippet": normalized})
+    return hits
+
+
+def _public_naming_targets() -> list[Path]:
+    repo_root = AGENTCTL_HOME.parent
+    docs_root = repo_root / "docs" / PUBLIC_DOCS_DIRNAME
+    targets = [
+        repo_root / "README.md",
+        repo_root / "AGENTS.md",
+        docs_root / "repo-intel.md",
+        docs_root / "repo-intel-automation.md",
+        docs_root / "computer-intel.md",
+        docs_root / "zero-touch-setup.md",
+        docs_root / "install-on-another-computer.md",
+        docs_root / "overview.md",
+        docs_root / "command-map.md",
+        docs_root / "inventory.md",
+        docs_root / "capability-registry.md",
+        docs_root / "skill-map.md",
+    ]
+    return [path for path in targets if path.exists()]
+
+
+def _public_naming_hits() -> list[dict[str, Any]]:
+    hits: list[dict[str, Any]] = []
+    for path in _public_naming_targets():
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+        for index, line in enumerate(lines, start=1):
+            match = PUBLIC_COMMAND_DRIFT_PATTERN.search(line)
+            if not match:
+                continue
+            hits.append({"path": str(path), "line": index, "snippet": line.strip()})
     return hits
 
 
@@ -662,6 +749,18 @@ def _plugin_status() -> dict[str, Any]:
     }
 
 
+def _repo_intel_trusted_audit() -> dict[str, Any]:
+    original_config_path = config_layers_module.CONFIG_PATH
+    original_codex_home = config_layers_module.CODEX_HOME
+    try:
+        config_layers_module.CONFIG_PATH = paths_module.CONFIG_PATH
+        config_layers_module.CODEX_HOME = paths_module.CODEX_HOME
+        return repo_intel_audit(all_trusted=True)
+    finally:
+        config_layers_module.CONFIG_PATH = original_config_path
+        config_layers_module.CODEX_HOME = original_codex_home
+
+
 def _skills_status() -> list[dict[str, Any]]:
     return [
         {
@@ -683,6 +782,7 @@ def _tests_status() -> list[dict[str, Any]]:
         AGENTCTL_HOME / "tests" / "test_inventory.py",
         AGENTCTL_HOME / "tests" / "test_install_bundle.py",
         AGENTCTL_HOME / "tests" / "test_research.py",
+        AGENTCTL_HOME / "tests" / "test_repo_intel.py",
         AGENTCTL_HOME / "tests" / "test_skills_ops.py",
         AGENTCTL_HOME / "tests" / "test_workflows.py",
         AGENTCTL_HOME / "tests" / "test_maintenance.py",
@@ -741,7 +841,9 @@ def _build_findings(
     capability_skill_budget: list[dict[str, Any]],
     skill_loader_health: list[dict[str, Any]],
     official_skill_loader: dict[str, Any],
+    repo_intel_trusted_audit: dict[str, Any],
     automation_core_hits: list[dict[str, Any]],
+    public_naming_hits: list[dict[str, Any]],
     inventory: dict[str, Any],
     guidance: dict[str, Any],
     capabilities: dict[str, Any],
@@ -995,6 +1097,26 @@ def _build_findings(
                 path=str(SKILLS_DIR),
             )
 
+    if repo_intel_trusted_audit.get("summary", {}).get("status") != "ok":
+        counts = repo_intel_trusted_audit.get("summary", {}).get("counts", {})
+        non_ok_counts = ", ".join(
+            f"{name}={count}"
+            for name, count in sorted(counts.items())
+            if name not in {"fresh", "disabled"}
+        ) or "trusted repos are not fresh"
+        severity = "error" if "broken" in counts else "warn"
+        _add_finding(
+            findings,
+            finding_id="repo-intel-trusted-audit",
+            title="Trusted repo-intel audit is not healthy",
+            severity=severity,
+            detail=(
+                "Trusted repos should stay graph-backed by default so agents can route repo-first before broad raw-file search. "
+                f"Current non-fresh counts: {non_ok_counts}. Run `{PUBLIC_COMMAND} repo-intel audit --all-trusted --fix`."
+            ),
+            path=repo_intel_trusted_audit.get("workspace_registry_path", str(WORKSPACE_GRAPH_PATH)),
+        )
+
     menu_budget = capabilities.get("menu_budget", {})
     visible_group_count = capabilities.get("summary", {}).get("visible_group_count", 0)
     max_group_size = capabilities.get("summary", {}).get("max_group_size", 0)
@@ -1027,6 +1149,32 @@ def _build_findings(
             path=str(MAINTENANCE_DOCS["command-map"]),
         )
 
+    overview_record = next((record for record in docs if record["name"] == "overview"), None)
+    if overview_record:
+        overview_text = _read_text(Path(overview_record["path"])).lower()
+        if "app-aware inventory" not in overview_text or "health status" not in overview_text:
+            _add_finding(
+                findings,
+                finding_id="doc-app-aware-overview",
+                title="Overview is missing app-aware inventory guidance",
+                severity="warn",
+                detail="The generated overview should explain that inventory is machine- and app-aware and that each source carries a health status.",
+                path=overview_record["path"],
+            )
+
+    inventory_record = next((record for record in docs if record["name"] == "inventory"), None)
+    if inventory_record:
+        inventory_text = _read_text(Path(inventory_record["path"])).lower()
+        if "app-aware coverage" not in inventory_text or "health model" not in inventory_text:
+            _add_finding(
+                findings,
+                finding_id="doc-app-aware-inventory",
+                title="Inventory is missing app-aware coverage guidance",
+                severity="warn",
+                detail="The generated inventory page should explain local clis, skills, plugins, mcps, and app connectors together with their health state.",
+                path=inventory_record["path"],
+            )
+
     for hit in automation_core_hits:
         _add_finding(
             findings,
@@ -1034,6 +1182,19 @@ def _build_findings(
             title="Leftover automation-core coupling",
             severity="error",
             detail=f"Found a stale automation-core reference: {hit['snippet']}",
+            path=hit["path"],
+        )
+
+    for hit in public_naming_hits:
+        _add_finding(
+            findings,
+            finding_id=f"public-command-drift-{Path(hit['path']).name}-{hit['line']}",
+            title="Public command naming drift",
+            severity="error",
+            detail=(
+                "Public docs must use the canonical `agentcli` command surface. "
+                f"Found a legacy command example: {hit['snippet']}"
+            ),
             path=hit["path"],
         )
 
@@ -1056,7 +1217,9 @@ def build_maintenance_report() -> dict[str, Any]:
     capability_skill_budget = _capability_skill_budget()
     skill_loader_health = _skill_loader_health()
     official_skill_loader = _official_skill_loader_health()
+    repo_intel_trusted_audit = _repo_intel_trusted_audit()
     automation_core_hits = _automation_core_hits()
+    public_naming_hits = _public_naming_hits()
     findings = _build_findings(
         docs=docs,
         generated_assets=generated_assets,
@@ -1068,13 +1231,15 @@ def build_maintenance_report() -> dict[str, Any]:
         capability_skill_budget=capability_skill_budget,
         skill_loader_health=skill_loader_health,
         official_skill_loader=official_skill_loader,
+        repo_intel_trusted_audit=repo_intel_trusted_audit,
         automation_core_hits=automation_core_hits,
+        public_naming_hits=public_naming_hits,
         inventory=inventory,
         guidance=guidance,
         capabilities=capabilities,
     )
 
-    total_checks = len(docs) + len(generated_assets) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + len(skill_loader_health) + 10
+    total_checks = len(docs) + len(generated_assets) + len(references) + len(manual_guides) + len(skills) + len(tests) + len(capability_skill_budget) + len(skill_loader_health) + len(_public_naming_targets()) + 11
     blocked_findings = [item for item in findings if item["severity"] == "error"]
     open_findings = len(findings)
     passed_checks = max(total_checks - open_findings, 0)
@@ -1097,6 +1262,8 @@ def build_maintenance_report() -> dict[str, Any]:
             "doctor": str(DOCTOR_REPORT_PATH),
             "inventory": str(INVENTORY_PATH),
             "guidance": str(GUIDANCE_PATH),
+            "workspace_graph": str(WORKSPACE_GRAPH_PATH),
+            "computer_graph": str(COMPUTER_GRAPH_PATH),
             "maintenance_report": str(MAINTENANCE_REPORT_PATH),
             "maintenance_state": str(MAINTENANCE_STATE_PATH),
             "skill_map_pdf": str(GENERATED_BINARY_ASSETS["skill-map-pdf"]),
@@ -1109,10 +1276,12 @@ def build_maintenance_report() -> dict[str, Any]:
         "capability_skill_budget": capability_skill_budget,
         "skill_loader_health": skill_loader_health,
         "official_skill_loader": official_skill_loader,
+        "repo_intel_trusted_audit": repo_intel_trusted_audit,
         "plugin": plugin,
         "tests": tests,
         "cloud_readiness": CLOUD_READINESS,
         "automation_core_hits": automation_core_hits,
+        "public_naming_hits": public_naming_hits,
         "inventory_snapshot": inventory,
         "guidance_snapshot": guidance,
         "capabilities_snapshot": capabilities,
@@ -1229,6 +1398,13 @@ def _render_overview(report: dict[str, Any]) -> str:
         f"3. `{PUBLIC_COMMAND}` as the runtime control plane above those skills and above authoritative vendor interfaces.",
         "4. Plugin packaging so the system can be installed and surfaced consistently.",
         "",
+        "## App-Aware Inventory",
+        "",
+        f"`{PUBLIC_COMMAND} inventory show` is the machine- and app-aware inventory layer behind the compact menu.",
+        "It tracks local CLIs, local skills, plugin-provided skills, configured plugins, and configured MCP servers together.",
+        "App connectors are local connector metadata sourced from `.app.json` files in the Codex plugin cache plus enabled plugin and config state.",
+        "Each detected source carries a health status so healthy, degraded, and missing surfaces stay visible before routing.",
+        "",
         "## Current Status",
         "",
         f"- Maintenance status: `{report['summary']['status']}`",
@@ -1242,7 +1418,7 @@ def _render_overview(report: dict[str, Any]) -> str:
         f"- `{PUBLIC_COMMAND} capabilities` for the grouped top-level capability menu.",
         f"- `{PUBLIC_COMMAND} capability <key>` for a group page or a single capability drill-down page.",
         f"- `{PUBLIC_COMMAND} skill-map` for the human one-page map of menu groups and local skills.",
-        f"- `{PUBLIC_COMMAND} inventory show` when you need the raw autodetected inventory behind the curated menu.",
+        f"- `{PUBLIC_COMMAND} inventory show` when you need the raw machine- and app-aware inventory behind the curated menu.",
         f"- `{PUBLIC_COMMAND} status --all` for durable workflow state across repos.",
         f"- `{PUBLIC_COMMAND} maintenance audit` after command, packaging, config, or contract changes.",
         "",
@@ -1258,6 +1434,9 @@ def _render_overview(report: dict[str, Any]) -> str:
         "",
         "## Common Flows",
         "",
+        f"- Repo-first agent routing: `{PUBLIC_COMMAND} repo-intel status` then `{PUBLIC_COMMAND} repo-intel ensure` before broad raw-file search in trusted repos.",
+        f"- Repo graph queries: `{PUBLIC_COMMAND} repo-intel query \"<question>\"` before wide grep for architecture and path questions.",
+        f"- Whole-laptop discovery: `{PUBLIC_COMMAND} computer-intel search <query>` only when the target repo is unknown or the task is explicitly cross-repo.",
         f"- Capability discovery: `{PUBLIC_COMMAND} doctor` then `{PUBLIC_COMMAND} capabilities`.",
         f"- Human-facing map: `{PUBLIC_COMMAND} skill-map` or `docs/{PUBLIC_DOCS_DIRNAME}/skill-map.md`.",
         f"- Raw installed surface: `{PUBLIC_COMMAND} inventory show` then `{PUBLIC_COMMAND} inventory item <kind>:<name>`.",
@@ -1318,6 +1497,8 @@ def _render_command_map() -> str:
         "- `capability <key>` is the drill-down page for a single capability and should be preferred before choosing lower-level vendor tools.",
         "- `skill-map` is the human-facing one-pager for the grouped menu, local front-door skills, and plugin-family counts.",
         "- `inventory` is the raw autodetected surface for debugging, not the default front door.",
+        "- `repo-intel` is the default repo-first graph route when the target repo is already known.",
+        "- `computer-intel` is the whole-laptop exception path for repo discovery and cross-repo routing.",
         "- `status` is for workflow progress, not general health.",
         "- `run` is only for deep workflows that use the shared runner/state contract.",
         "- `loop` is the generic long-task wrapper when there is no dedicated deep workflow for the job.",
@@ -1362,6 +1543,27 @@ def _render_command_map() -> str:
                     f"- `{PUBLIC_COMMAND} inventory refresh` after local installs or config changes that affect detection",
                     f"- `{PUBLIC_COMMAND} inventory show --kind all --scope all` to inspect the raw detected surface",
                     f"- `{PUBLIC_COMMAND} inventory item tool:gh` or a similar selector when one record needs detail",
+                ]
+            )
+        elif group["group"] == "repo-intel":
+            lines.extend(
+                [
+                    "Typical sequence:",
+                    "",
+                    f"- `{PUBLIC_COMMAND} repo-intel status` as soon as you enter a repo or before broad raw-file search",
+                    f"- `{PUBLIC_COMMAND} repo-intel ensure` when the repo graph is missing, stale, or broken",
+                    f"- `{PUBLIC_COMMAND} repo-intel query \"<question>\"` for architecture, flows, and path questions before wide grep",
+                    f"- `{PUBLIC_COMMAND} repo-intel serve` when an MCP client should talk to the local graph directly",
+                ]
+            )
+        elif group["group"] == "computer-intel":
+            lines.extend(
+                [
+                    "Typical sequence:",
+                    "",
+                    f"- `{PUBLIC_COMMAND} computer-intel status` or `{PUBLIC_COMMAND} computer-intel refresh` when the task is about the whole laptop",
+                    f"- `{PUBLIC_COMMAND} computer-intel search <query>` to find the right repo, graph, vault, or path anywhere on the machine",
+                    f"- Switch back to `{PUBLIC_COMMAND} repo-intel ...` once the target repo is known",
                 ]
             )
         elif group["group"] == "research":
@@ -1432,6 +1634,7 @@ def _render_state_schema(report: dict[str, Any]) -> str:
         "- `inventory_snapshot`",
         "- `guidance_snapshot`",
         "- `official_skill_loader`",
+        "- `repo_intel_trusted_audit`",
         "- `capabilities_snapshot`",
         "- `known_limitations`",
         "- `findings`",
@@ -1478,19 +1681,33 @@ def _render_inventory(report: dict[str, Any]) -> str:
         AUTO_MARKER,
         f"# {PUBLIC_DISPLAY_NAME} Inventory",
         "",
-        "The raw autodetected inventory is stored at `agentctl/state/inventory.json`.",
+        "The raw app-aware inventory is stored at `agentctl/state/inventory.json`.",
         "",
-        "## Purpose",
+        "## App-Aware Coverage",
+        "",
+        "- Machine CLIs and runtime tools.",
+        "- Local repo skills and globally installed skills.",
+        "- Plugin-provided skills plus configured plugins.",
+        "- Configured MCP servers and app connectors discovered from local `.app.json` metadata in the Codex plugin cache.",
+        "",
+        "## Why This Exists",
         "",
         "- Detect what is actually present on the machine and in Codex.",
         "- Keep raw installed surface separate from the curated capability menu.",
-        "- Let `capabilities` stay compact while `inventory` remains the debugging and inspection layer.",
+        "- Let `capabilities` stay compact while `inventory` remains the debugging, inspection, and health layer.",
         "",
         "## Commands",
         "",
         f"- `{PUBLIC_COMMAND} inventory refresh`",
         f"- `{PUBLIC_COMMAND} inventory show --kind all --scope all`",
         f"- `{PUBLIC_COMMAND} inventory item <kind>:<name>`",
+        "",
+        "## Health Model",
+        "",
+        "- `ok`: the source refreshed cleanly and the surface is usable for routing.",
+        "- `degraded`: the source partially refreshed or a backing runtime is missing.",
+        "- `error`: the source could not be refreshed cleanly or the record is not trustworthy.",
+        "- App connector health comes from the enabled plugin/config state plus the local `.app.json` connector metadata.",
         "",
         "## Item Shape",
         "",
@@ -1510,6 +1727,7 @@ def _render_inventory(report: dict[str, Any]) -> str:
         "",
         f"- Raw inventory items per bucket: <= {inventory.get('menu_budget', {}).get('max_items', 25)}",
         "- Raw buckets split deterministically when the item budget is exceeded.",
+        "- App-aware inventory stays raw and separate from the curated capability menu.",
         "",
         "## Current Summary",
         "",
@@ -1794,7 +2012,7 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         f"1. Run `{PUBLIC_COMMAND} maintenance check` for a quick signal.",
         f"2. If command surface, docs, or packaging changed, run `{PUBLIC_COMMAND} maintenance audit`.",
         f"3. Read `maintenance.md`, `maintenance-report.json`, and `.codex-workflows/{MAINTENANCE_WORKFLOW_NAME}/state.json` together.",
-        f"4. Inspect `{PUBLIC_COMMAND} inventory show` when a capability surface looks wrong or unexpectedly large.",
+        f"4. Inspect `{PUBLIC_COMMAND} inventory show` when a capability surface or app-aware inventory looks wrong or unexpectedly large.",
         "5. Remember that maintenance now includes a safe mirrored `npx skills ls -g --json` check for the current local skill tree.",
         f"6. Inspect `{PUBLIC_COMMAND} self-check` when config, guidance, or menu budgets may be part of the problem.",
         f"7. If findings are doc-only, prefer `{PUBLIC_COMMAND} maintenance fix-docs` over hand edits.",
@@ -1804,8 +2022,8 @@ def _render_maintenance(report: dict[str, Any]) -> str:
         "",
         f"- Refresh `docs/{PUBLIC_DOCS_DIRNAME}/*.md` from machine state.",
         "- Keep `agentctl/state/inventory.json` and `agentctl/state/guidance.json` healthy and within budget.",
-        "- Review hand-maintained guides such as `README.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.",
-        "- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code.",
+        "- Review hand-maintained guides such as `README.md`, `repo-intel.md`, `repo-intel-automation.md`, `zero-touch-setup.md`, `install-on-another-computer.md`, `unattended-worker-setup.md`, `maintainer-guide.md`, and `skill-governance.md` when behavior or setup expectations change.",
+        "- Keep `state-schema.md`, `capability-registry.md`, and `maintenance-contract.md` aligned with code, especially after repo-intel state or command-contract changes.",
         f"- Re-run tests for {PUBLIC_DISPLAY_NAME} and the shared workflow tools.",
         "- Re-run at least one CLI-level deep-workflow smoke after changing runner/state/guard behavior.",
         "- Keep `AGENTS.md` aligned with the intended front door.",

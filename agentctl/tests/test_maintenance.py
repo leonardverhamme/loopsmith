@@ -35,6 +35,8 @@ class MaintenanceTests(unittest.TestCase):
             doctor_report_path=agentctl_home / "state" / "doctor-report.json",
             inventory_path=agentctl_home / "state" / "inventory.json",
             guidance_path=agentctl_home / "state" / "guidance.json",
+            workspace_graph_path=agentctl_home / "state" / "workspace-graph.json",
+            computer_graph_path=agentctl_home / "state" / "computer-graph.json",
             maintenance_report_path=docs_dir / "maintenance-report.json",
             maintenance_state_path=root / ".codex-workflows" / "agentcli-maintenance" / "state.json",
             legacy_maintenance_state_path=root / ".codex-workflows" / "agentctl-maintenance" / "state.json",
@@ -64,6 +66,8 @@ class MaintenanceTests(unittest.TestCase):
             mock.patch.object(maintenance, "DOCTOR_REPORT_PATH", agentctl_home / "state" / "doctor-report.json"),
             mock.patch.object(maintenance, "INVENTORY_PATH", agentctl_home / "state" / "inventory.json"),
             mock.patch.object(maintenance, "GUIDANCE_PATH", agentctl_home / "state" / "guidance.json"),
+            mock.patch.object(maintenance, "WORKSPACE_GRAPH_PATH", agentctl_home / "state" / "workspace-graph.json"),
+            mock.patch.object(maintenance, "COMPUTER_GRAPH_PATH", agentctl_home / "state" / "computer-graph.json"),
             mock.patch.object(maintenance, "MAINTENANCE_REPORT_PATH", docs_dir / "maintenance-report.json"),
             mock.patch.object(maintenance, "MAINTENANCE_STATE_PATH", root / ".codex-workflows" / "agentcli-maintenance" / "state.json"),
             mock.patch.object(maintenance, "LEGACY_MAINTENANCE_STATE_PATH", root / ".codex-workflows" / "agentctl-maintenance" / "state.json"),
@@ -121,13 +125,17 @@ class MaintenanceTests(unittest.TestCase):
                 "gh": {"installed": True, "skill_supported": True},
                 "codex": {"installed": True, "worker_runtime_ready": False},
                 "playwright": {"status": "ok"},
+                "graphify": {"installed": True, "status": "ok"},
             },
             "inventory_summary": {"status": "ok"},
             "capabilities": [
+                {"key": "repo-intelligence", "status": "ok", "front_door": "agentcli repo-intel", "overlap_policy": "test", "group": "core"},
+                {"key": "computer-intelligence", "status": "ok", "front_door": "agentcli computer-intel", "overlap_policy": "test", "group": "core"},
                 {"key": "browser-automation", "status": "ok", "front_door": "$playwright", "overlap_policy": "test", "group": "browser-design"},
                 {"key": "research", "status": "ok", "front_door": "agentcli research", "overlap_policy": "test", "group": "research"},
             ],
             "capability_groups": [
+                {"key": "core", "label": "Core", "count": 2},
                 {"key": "research", "label": "Research", "count": 1},
                 {"key": "browser-design", "label": "Browser & Design", "count": 1},
             ],
@@ -151,6 +159,20 @@ class MaintenanceTests(unittest.TestCase):
             "schema_version": 1,
             "summary": {"status": "ok", "within_budget": True, "file_count": 0, "total_lines": 0},
             "items": [],
+        }
+
+    def _repo_intel_trusted_audit(self, *, status: str = "ok", counts: dict[str, int] | None = None) -> dict:
+        return {
+            "kind": "repo-intel-audit",
+            "generated_at": "2026-04-21T00:00:00+00:00",
+            "summary": {
+                "status": status,
+                "repo_count": sum((counts or {"fresh": 0}).values()),
+                "counts": counts or {"fresh": 0},
+                "fix": False,
+            },
+            "repos": [],
+            "workspace_registry_path": r"C:\Users\leona\.codex\agentctl\state\workspace-graph.json",
         }
 
     def _official_skill_loader_report(self, *, missing_names: list[str] | None = None, status: str | None = None) -> dict:
@@ -187,6 +209,7 @@ class MaintenanceTests(unittest.TestCase):
                 stack.enter_context(mock.patch.object(maintenance, "refresh_inventory_snapshot", return_value=self._inventory_report()))
                 stack.enter_context(mock.patch.object(maintenance, "refresh_guidance_snapshot", return_value=self._guidance_report()))
                 stack.enter_context(mock.patch.object(maintenance, "_official_skill_loader_health", return_value=self._official_skill_loader_report()))
+                stack.enter_context(mock.patch.object(maintenance, "repo_intel_audit", return_value=self._repo_intel_trusted_audit()))
                 for patcher in patches:
                     stack.enter_context(patcher)
                 report = maintenance.build_maintenance_report()
@@ -222,9 +245,11 @@ class MaintenanceTests(unittest.TestCase):
                 "test_codex_runtime.py",
                 "test_install_bundle.py",
                 "test_research.py",
+                "test_repo_intel.py",
                 "test_skills_ops.py",
                 "test_workflows.py",
                 "test_maintenance.py",
+                "test_computer_intel.py",
             ):
                 (tests_dir / name).write_text("pass\n", encoding="utf-8")
             router_skill = root / "plugins" / "agent-cli-os" / "skills" / "agentcli-router" / "SKILL.md"
@@ -235,6 +260,9 @@ class MaintenanceTests(unittest.TestCase):
             docs_dir.mkdir(parents=True, exist_ok=True)
             (root / "README.md").write_text("# Agent CLI OS\n", encoding="utf-8")
             for name in (
+                "repo-intel.md",
+                "repo-intel-automation.md",
+                "computer-intel.md",
                 "zero-touch-setup.md",
                 "install-on-another-computer.md",
                 "unattended-worker-setup.md",
@@ -250,6 +278,7 @@ class MaintenanceTests(unittest.TestCase):
                 stack.enter_context(mock.patch.object(maintenance, "refresh_inventory_snapshot", return_value=self._inventory_report()))
                 stack.enter_context(mock.patch.object(maintenance, "refresh_guidance_snapshot", return_value=self._guidance_report()))
                 stack.enter_context(mock.patch.object(maintenance, "_official_skill_loader_health", return_value=self._official_skill_loader_report()))
+                stack.enter_context(mock.patch.object(maintenance, "repo_intel_audit", return_value=self._repo_intel_trusted_audit()))
                 for patcher in patches:
                     stack.enter_context(patcher)
                 report = maintenance.maintenance_fix_docs()
@@ -261,8 +290,11 @@ class MaintenanceTests(unittest.TestCase):
                 state = json.loads((root / ".codex-workflows" / "agentcli-maintenance" / "state.json").read_text(encoding="utf-8"))
 
             self.assertIn("agent-cli-os:auto-generated", overview)
+            self.assertIn("App-Aware Inventory", overview)
             self.assertIn("# Research", capability_page)
             self.assertIn("# Agent CLI OS Inventory", inventory_page)
+            self.assertIn("App-Aware Coverage", inventory_page)
+            self.assertIn("Health Model", inventory_page)
             self.assertIn("# Agent CLI OS Skill Map", skill_map_page)
             self.assertTrue((root / "docs" / "agent-cli-os" / "skill-map.pdf").exists())
             self.assertEqual(report["summary"]["status"], "ok")
@@ -294,9 +326,11 @@ class MaintenanceTests(unittest.TestCase):
                 "test_codex_runtime.py",
                 "test_install_bundle.py",
                 "test_research.py",
+                "test_repo_intel.py",
                 "test_skills_ops.py",
                 "test_workflows.py",
                 "test_maintenance.py",
+                "test_computer_intel.py",
             ):
                 (tests_dir / name).write_text("pass\n", encoding="utf-8")
             router_skill = workspace.plugin_router_skill_dir / "SKILL.md"
@@ -307,6 +341,7 @@ class MaintenanceTests(unittest.TestCase):
             for name in (
                 "zero-touch-setup.md",
                 "install-on-another-computer.md",
+                "computer-intel.md",
                 "unattended-worker-setup.md",
                 "maintainer-guide.md",
                 "pypi-publishing.md",
@@ -320,6 +355,7 @@ class MaintenanceTests(unittest.TestCase):
                 stack.enter_context(mock.patch.object(maintenance, "refresh_inventory_snapshot", return_value=self._inventory_report()))
                 stack.enter_context(mock.patch.object(maintenance, "refresh_guidance_snapshot", return_value=self._guidance_report()))
                 stack.enter_context(mock.patch.object(maintenance, "_official_skill_loader_health", return_value=self._official_skill_loader_report()))
+                stack.enter_context(mock.patch.object(maintenance, "repo_intel_audit", return_value=self._repo_intel_trusted_audit()))
                 stack.enter_context(mock.patch.object(maintenance, "maintenance_workspace", return_value=workspace))
                 stack.enter_context(mock.patch.object(maintenance, "SAFE_MAINTENANCE_ROOTS", (root,)))
                 report = maintenance.maintenance_fix_docs(cwd=root)
@@ -351,7 +387,9 @@ class MaintenanceTests(unittest.TestCase):
             capability_skill_budget=[],
             skill_loader_health=[],
             official_skill_loader=self._official_skill_loader_report(missing_names=["ui-skill"]),
+            repo_intel_trusted_audit=self._repo_intel_trusted_audit(),
             automation_core_hits=[],
+            public_naming_hits=[],
             inventory=self._inventory_report(),
             guidance=self._guidance_report(),
             capabilities=self._capabilities_report(),
@@ -359,6 +397,161 @@ class MaintenanceTests(unittest.TestCase):
 
         finding_ids = {finding["id"] for finding in findings}
         self.assertIn("skills-cli-missing", finding_ids)
+
+    def test_build_findings_surfaces_app_aware_inventory_doc_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            overview = root / "docs" / "agent-cli-os" / "overview.md"
+            inventory = root / "docs" / "agent-cli-os" / "inventory.md"
+            overview.parent.mkdir(parents=True, exist_ok=True)
+            overview.write_text("<!-- agent-cli-os:auto-generated -->\n# Agent CLI OS Overview\n", encoding="utf-8")
+            inventory.write_text("<!-- agent-cli-os:auto-generated -->\n# Agent CLI OS Inventory\n", encoding="utf-8")
+
+            findings = maintenance._build_findings(
+                docs=[
+                    {"name": "overview", "path": str(overview), "exists": True, "auto_generated": True, "size": overview.stat().st_size},
+                    {"name": "inventory", "path": str(inventory), "exists": True, "auto_generated": True, "size": inventory.stat().st_size},
+                ],
+                generated_assets=[],
+                references=[],
+                manual_guides=[],
+                plugin={
+                    "exists": True,
+                    "manifest_exists": True,
+                    "router_skill_exists": True,
+                    "manifest_name": "agent-cli-os",
+                    "manifest_path": "plugin.json",
+                    "router_skill_path": "router/SKILL.md",
+                    "config": {"enabled": True, "path": "config.toml"},
+                },
+                skills=[],
+                tests=[],
+                capability_skill_budget=[],
+                skill_loader_health=[],
+                official_skill_loader=self._official_skill_loader_report(),
+                repo_intel_trusted_audit=self._repo_intel_trusted_audit(status="degraded", counts={"fresh": 1, "missing": 1}),
+                automation_core_hits=[],
+                public_naming_hits=[],
+                inventory=self._inventory_report(),
+                guidance=self._guidance_report(),
+                capabilities=self._capabilities_report(),
+            )
+
+        finding_ids = {finding["id"] for finding in findings}
+        self.assertIn("doc-app-aware-overview", finding_ids)
+        self.assertIn("doc-app-aware-inventory", finding_ids)
+
+    def test_build_findings_surfaces_trusted_repo_intel_drift(self) -> None:
+        findings = maintenance._build_findings(
+            docs=[],
+            generated_assets=[],
+            references=[],
+            manual_guides=[],
+            plugin={
+                "exists": True,
+                "manifest_exists": True,
+                "manifest_name": "agent-cli-os",
+                "manifest_path": r"C:\repo\plugins\agent-cli-os\.codex-plugin\plugin.json",
+                "router_skill_exists": True,
+                "router_skill_path": r"C:\repo\plugins\agent-cli-os\skills\agentcli-router\SKILL.md",
+                "config": {"enabled": True, "path": r"C:\repo\config.toml"},
+            },
+            skills=[{"name": "agentcli-maintenance-engineer", "path": r"C:\repo\skills\agentcli-maintenance-engineer\SKILL.md", "exists": True}],
+            tests=[],
+            capability_skill_budget=[],
+            skill_loader_health=[],
+            official_skill_loader=self._official_skill_loader_report(),
+            repo_intel_trusted_audit=self._repo_intel_trusted_audit(status="degraded", counts={"fresh": 2, "stale_code": 1}),
+            automation_core_hits=[],
+            public_naming_hits=[],
+            inventory=self._inventory_report(),
+            guidance=self._guidance_report(),
+            capabilities=self._capabilities_report(),
+        )
+
+        finding_ids = {finding["id"] for finding in findings}
+        self.assertIn("repo-intel-trusted-audit", finding_ids)
+
+    def test_automation_core_hits_ignore_workspace_graph_registry_data(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            workspace_graph = root / "agentctl" / "state" / "workspace-graph.json"
+            workspace_graph.parent.mkdir(parents=True, exist_ok=True)
+            workspace_graph.write_text(
+                json.dumps(
+                    {
+                        "generated_at": "2026-04-20T00:00:00+00:00",
+                        "repos": [
+                            {
+                                "repo_root": "C:\\Users\\leona\\Documents\\Playground\\automation-core",
+                                "repo_name": "automation-core",
+                                "graph_json": "C:\\Users\\leona\\Documents\\Playground\\automation-core\\graphify-out\\graph.json",
+                            }
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            patches = self._patch_paths(root)
+            with ExitStack() as stack:
+                for patcher in patches:
+                    stack.enter_context(patcher)
+                hits = maintenance._automation_core_hits()
+
+            self.assertEqual(hits, [])
+
+    def test_automation_core_hits_ignore_computer_graph_registry_data(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            computer_graph = root / "agentctl" / "state" / "computer-graph.json"
+            computer_graph.parent.mkdir(parents=True, exist_ok=True)
+            computer_graph.write_text(
+                json.dumps(
+                    {
+                        "generated_at": "2026-04-21T00:00:00+00:00",
+                        "items": [
+                            {
+                                "kind": "repo",
+                                "name": "automation-core",
+                                "path": "C:\\Users\\leona\\Documents\\Playground\\automation-core",
+                                "graph_json": "C:\\Users\\leona\\Documents\\Playground\\automation-core\\graphify-out\\graph.json",
+                            }
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            patches = self._patch_paths(root)
+            with ExitStack() as stack:
+                for patcher in patches:
+                    stack.enter_context(patcher)
+                hits = maintenance._automation_core_hits()
+
+            self.assertEqual(hits, [])
+
+    def test_automation_core_hits_ignore_test_fixtures(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            test_file = root / "agentctl" / "tests" / "test_fixture.py"
+            test_file.parent.mkdir(parents=True, exist_ok=True)
+            test_file.write_text(
+                'FIXTURE = "C:\\\\Users\\\\leona\\\\Documents\\\\Playground\\\\automation-core\\\\graphify-out\\\\graph.json"\n',
+                encoding="utf-8",
+            )
+
+            patches = self._patch_paths(root)
+            with ExitStack() as stack:
+                for patcher in patches:
+                    stack.enter_context(patcher)
+                hits = maintenance._automation_core_hits()
+
+            self.assertEqual(hits, [])
 
 
 if __name__ == "__main__":

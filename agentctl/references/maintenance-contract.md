@@ -25,6 +25,7 @@ Checks covered in v1:
 - maintenance skill exists
 - platform test files exist
 - capability health remains visible
+- repo-intel command/docs/schema drift remains visible once the subsystem is enabled
 
 Exit intent:
 

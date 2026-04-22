@@ -10,6 +10,8 @@ This is the frozen v1 command surface that maintenance checks expect.
 - `capability <key>` is the drill-down page for a single capability and should be preferred before choosing lower-level vendor tools.
 - `skill-map` is the human-facing one-pager for the grouped menu, local front-door skills, and plugin-family counts.
 - `inventory` is the raw autodetected surface for debugging, not the default front door.
+- `repo-intel` is the default repo-first graph route when the target repo is already known.
+- `computer-intel` is the whole-laptop exception path for repo discovery and cross-repo routing.
 - `status` is for workflow progress, not general health.
 - `run` is only for deep workflows that use the shared runner/state contract.
 - `loop` is the generic long-task wrapper when there is no dedicated deep workflow for the job.
@@ -77,8 +79,8 @@ Typical sequence:
 
 - `agentcli inventory refresh [--repo <path>] [--json]`
   - Refresh and persist the raw autodetected inventory snapshot.
-- `agentcli inventory show [--kind tools|skills|plugins|mcp|all] [--scope user|repo|all] [--json]`
-  - Inspect the raw autodetected inventory behind the curated capability menu.
+- `agentcli inventory show [--kind tools|skills|plugins|apps|mcp|all] [--scope user|repo|all] [--json]`
+  - Inspect the raw app-aware inventory behind the curated capability menu.
 - `agentcli inventory item <kind>:<name> [--json]`
   - Show one raw inventory record.
 
@@ -87,6 +89,43 @@ Typical sequence:
 - `agentcli inventory refresh` after local installs or config changes that affect detection
 - `agentcli inventory show --kind all --scope all` to inspect the raw detected surface
 - `agentcli inventory item tool:gh` or a similar selector when one record needs detail
+
+## Repo-Intel
+
+- `agentcli repo-intel status [--repo <path>] [--json]`
+  - Inspect Graphify-backed repo-intel health for one repo.
+- `agentcli repo-intel ensure [--repo <path>] [--json]`
+  - Create or refresh repo-intel artifacts for one repo, including `.graphifyignore`, managed `.gitignore` hygiene, manifest state, and the tiny AGENTS hint.
+- `agentcli repo-intel update [--repo <path>] [--code-only|--semantic|--full] [--json]`
+  - Refresh repo-intel artifacts using the lightest valid Graphify path for the current repo state.
+- `agentcli repo-intel query <question> [--repo <path>] [--budget N] [--dfs] [--json]`
+  - Query the local repo graph through Graphify instead of falling back to broad raw-file search.
+- `agentcli repo-intel audit [--repo <path> | --all-trusted | --all-discovered] [--fix] [--json]`
+  - Audit repo-intel and managed repo-hygiene status for one repo, every trusted repo, or every discovered repo from the machine-wide registry.
+- `agentcli repo-intel serve [--repo <path>] [--json]`
+  - Prepare or launch the local Graphify MCP server for the current repo graph.
+
+Typical sequence:
+
+- `agentcli repo-intel status` as soon as you enter a repo or before broad raw-file search
+- `agentcli repo-intel ensure` when the repo graph is missing, stale, or broken
+- `agentcli repo-intel query "<question>"` for architecture, flows, and path questions before wide grep
+- `agentcli repo-intel serve` when an MCP client should talk to the local graph directly
+
+## Computer-Intel
+
+- `agentcli computer-intel status [--json]`
+  - Inspect the machine-wide laptop discovery index and its scan coverage.
+- `agentcli computer-intel refresh [--json]`
+  - Refresh the machine-wide laptop discovery index without replacing per-repo Graphify graphs.
+- `agentcli computer-intel search <query> [--kind all|repo|vault|graph|service|root|path] [--limit N] [--json]`
+  - Search the machine-wide discovery surface to find repos, vaults, Graphify exports, services, or matching paths anywhere on the laptop.
+
+Typical sequence:
+
+- `agentcli computer-intel status` or `agentcli computer-intel refresh` when the task is about the whole laptop
+- `agentcli computer-intel search <query>` to find the right repo, graph, vault, or path anywhere on the machine
+- Switch back to `agentcli repo-intel ...` once the target repo is known
 
 ## Config
 

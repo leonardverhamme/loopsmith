@@ -12,11 +12,18 @@
 3. `agentcli` as the runtime control plane above those skills and above authoritative vendor interfaces.
 4. Plugin packaging so the system can be installed and surfaced consistently.
 
+## App-Aware Inventory
+
+`agentcli inventory show` is the machine- and app-aware inventory layer behind the compact menu.
+It tracks local CLIs, local skills, plugin-provided skills, configured plugins, and configured MCP servers together.
+App connectors are local connector metadata sourced from `.app.json` files in the Codex plugin cache plus enabled plugin and config state.
+Each detected source carries a health status so healthy, degraded, and missing surfaces stay visible before routing.
+
 ## Current Status
 
-- Maintenance status: `ok`
-- Checks passed: 130 / 130
-- Open findings: 0
+- Maintenance status: `degraded`
+- Checks passed: 149 / 150
+- Open findings: 1
 - Blocked findings: 0
 
 ## First Things To Read
@@ -25,7 +32,7 @@
 - `agentcli capabilities` for the grouped top-level capability menu.
 - `agentcli capability <key>` for a group page or a single capability drill-down page.
 - `agentcli skill-map` for the human one-page map of menu groups and local skills.
-- `agentcli inventory show` when you need the raw autodetected inventory behind the curated menu.
+- `agentcli inventory show` when you need the raw machine- and app-aware inventory behind the curated menu.
 - `agentcli status --all` for durable workflow state across repos.
 - `agentcli maintenance audit` after command, packaging, config, or contract changes.
 
@@ -41,6 +48,9 @@
 
 ## Common Flows
 
+- Repo-first agent routing: `agentcli repo-intel status` then `agentcli repo-intel ensure` before broad raw-file search in trusted repos.
+- Repo graph queries: `agentcli repo-intel query "<question>"` before wide grep for architecture and path questions.
+- Whole-laptop discovery: `agentcli computer-intel search <query>` only when the target repo is unknown or the task is explicitly cross-repo.
 - Capability discovery: `agentcli doctor` then `agentcli capabilities`.
 - Human-facing map: `agentcli skill-map` or `docs/agent-cli-os/skill-map.md`.
 - Raw installed surface: `agentcli inventory show` then `agentcli inventory item <kind>:<name>`.

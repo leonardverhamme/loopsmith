@@ -21,6 +21,8 @@ flowchart TD
   group_core --> group_core_long_task_loops["Long task loops\n$loopsmith"]
   group_core --> group_core_skills_management["Skills management\n$skills-management-capability"]
   group_core --> group_core_agentcli_maintenance["Agent CLI OS maintenance\n$agentcli-maintenance-engineer"]
+  group_core --> group_core_repo_intelligence["Repo intelligence\nagentcli repo-intel"]
+  group_core --> group_core_computer_intelligence["Computer intelligence\nagentcli computer-intel"]
   group_core --> group_core_plugin_evaluation["Plugin evaluation\n$plugin-eval:plugin-eval"]
   root --> group_workflows["Workflows"]
   group_workflows --> group_workflows_context_workflows["Repo context workflows\n$context-skill"]
@@ -61,6 +63,8 @@ Control-plane entrypoints for install health, maintenance, and unattended worker
 | Long task loops | `loopsmith` | `agentcli capability long-task-loops` |
 | Skills management | `skills-management-capability` | `agentcli capability skills-management` |
 | Agent CLI OS maintenance | `agentcli-maintenance-engineer` | `agentcli maintenance check` |
+| Repo intelligence | - | `agentcli repo-intel status` |
+| Computer intelligence | - | `agentcli computer-intel status` |
 | Plugin evaluation | `plugin-eval:plugin-eval` | `agentcli capability plugin-evaluation` |
 
 ### Workflows
@@ -123,9 +127,11 @@ iOS, macOS, and Android development/testing capability front doors.
 | Skill | Purpose | Note |
 | --- | --- | --- |
 | `doc` | - | skill is installed but not promoted into the curated front-door menu. |
-| `editskill` | Preferred front door for intentional skill-system work. Use only when the user explicitly asks to create, update, rename, move, or otherwise maintain skills and explicitly confirms that skill editing should open for the named skills. This is the preferred alias for the legacy `skill-edit-mode` skill. | Preferred front door for intentional skill-system changes. |
+| `editskill` | Use only when the user explicitly wants to create or change skill files and explicitly opens skill editing for the named targets. For substantial rewrites, evaluate before and after with plugin-eval. | Preferred front door for intentional skill-system changes. |
+| `gitignore-skill` | Maintain `.gitignore` safely. Use when logs, test output, browser artifacts, local agent state, caches, build output, Graphify output, or temp files are cluttering `git status`, and the repo needs tighter ignore rules without hiding real source files. | skill is installed but not promoted into the curated front-door menu. |
+| `graphify` | - | skill is installed but not promoted into the curated front-door menu. |
 | `pdf` | - | skill is installed but not promoted into the curated front-door menu. |
-| `skill-edit-mode` | Legacy compatibility alias for the preferred `$editskill` front door. Use only when the user explicitly asks to create, update, move, rename, or otherwise change skill files and has explicitly confirmed that skill editing should open for the named skills. | Legacy compatibility alias. Prefer `$editskill` in new chats. |
+| `skill-edit-mode` | Legacy alias for `$editskill`. Use only when the user explicitly wants to create or change skill files and explicitly opens skill editing for the named targets. | Legacy compatibility alias. Prefer `$editskill` in new chats. |
 | `sora` | - | skill is installed but not promoted into the curated front-door menu. |
 
 ## Curated Plugin Catalog Summary
@@ -148,7 +154,7 @@ iOS, macOS, and Android development/testing capability front doors.
 {
   "front_door_skill_count": 35,
   "group_count": 6,
-  "helper_skill_count": 5,
+  "helper_skill_count": 7,
   "plugin_family_count": 1,
   "plugin_skill_count": 1
 }

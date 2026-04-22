@@ -33,3 +33,24 @@ state*.sqlite
 state*.sqlite-shm
 state*.sqlite-wal
 skills/.system/
+
+# agentcli:repo-hygiene:start
+# Agent CLI OS repo hygiene defaults
+.agentcli/
+.codex-workflows/
+graphify-out/
+.playwright-cli/
+playwright-report/
+test-results/
+coverage/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tmp/
+.tmp-plugin-eval/
+output/playwright/
+*.log
+logs/
+tmp/
+temp/
+# agentcli:repo-hygiene:end

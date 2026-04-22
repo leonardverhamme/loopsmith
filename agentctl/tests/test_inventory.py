@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -98,6 +99,62 @@ class InventoryTests(unittest.TestCase):
         self.assertIn("plugin-eval:plugin-eval", names)
         self.assertNotIn("plugin-eval:minimal-plugin-skill", names)
 
+    def test_app_items_only_include_active_connectors(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            codex_home = Path(temp_dir)
+            plugins_root = codex_home / "plugins"
+            cache_manifest = plugins_root / "cache" / "openai-curated" / "github" / "hash123" / ".app.json"
+            slack_manifest = plugins_root / "cache" / "openai-curated" / "slack" / "hash456" / ".app.json"
+            tools_cache = codex_home / "cache" / "codex_apps_tools" / "apps.json"
+            cache_manifest.parent.mkdir(parents=True, exist_ok=True)
+            slack_manifest.parent.mkdir(parents=True, exist_ok=True)
+            tools_cache.parent.mkdir(parents=True, exist_ok=True)
+            cache_manifest.write_text(json.dumps({"apps": {"github": {"id": "connector_123"}}}), encoding="utf-8")
+            slack_manifest.write_text(json.dumps({"apps": {"slack": {"id": "asdk_app_slack"}}}), encoding="utf-8")
+            tools_cache.write_text(
+                json.dumps(
+                    {
+                        "tools": [
+                            {
+                                "connector_id": "connector_123",
+                                "connector_name": "GitHub",
+                                "connector_description": "GitHub connector",
+                            },
+                            {
+                                "connector_id": "connector_456",
+                                "connector_name": "Vercel",
+                                "connector_description": "Vercel connector",
+                            },
+                            {
+                                "connector_id": "connector_bot",
+                                "connector_name": "Slack Codex Bot",
+                                "connector_description": "Slack Codex bot connector used to install and store the workspace bot token.",
+                            },
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with mock.patch("lib.inventory.CODEX_HOME", codex_home), mock.patch("lib.inventory.PLUGINS_DIR", plugins_root):
+                from lib.inventory import _app_items
+
+                app_items, sources = _app_items()
+
+        names = {item["name"] for item in app_items}
+        source_names = {source["name"] for source in sources}
+        github_item = next(item for item in app_items if item["name"] == "github")
+        self.assertIn("github", names)
+        self.assertIn("vercel", names)
+        self.assertNotIn("slack", names)
+        self.assertEqual(github_item["status"], "ok")
+        self.assertTrue(github_item["configured"])
+        self.assertEqual(github_item["connector_id"], "connector_123")
+        self.assertEqual(github_item["source_path"], str(cache_manifest))
+        self.assertEqual(github_item["front_door_candidate"], "$github-capability")
+        self.assertIn("apps-cache", source_names)
+        self.assertIn("apps-active", source_names)
+
     @mock.patch("lib.capabilities.run_command")
     @mock.patch("lib.capabilities._installed_skills")
     @mock.patch("lib.capabilities._detect_playwright")
@@ -108,6 +165,8 @@ class InventoryTests(unittest.TestCase):
     @mock.patch("lib.capabilities._detect_skills_cli")
     @mock.patch("lib.capabilities.detect_codex_runtime")
     @mock.patch("lib.capabilities._tool_record")
+    @mock.patch("lib.inventory.detect_obsidian_runtime")
+    @mock.patch("lib.inventory.detect_graphify_runtime")
     @mock.patch("lib.inventory.run_command")
     @mock.patch("lib.inventory.effective_config")
     @mock.patch("lib.inventory.PLUGINS_DIR", Path(r"C:\__agent_cli_os_test_plugins__"))
@@ -116,6 +175,8 @@ class InventoryTests(unittest.TestCase):
         self,
         effective_config: mock.Mock,
         inventory_run_command: mock.Mock,
+        detect_graphify_runtime: mock.Mock,
+        detect_obsidian_runtime: mock.Mock,
         tool_record: mock.Mock,
         detect_codex: mock.Mock,
         detect_skills_cli: mock.Mock,
@@ -140,24 +201,70 @@ class InventoryTests(unittest.TestCase):
         detect_gh_codeql.return_value = {"installed": True, "status": "ok", "path": r"C:\tools\gh.exe", "command": "gh codeql"}
         detect_ghas_cli.return_value = {"installed": True, "status": "ok", "path": r"C:\tools\ghas-cli.exe", "command": "ghas-cli"}
         detect_playwright.return_value = {"installed": True, "status": "ok", "path": r"C:\tools\playwright.cmd", "command": "python playwright_cli.py"}
+        detect_graphify_runtime.return_value = {"installed": True, "status": "ok", "path": r"C:\tools\graphify.exe", "command": "graphify"}
+        detect_obsidian_runtime.return_value = {"installed": True, "status": "ok", "path": r"C:\Program Files\Obsidian\Obsidian.exe", "command": "obsidian"}
         installed_skills.return_value = {"status": "ok", "items": [{"name": "loopsmith"}, {"name": "research-capability"}]}
         inventory_run_command.return_value = {"ok": True, "stdout": "[]", "stderr": "", "returncode": 0}
         run_command.return_value = {"ok": True, "stdout": "[]", "stderr": "", "returncode": 0}
 
-        snapshot = build_inventory_snapshot(repo=Path.cwd())
+        with tempfile.TemporaryDirectory() as temp_dir:
+            codex_home = Path(temp_dir)
+            plugins_root = codex_home / "plugins"
+            skills_root = codex_home / "skills"
+            app_manifest = plugins_root / "cache" / "openai-curated" / "github" / "hash123" / ".app.json"
+            tools_cache = codex_home / "cache" / "codex_apps_tools" / "apps.json"
+            app_manifest.parent.mkdir(parents=True, exist_ok=True)
+            tools_cache.parent.mkdir(parents=True, exist_ok=True)
+            app_manifest.write_text(json.dumps({"apps": {"github": {"id": "connector_123"}}}), encoding="utf-8")
+            tools_cache.write_text(
+                json.dumps(
+                    {
+                        "tools": [
+                            {
+                                "connector_id": "connector_123",
+                                "connector_name": "GitHub",
+                                "connector_description": "GitHub connector",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with mock.patch("lib.inventory.CODEX_HOME", codex_home), mock.patch("lib.inventory.PLUGINS_DIR", plugins_root), mock.patch("lib.inventory.SKILLS_DIR", skills_root):
+                snapshot = build_inventory_snapshot(repo=Path.cwd())
 
         kinds = {item["kind"] for item in snapshot["items"]}
         tool_names = {item["name"] for item in snapshot["items"] if item["kind"] == "tool"}
+        app_names = {item["name"] for item in snapshot["items"] if item["kind"] == "app"}
         self.assertEqual(snapshot["schema_version"], 1)
         self.assertIn("tool", kinds)
         self.assertIn("skill", kinds)
         self.assertIn("plugin", kinds)
         self.assertIn("mcp", kinds)
+        self.assertIn("app", kinds)
         self.assertIn("gh", tool_names)
         self.assertIn("coderabbit", tool_names)
         self.assertIn("plugin-eval", tool_names)
+        self.assertIn("graphify", tool_names)
+        self.assertIn("obsidian", tool_names)
         self.assertIn("supabase", tool_names)
+        self.assertIn("github", app_names)
         self.assertEqual(snapshot["summary"]["status"], "ok")
+
+    def test_broken_active_apps_cache_degrades_inventory_health(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            codex_home = Path(temp_dir)
+            bad_cache = codex_home / "cache" / "codex_apps_tools" / "apps.json"
+            bad_cache.parent.mkdir(parents=True, exist_ok=True)
+            bad_cache.write_text('{"tools": ', encoding="utf-8")
+
+            with mock.patch("lib.inventory.CODEX_HOME", codex_home):
+                snapshot = build_inventory_snapshot(repo=Path.cwd())
+
+        app_items = [item for item in snapshot["items"] if item["kind"] == "app"]
+        self.assertEqual(app_items, [])
+        self.assertEqual(snapshot["summary"]["status"], "error")
 
     def test_filter_inventory_items_respects_kind_and_scope(self) -> None:
         payload = {

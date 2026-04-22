@@ -35,6 +35,8 @@ class CapabilitiesTests(unittest.TestCase):
                 "ghas-cli": {"installed": True, "status": "ok", "callable": True},
                 "coderabbit": {"installed": True, "status": "ok", "version": "1.0.0"},
                 "plugin-eval": {"installed": True, "status": "ok", "version": "bundled 0.1.0"},
+                "graphify": {"installed": True, "status": "ok", "version": "graphify v4"},
+                "obsidian": {"installed": True, "status": "ok", "version": "Obsidian"},
                 "vercel": {"installed": True, "status": "ok"},
                 "supabase": {"installed": True, "status": "ok"},
                 "firebase": {"installed": False, "status": "missing", "detect_only": True},
@@ -78,6 +80,8 @@ class CapabilitiesTests(unittest.TestCase):
                 {"kind": "plugin", "name": "coderabbit@openai-curated", "source_scope": "user", "status": "ok", "enabled": True},
                 {"kind": "plugin", "name": "plugin-eval@openai-curated", "source_scope": "user", "status": "ok", "enabled": True},
                 {"kind": "plugin", "name": "github@openai-curated", "source_scope": "user", "status": "ok", "enabled": True},
+                {"kind": "app", "name": "figma", "source_scope": "user", "status": "configured", "configured": True, "source_path": r"C:\Users\leona\.codex\.tmp\plugins\plugins\figma\.app.json"},
+                {"kind": "app", "name": "stripe", "source_scope": "user", "status": "configured", "configured": True, "source_path": r"C:\Users\leona\.codex\.tmp\plugins\plugins\build-web-apps\.app.json"},
                 {"kind": "mcp", "name": "supabase", "source_scope": "user", "status": "configured", "configured": True},
                 {"kind": "mcp", "name": "playwright", "source_scope": "user", "status": "configured", "configured": True},
             ],
@@ -95,7 +99,10 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("long-task-loops", capability_keys)
         self.assertIn("code-review", capability_keys)
         self.assertIn("plugin-evaluation", capability_keys)
+        self.assertIn("repo-intelligence", capability_keys)
         self.assertEqual(report["summary"]["installed_skill_count"], 30)
+        self.assertEqual(report["summary"]["configured_app_count"], 2)
+        self.assertEqual(report["summary"]["app_item_count"], 2)
         self.assertEqual(report["inventory_summary"]["status"], "ok")
 
     def test_optional_integrations_do_not_degrade_baseline_summary(self) -> None:
@@ -174,6 +181,13 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertTrue(any("Fixture skills" in note for note in plugin_eval["routing_notes"]))
         self.assertEqual(plugin_eval["status"], "ok")
 
+        repo_intel = capability_detail(report, "repo-intelligence")
+        self.assertIsNotNone(repo_intel)
+        assert repo_intel is not None
+        self.assertEqual(repo_intel["front_door"], "agentcli repo-intel")
+        self.assertIn("agentcli repo-intel ensure", repo_intel["entrypoints"])
+        self.assertEqual(repo_intel["status"], "ok")
+
     def test_plugin_items_with_configured_flag_count_as_healthy(self) -> None:
         inventory = self._inventory()
         inventory["items"] = [
@@ -250,6 +264,11 @@ class CapabilitiesTests(unittest.TestCase):
 
     def test_every_capability_has_a_skill_front_door(self) -> None:
         for spec in CAPABILITY_SPECS:
+            if spec["key"] in {"repo-intelligence", "computer-intelligence"}:
+                self.assertEqual(spec.get("skills"), [], "repo-intelligence should stay CLI-first")
+                expected_front_door = "agentcli repo-intel" if spec["key"] == "repo-intelligence" else "agentcli computer-intel"
+                self.assertEqual(spec["front_door"], expected_front_door)
+                continue
             self.assertTrue(spec.get("skills"), f"{spec['key']} should expose at least one skill")
             self.assertIn("$", spec["front_door"], f"{spec['key']} should route through a skill front door")
 

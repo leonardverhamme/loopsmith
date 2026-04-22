@@ -31,3 +31,10 @@ Interpretation rules:
 - Treat `tools.*.status` as current local health, not cloud readiness.
 - Treat `detect_only_tools` as intentionally detect-only until a repeated workflow justifies a richer adapter.
 - Refresh this registry through `agentcli doctor` or `agentcli capabilities`, not by hand.
+
+Special rule for repo-intel:
+
+- `repo-intelligence` is intentionally CLI-first.
+- Its front door is `agentcli repo-intel`, not a prompt-heavy skill.
+- Graphify is the engine underneath that capability.
+- Obsidian is optional and should be treated as a secondary view/export layer.

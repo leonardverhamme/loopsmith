@@ -64,6 +64,11 @@ agentcli config show
 agentcli self-check
 agentcli upgrade
 agentcli maintenance audit
+agentcli computer-intel status
+agentcli computer-intel refresh
+agentcli repo-intel status
+agentcli repo-intel ensure
+agentcli repo-intel audit --all-trusted
 agentcli capability code-review
 agentcli capability plugin-evaluation
 ```
@@ -214,6 +219,99 @@ That snapshot includes:
 - repo-scoped skills when present
 - installed/configured plugins
 - configured MCP servers
+- app connectors discovered from local `.app.json` metadata in the Codex plugin cache plus enabled plugin and config state
+
+## Repo Intelligence
+
+`Agent CLI OS` now has a first-class repo-intel subsystem.
+
+The contract is:
+
+- Graphify is the indexing engine
+- Agent CLI OS owns the runtime contract, state, and audit surface
+- computer-intel owns the machine-wide laptop discovery surface
+- Obsidian is an optional view/export layer
+
+This is intentionally not just a skill and not just an `AGENTS.md` trick.
+
+The runtime is split into three layers:
+
+- a small workspace registry of trusted repos and their graph health
+- one Graphify graph per repo under `graphify-out/`
+- optional Obsidian export for human browsing
+
+Start with:
+
+```powershell
+agentcli repo-intel status --repo C:\path\to\repo
+agentcli repo-intel ensure --repo C:\path\to\repo
+agentcli repo-intel query "show the auth flow" --repo C:\path\to\repo
+agentcli repo-intel audit --all-trusted
+agentcli repo-intel audit --all-discovered
+```
+
+Canonical repo-local files:
+
+- `graphify-out/graph.json`
+- `graphify-out/GRAPH_REPORT.md`
+- `graphify-out/graph.html` when generated
+- `.graphifyignore`
+- `.agentcli/repo-intel.json`
+
+Safe defaults:
+
+- no mandatory hooks
+- no full-disk crawl
+- no giant graph dump in machine instructions
+- only a tiny repo-local `AGENTS.md` routing hint when repo-intel is enabled
+
+## Computer Intelligence
+
+`Agent CLI OS` now also has a machine-wide `computer-intel` layer.
+
+This is not a global Graphify corpus. It is a laptop-wide discovery index for:
+
+- repos
+- audit-candidate repos
+- vaults
+- Graphify outputs
+- local service roots
+- machine-wide path search
+
+Use it when the question is about the whole laptop:
+
+```powershell
+agentcli computer-intel status
+agentcli computer-intel refresh
+agentcli computer-intel search "tenant service"
+```
+
+The contract is:
+
+- `computer-intel` finds the repo or path on the laptop
+- `repo-intel` handles repo-local graph health and graph queries
+- Graphify stays one graph per repo or corpus
+- Obsidian stays a secondary export and browsing layer
+
+`computer-intel` can still discover transient or tooling repos, such as temp
+mirrors or package-store clones, but `repo-intel audit --all-discovered`
+focuses on audit-candidate repos instead of treating every transient repo as a
+repair target.
+
+## App-Aware Overview
+
+The inventory layer is app-aware, not just machine-aware.
+
+Use `agentcli inventory show` when you want the raw picture of:
+
+- local CLIs and runtime tools
+- local and global skills
+- plugin-provided skills
+- configured plugins
+- configured MCP servers
+- app connectors exposed through local `.app.json` metadata
+
+Each source is tagged with a health status so you can see what is healthy, degraded, or missing without turning the compact menu into a flat dump.
 
 Use:
 

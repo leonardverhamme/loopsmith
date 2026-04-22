@@ -8,6 +8,7 @@ from .branding import PUBLIC_COMMAND
 from .common import print_json, run_command, save_json, slugify, utc_now
 from .config_layers import effective_config
 from .paths import CODEX_HOME, INVENTORY_PATH, PLUGINS_DIR, SKILLS_DIR
+from .repo_intel import detect_graphify_runtime, detect_obsidian_runtime
 
 
 INVENTORY_SCHEMA_VERSION = 1
@@ -15,6 +16,7 @@ TOOL_KIND = "tool"
 SKILL_KIND = "skill"
 PLUGIN_KIND = "plugin"
 MCP_KIND = "mcp"
+APP_KIND = "app"
 SYSTEM_SCOPE = "system"
 USER_SCOPE = "user"
 REPO_SCOPE = "repo"
@@ -32,6 +34,7 @@ def _front_door_maps() -> dict[str, dict[str, str]]:
     skill_map: dict[str, str] = {}
     plugin_map: dict[str, str] = {}
     mcp_map: dict[str, str] = {}
+    app_map: dict[str, str] = {}
     bucket_map: dict[str, str] = {}
 
     for spec in _capability_specs():
@@ -44,6 +47,8 @@ def _front_door_maps() -> dict[str, dict[str, str]]:
                 tool_map.setdefault(name, spec["front_door"])
             elif kind == "plugin":
                 plugin_map.setdefault(name, spec["front_door"])
+                base_name = name.split("@", 1)[0]
+                app_map.setdefault(base_name, spec["front_door"])
             elif kind == "mcp":
                 mcp_map.setdefault(name, spec["front_door"])
     return {
@@ -51,6 +56,7 @@ def _front_door_maps() -> dict[str, dict[str, str]]:
         SKILL_KIND: skill_map,
         PLUGIN_KIND: plugin_map,
         MCP_KIND: mcp_map,
+        APP_KIND: app_map,
         "bucket": bucket_map,
     }
 
@@ -61,6 +67,16 @@ def _menu_bucket(kind: str, scope: str) -> str:
 
 def _item_id(kind: str, name: str, scope: str) -> str:
     return f"{kind}:{name}@{scope}"
+
+
+def _item_identifier(item: dict[str, Any]) -> str:
+    if item.get("id"):
+        return str(item["id"])
+    return _item_id(
+        str(item.get("kind", "unknown")),
+        str(item.get("name", "unknown")),
+        str(item.get("source_scope", USER_SCOPE)),
+    )
 
 
 def _inventory_item(
@@ -76,6 +92,7 @@ def _inventory_item(
     version: str | None = None,
     source_path: str | None = None,
     source_hint: str | None = None,
+    connector_id: str | None = None,
     hidden_reason: str | None = None,
 ) -> dict[str, Any]:
     payload = {
@@ -98,6 +115,8 @@ def _inventory_item(
         payload["source_path"] = source_path
     if source_hint:
         payload["source_hint"] = source_hint
+    if connector_id:
+        payload["connector_id"] = connector_id
     return payload
 
 
@@ -129,6 +148,8 @@ def _detect_tools() -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]], li
         "gcloud": caps._tool_record("gcloud", command="gcloud", version_args=["--version"], detect_only=True),
         "firebase": caps._tool_record("firebase", command="firebase", version_args=["--version"], detect_only=True),
         "plugin-eval": caps._detect_plugin_eval(),
+        "graphify": detect_graphify_runtime(),
+        "obsidian": detect_obsidian_runtime(),
         "supabase": caps._tool_record("supabase", command="supabase", version_args=["--version"]),
         "vercel": caps._tool_record("vercel", command="vercel", version_args=["--version"]),
         "playwright": caps._detect_playwright(),
@@ -365,6 +386,177 @@ def _plugin_items(config: dict[str, Any]) -> tuple[list[dict[str, Any]], list[di
     return sorted(items_by_name.values(), key=lambda item: item["name"]), skill_items
 
 
+def _app_manifest_roots() -> list[tuple[str, Path]]:
+    return [
+        ("apps-cache", PLUGINS_DIR / "cache"),
+        ("apps-temp", CODEX_HOME / ".tmp" / "plugins" / "plugins"),
+    ]
+
+
+def _apps_tools_cache_dir() -> Path:
+    return CODEX_HOME / "cache" / "codex_apps_tools"
+
+
+def _is_helper_app_connector(*, connector_name: str | None, connector_description: str | None) -> bool:
+    name = (connector_name or "").strip().lower()
+    description = (connector_description or "").strip().lower()
+    return "codex bot" in name or "workspace bot token" in description
+
+
+def _app_manifest_index() -> tuple[dict[str, dict[str, str]], list[dict[str, Any]]]:
+    manifest_index: dict[str, dict[str, str]] = {}
+    sources: list[dict[str, Any]] = []
+
+    for source_name, root in _app_manifest_roots():
+        if not root.exists():
+            continue
+
+        manifest_count = 0
+        mapped_connectors = 0
+        saw_error = False
+
+        for manifest_path in sorted(root.rglob("*.app.json")):
+            manifest_count += 1
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                saw_error = True
+                sources.append({"name": source_name, "status": "error", "detail": f"{manifest_path.name}: {exc}"})
+                continue
+
+            apps = manifest.get("apps", {})
+            if not isinstance(apps, dict):
+                saw_error = True
+                sources.append({"name": source_name, "status": "error", "detail": f"{manifest_path.name}: apps payload is not a mapping"})
+                continue
+
+            for app_name, payload in sorted(apps.items()):
+                if not isinstance(payload, dict):
+                    continue
+                connector_id = payload.get("id")
+                if not isinstance(connector_id, str) or not connector_id.strip():
+                    continue
+                mapped_connectors += 1
+                manifest_index[connector_id] = {
+                    "name": app_name,
+                    "source_path": str(manifest_path),
+                }
+
+        if manifest_count or saw_error:
+            sources.append(
+                {
+                    "name": source_name,
+                    "status": "error" if saw_error else "ok",
+                    "detail": f"{manifest_count} manifests, {mapped_connectors} mapped connectors",
+                }
+            )
+
+    return manifest_index, sources
+
+
+def _app_items() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    maps = _front_door_maps()
+    manifest_index, sources = _app_manifest_index()
+    items: list[dict[str, Any]] = []
+    active_connectors: dict[tuple[str, str], dict[str, Any]] = {}
+    cache_files = 0
+    helper_connectors = 0
+    saw_error = False
+
+    cache_root = _apps_tools_cache_dir()
+    if cache_root.exists():
+        for cache_path in sorted(cache_root.glob("*.json")):
+            cache_files += 1
+            try:
+                payload = json.loads(cache_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                saw_error = True
+                sources.append({"name": "apps-active", "status": "error", "detail": f"{cache_path.name}: {exc}"})
+                continue
+
+            tools = payload.get("tools", [])
+            if not isinstance(tools, list):
+                saw_error = True
+                sources.append({"name": "apps-active", "status": "error", "detail": f"{cache_path.name}: tools payload is not a list"})
+                continue
+
+            for tool_entry in tools:
+                if not isinstance(tool_entry, dict):
+                    continue
+                connector_id = tool_entry.get("connector_id")
+                connector_name = tool_entry.get("connector_name")
+                connector_description = tool_entry.get("connector_description")
+
+                tool_payload = tool_entry.get("tool")
+                if isinstance(tool_payload, dict):
+                    meta = tool_payload.get("_meta", {})
+                    if isinstance(meta, dict):
+                        connector_id = connector_id or meta.get("connector_id")
+                        connector_name = connector_name or meta.get("connector_name")
+                        connector_description = connector_description or meta.get("connector_description")
+
+                if not isinstance(connector_id, str) or not connector_id.strip():
+                    continue
+                if not isinstance(connector_name, str) or not connector_name.strip():
+                    continue
+                if _is_helper_app_connector(
+                    connector_name=connector_name,
+                    connector_description=connector_description if isinstance(connector_description, str) else None,
+                ):
+                    helper_connectors += 1
+                    continue
+
+                key = (connector_id, connector_name)
+                entry = active_connectors.get(key)
+                if entry is None:
+                    active_connectors[key] = {
+                        "connector_id": connector_id,
+                        "connector_name": connector_name,
+                        "connector_description": connector_description if isinstance(connector_description, str) else None,
+                        "source_path": str(cache_path),
+                        "tool_count": 1,
+                    }
+                else:
+                    entry["tool_count"] += 1
+
+    for connector_id, connector_name in sorted(active_connectors, key=lambda item: active_connectors[item]["connector_name"].lower()):
+        active_entry = active_connectors[(connector_id, connector_name)]
+        manifest_entry = manifest_index.get(connector_id, {})
+        app_name = str(manifest_entry.get("name") or slugify(connector_name))
+        source_path = str(manifest_entry.get("source_path") or active_entry["source_path"])
+        front_door_candidate = maps[APP_KIND].get(app_name)
+        items.append(
+            _inventory_item(
+                kind=APP_KIND,
+                name=app_name,
+                source_scope=USER_SCOPE,
+                status="ok",
+                configured=True,
+                source_path=source_path,
+                source_hint="codex_apps_tools cache",
+                connector_id=connector_id,
+                front_door_candidate=front_door_candidate,
+                menu_bucket=_menu_bucket(APP_KIND, USER_SCOPE),
+                hidden_reason=None if front_door_candidate else "active app connector is detected for diagnostics only and is not auto-promoted into the curated front-door menu.",
+            )
+        )
+
+    if cache_files or saw_error:
+        detail = f"{len(items)} active connectors"
+        if helper_connectors:
+            detail += f", {helper_connectors} helper connectors ignored"
+        detail += f", {cache_files} cache files"
+        sources.append(
+            {
+                "name": "apps-active",
+                "status": "error" if saw_error else "ok",
+                "detail": detail,
+            }
+        )
+
+    return items, sources
+
+
 def _mcp_items(config: dict[str, Any]) -> list[dict[str, Any]]:
     maps = _front_door_maps()
     items: list[dict[str, Any]] = []
@@ -399,7 +591,7 @@ def _merge_duplicate_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if existing is None:
             merged[key] = dict(item)
             continue
-        for field in ("source_path", "source_hint", "version", "front_door_candidate"):
+        for field in ("source_path", "source_hint", "version", "front_door_candidate", "connector_id"):
             if item.get(field) and not existing.get(field):
                 existing[field] = item[field]
         if item.get("hidden_reason") and not existing.get("hidden_reason"):
@@ -465,9 +657,11 @@ def build_inventory_snapshot(repo: str | Path | None = None) -> dict[str, Any]:
     sources.extend(skill_sources)
     local_skill_items = _local_skill_file_items(repo_root)
     plugin_items, plugin_skill_items = _plugin_items(config)
+    app_items, app_sources = _app_items()
+    sources.extend(app_sources)
     mcp_items = _mcp_items(config)
 
-    all_items = _merge_duplicate_items(tool_items + skill_items + local_skill_items + plugin_items + plugin_skill_items + mcp_items)
+    all_items = _merge_duplicate_items(tool_items + skill_items + local_skill_items + plugin_items + plugin_skill_items + app_items + mcp_items)
     buckets = _apply_bucket_splitting(all_items, max_items=max_items)
 
     kind_counts: dict[str, int] = {}
@@ -546,7 +740,7 @@ def filter_inventory_items(
     elif scope == "user":
         items = [item for item in items if not item.get("source_scope", "").startswith(REPO_SCOPE)]
 
-    item_ids = {item["id"] for item in items}
+    item_ids = {_item_identifier(item) for item in items}
     buckets = [bucket for bucket in payload.get("menu_buckets", []) if any(item_id in item_ids for item_id in bucket.get("item_ids", []))]
     return {
         "schema_version": payload.get("schema_version", INVENTORY_SCHEMA_VERSION),
@@ -581,6 +775,7 @@ def print_inventory_human(payload: dict[str, Any], *, as_json: bool = False) -> 
             "menu_bucket",
             "source_path",
             "source_hint",
+            "connector_id",
             "hidden_reason",
         ):
             if key in item and item[key] not in (None, ""):

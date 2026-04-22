@@ -1,0 +1,13 @@
+# Agent CLI OS repo-intel defaults
+.git/
+.agentcli/
+.agent-cli-os/
+graphify-out/
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.venv/
+__pycache__/
+*.pyc

@@ -12,6 +12,8 @@ Control-plane entrypoints for install health, maintenance, and unattended worker
 - `long-task-loops` uses `$loopsmith` and is currently `ok`.
 - `skills-management` uses `$skills-management-capability` and is currently `ok`.
 - `agentcli-maintenance` uses `$agentcli-maintenance-engineer` and is currently `ok`.
+- `repo-intelligence` uses `agentcli repo-intel` and is currently `ok` optional.
+- `computer-intelligence` uses `agentcli computer-intel` and is currently `ok` optional.
 - `plugin-evaluation` uses `$plugin-eval:plugin-eval` and is currently `missing` optional.
 
 ## Menu Budget

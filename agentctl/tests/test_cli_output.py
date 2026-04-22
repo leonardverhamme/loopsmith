@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -19,6 +20,8 @@ from lib.capabilities import (
     print_skills_human,
     print_status_human,
 )
+from lib.computer_intel import print_computer_intel_human
+from lib.overview import print_overview_human
 from lib.inventory import print_inventory_human
 
 CLI_ENTRY = Path(__file__).resolve().parents[1] / "agentctl.py"
@@ -46,6 +49,8 @@ class CliOutputTests(unittest.TestCase):
                         "ghas-cli": {"installed": True, "status": "ok", "callable": True},
                         "vercel": {"installed": True, "status": "ok"},
                         "supabase": {"installed": True, "status": "ok"},
+                        "graphify": {"installed": True, "status": "ok", "version": "graphify v4"},
+                        "obsidian": {"installed": True, "status": "ok", "version": "Obsidian"},
                         "firebase": {"installed": False, "status": "missing", "detect_only": True},
                         "gcloud": {"installed": False, "status": "missing", "detect_only": True},
                         "playwright": {"installed": True, "status": "ok", "wrapper_ready": True},
@@ -74,6 +79,10 @@ class CliOutputTests(unittest.TestCase):
                         {"kind": "skill", "name": "github-researcher", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "skill", "name": "web-github-scout", "source_scope": "user", "status": "ok", "source_hint": "npx skills ls -g"},
                         {"kind": "plugin", "name": "agent-cli-os", "source_scope": "user", "status": "ok", "enabled": True},
+                        {"kind": "app", "name": "build-web-apps", "source_scope": "plugin", "status": "ok", "configured": True, "connector_id": "build-web-apps"},
+                        {"kind": "app", "name": "figma", "source_scope": "plugin", "status": "degraded", "configured": True, "connector_id": "figma"},
+                        {"kind": "mcp", "name": "supabase", "source_scope": "user", "status": "configured", "configured": True},
+                        {"kind": "mcp", "name": "playwright", "source_scope": "user", "status": "degraded", "configured": True},
                     ],
                     "menu_buckets": [],
                 },
@@ -184,6 +193,57 @@ class CliOutputTests(unittest.TestCase):
         self.assertIn("Platforms [ok] 1 items", output)
         self.assertIn("Use `agentcli capability <key>`", output)
 
+    def test_overview_human_is_compact_and_names_first(self) -> None:
+        payload = {
+            "summary": {"status": "healthy", "front_door_group_count": 2, "cli_count": 3, "app_count": 2, "mcp_count": 1, "plugin_count": 2},
+            "repo_intel": {
+                "repo_root": r"C:\repo",
+                "repo_name": "repo",
+                "status": "fresh",
+                "detail": "Repo graph exists and matches the current repo state.",
+                "trusted": True,
+                "recommended_action": "No action needed.",
+                "default_mode": "repo-first",
+                "computer_intel_role": "exception-only",
+            },
+            "front_doors": [
+                {"key": "core", "label": "Core", "status": "healthy", "count": 2, "items": ["Autonomous deep runs", "Long task loops"]},
+                {"key": "workflows", "label": "Workflows", "status": "degraded", "count": 1, "items": ["UI workflows"]},
+            ],
+            "clis": {"status": "healthy", "items": {"healthy": ["codex", "gh"], "missing": ["aws"]}},
+            "apps": {
+                "status": "degraded",
+                "items": {
+                    "healthy": [
+                        "a [connector: a]",
+                        "b [connector: b]",
+                        "c [connector: c]",
+                        "d [connector: d]",
+                        "e [connector: e]",
+                        "f [connector: f]",
+                        "g [connector: g]",
+                        "h [connector: h]",
+                        "i [connector: i]",
+                    ],
+                    "degraded": ["figma [connector: figma]"],
+                },
+            },
+            "mcps": {"status": "healthy", "items": {"healthy": ["supabase"], "degraded": ["playwright"]}},
+            "plugins": {"status": "healthy", "items": {"healthy": ["agent-cli-os", "plugin-eval:plugin-eval"]}},
+        }
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            print_overview_human(payload)
+        output = buffer.getvalue()
+        self.assertIn("Current repo intelligence", output)
+        self.assertIn("repo [fresh] repo-first", output)
+        self.assertIn("Front-door capabilities", output)
+        self.assertIn("Core [healthy] 2: Autonomous deep runs, Long task loops", output)
+        self.assertIn("Apps / connectors", output)
+        self.assertIn("a [connector: a]", output)
+        self.assertIn("+1 more", output)
+        self.assertIn("Use `agentcli capabilities`", output)
+
     def test_inventory_human_renders_bucketed_raw_inventory(self) -> None:
         payload = {
             "summary": {"status": "ok", "total_items": 2, "bucket_count": 1},
@@ -224,6 +284,32 @@ class CliOutputTests(unittest.TestCase):
         self.assertIn("CLI-first", output)
         self.assertIn("supabase-capability", output)
 
+    def test_computer_intel_human_surfaces_machine_counts(self) -> None:
+        payload = {
+            "kind": "computer-intel-status",
+            "status": "ok",
+            "detail": "Machine-wide computer-intel registry refreshed.",
+            "generated_at": "2026-04-21T00:00:00+00:00",
+            "state_path": r"C:\repo\agentctl\state\computer-graph.json",
+            "summary": {
+                "root_count": 3,
+                "repo_count": 10,
+                "trusted_repo_count": 4,
+                "managed_repo_count": 5,
+                "vault_count": 2,
+                "graph_count": 7,
+                "service_count": 3,
+                "truncated": False,
+            },
+        }
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            print_computer_intel_human(payload)
+        output = buffer.getvalue()
+        self.assertIn("Counts", output)
+        self.assertIn("- repos: 10", output)
+        self.assertIn("agentcli computer-intel search <query>", output)
+
     def test_capability_command_emits_json_for_known_key(self) -> None:
         self._write_inventory_snapshot()
         env = os.environ.copy()
@@ -258,6 +344,117 @@ class CliOutputTests(unittest.TestCase):
         self.assertEqual(payload["key"], "github-advanced-security")
         self.assertEqual(payload["front_door"], "$github-security-capability")
         self.assertIn("gh codeql", payload["entrypoints"])
+
+    def test_overview_command_emits_json(self) -> None:
+        self._write_inventory_snapshot()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir) / "repo"
+            repo_root.mkdir(parents=True, exist_ok=True)
+            (repo_root / ".git").mkdir()
+            (repo_root / "app.py").write_text("print('ok')\n", encoding="utf-8")
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            result = subprocess.run(
+                [sys.executable, str(CLI_ENTRY), "overview", "--repo", str(repo_root), "--json"],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["kind"], "overview")
+        self.assertIn("front_doors", payload)
+        self.assertIn("apps", payload)
+        self.assertIn("mcps", payload)
+        self.assertEqual(payload["repo_intel"]["repo_name"], "repo")
+
+    def test_inventory_show_supports_apps_kind(self) -> None:
+        self._write_inventory_snapshot()
+        env = os.environ.copy()
+        env["CODEX_HOME"] = str(REPO_ROOT)
+        result = subprocess.run(
+            [sys.executable, str(CLI_ENTRY), "inventory", "show", "--kind", "apps", "--json"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+            env=env,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["summary"]["total_items"], 2)
+        self.assertEqual({item["kind"] for item in payload["items"]}, {"app"})
+
+    def test_repo_intel_status_command_emits_json(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir) / "repo"
+            repo_root.mkdir(parents=True, exist_ok=True)
+            (repo_root / "app.py").write_text("print('ok')\n", encoding="utf-8")
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(REPO_ROOT)
+            result = subprocess.run(
+                [sys.executable, str(CLI_ENTRY), "repo-intel", "status", "--repo", str(repo_root), "--json"],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["kind"], "repo-intel-status")
+        self.assertEqual(payload["status"], "missing")
+
+    def test_computer_intel_status_command_emits_json(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            codex_home = Path(temp_dir) / ".codex"
+            agentctl_state = codex_home / "agentctl" / "state"
+            agentctl_state.mkdir(parents=True, exist_ok=True)
+            (agentctl_state / "computer-graph.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "generated_at": "2026-04-21T00:00:00+00:00",
+                        "status": "ok",
+                        "detail": "Machine-wide computer-intel registry refreshed.",
+                        "summary": {
+                            "root_count": 1,
+                            "repo_count": 2,
+                            "trusted_repo_count": 1,
+                            "managed_repo_count": 1,
+                            "vault_count": 1,
+                            "graph_count": 1,
+                            "service_count": 0,
+                            "truncated": False,
+                        },
+                        "roots": [{"kind": "root", "name": "Documents", "path": r"C:\Users\leona\Documents"}],
+                        "repos": [],
+                        "vaults": [],
+                        "graphs": [],
+                        "services": [],
+                        "scan_stats": {"scanned_directories": 1, "skipped_directories": 0, "inaccessible_directories": 0, "truncated": False, "directory_budget": 50000},
+                        "config": {"enabled": True, "scan_scope": "laptop"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            env = os.environ.copy()
+            env["CODEX_HOME"] = str(codex_home)
+            result = subprocess.run(
+                [sys.executable, str(CLI_ENTRY), "computer-intel", "status", "--json"],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["kind"], "computer-intel-status")
+        self.assertEqual(payload["status"], "ok")
 
 
 if __name__ == "__main__":

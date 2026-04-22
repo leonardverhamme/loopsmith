@@ -35,6 +35,8 @@ Recommended:
 
 - a Chromium-capable browser route for Playwright-backed work
 - optional vendor CLIs such as `gh`, `vercel`, and `supabase`
+- optional `graphify` for repo-intel flows
+- optional Obsidian for repo-intel vault exports
 
 `Agent CLI OS` will report missing optional tools honestly rather than pretending they are healthy.
 
@@ -62,5 +64,16 @@ Good state:
 If the second machine must run unattended deep workflows, also configure a real worker route.
 
 See [unattended-worker-setup.md](unattended-worker-setup.md).
+
+## Repo Intel On A New Machine
+
+Repo-intel is not part of the base install contract, but the new machine can enable it after bootstrap:
+
+```powershell
+agentcli repo-intel status --repo C:\path\to\repo
+agentcli repo-intel ensure --repo C:\path\to\repo
+```
+
+Use `agentcli repo-intel audit --all-trusted` after you have marked the machine’s trusted repos in `$CODEX_HOME/config.toml`.
 
 

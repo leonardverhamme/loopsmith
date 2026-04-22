@@ -37,6 +37,8 @@ INVENTORY_PATH = STATE_DIR / "inventory.json"
 GUIDANCE_PATH = STATE_DIR / "guidance.json"
 SKILLS_LOCK_PATH = STATE_DIR / "skills-lock.json"
 INSTALL_METADATA_PATH = STATE_DIR / "install-metadata.json"
+WORKSPACE_GRAPH_PATH = STATE_DIR / "workspace-graph.json"
+COMPUTER_GRAPH_PATH = STATE_DIR / "computer-graph.json"
 MAINTENANCE_REPORT_PATH = AGENTCTL_DOCS_DIR / "maintenance-report.json"
 MAINTENANCE_WORKFLOW_DIRNAME = "agentcli-maintenance"
 LEGACY_MAINTENANCE_WORKFLOW_DIRNAME = "agentctl-maintenance"
@@ -73,6 +75,8 @@ class MaintenanceWorkspace:
     doctor_report_path: Path
     inventory_path: Path
     guidance_path: Path
+    workspace_graph_path: Path
+    computer_graph_path: Path
     maintenance_report_path: Path
     maintenance_state_path: Path
     legacy_maintenance_state_path: Path
@@ -125,6 +129,8 @@ def _workspace_for_root(root: Path, *, mode: str) -> MaintenanceWorkspace:
         doctor_report_path=state_dir / "doctor-report.json",
         inventory_path=state_dir / "inventory.json",
         guidance_path=state_dir / "guidance.json",
+        workspace_graph_path=state_dir / "workspace-graph.json",
+        computer_graph_path=state_dir / "computer-graph.json",
         maintenance_report_path=docs_dir / "maintenance-report.json",
         maintenance_state_path=root / ".codex-workflows" / MAINTENANCE_WORKFLOW_DIRNAME / "state.json",
         legacy_maintenance_state_path=root / ".codex-workflows" / LEGACY_MAINTENANCE_WORKFLOW_DIRNAME / "state.json",

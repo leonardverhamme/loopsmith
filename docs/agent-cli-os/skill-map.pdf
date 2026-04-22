@@ -12,7 +12,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier >>
 endobj
 5 0 obj
-<< /Length 4010 >>
+<< /Length 4158 >>
 stream
 BT
 /F1 8 Tf
@@ -33,6 +33,10 @@ T*
 (  - Skills management: $skills-management-capability | agentcli capability skills-management) Tj
 T*
 (  - Agent CLI OS maintenance: $agentcli-maintenance-engineer | agentcli maintenance check) Tj
+T*
+(  - Repo intelligence: agentcli repo-intel | agentcli repo-intel status) Tj
+T*
+(  - Computer intelligence: agentcli computer-intel | agentcli computer-intel status) Tj
 T*
 (  - Plugin evaluation: $plugin-eval:plugin-eval | agentcli capability plugin-evaluation) Tj
 T*
@@ -106,6 +110,10 @@ T*
 T*
 (  - $editskill: Preferred front door for intentional skill-system changes.) Tj
 T*
+(  - $gitignore-skill: skill is installed but not promoted into the curated front-door menu.) Tj
+T*
+(  - $graphify: skill is installed but not promoted into the curated front-door menu.) Tj
+T*
 (  - $pdf: skill is installed but not promoted into the curated front-door menu.) Tj
 T*
 (  - $skill-edit-mode: Legacy compatibility alias. Prefer `$editskill` in new chats.) Tj
@@ -132,14 +140,6 @@ T*
 T*
 (  - `$editskill` is the preferred direct helper for intentional skill-system changes. `$skill-edit-mode` stays as a) Tj
 T*
-(legacy alias.) Tj
-T*
-(  - If the active desktop thread still shows an old `$` list after a bundle sync, open a new thread or restart the app;) Tj
-T*
-(the current session can keep a stale skill index.) Tj
-T*
-() Tj
-T*
 (... see skill-map.md for the full generated map.) Tj
 ET
 endstream
@@ -155,5 +155,5 @@ xref
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-4371
+4519
 %%EOF

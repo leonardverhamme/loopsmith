@@ -19,6 +19,12 @@ try:
         print_status_human,
     )
     from .lib.common import print_json, save_json
+    from .lib.computer_intel import (
+        computer_intel_refresh,
+        computer_intel_search,
+        computer_intel_status,
+        print_computer_intel_human,
+    )
     from .lib.config_layers import (
         config_path_payload,
         config_snapshot,
@@ -29,6 +35,7 @@ try:
         unset_config_value,
     )
     from .lib.guidance import load_guidance_snapshot
+    from .lib.overview import build_overview_report, print_overview_human
     from .lib.inventory import (
         filter_inventory_items,
         inventory_item,
@@ -44,6 +51,15 @@ try:
         print_maintenance_human,
     )
     from .lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
+    from .lib.repo_intel import (
+        print_repo_intel_human,
+        repo_intel_audit,
+        repo_intel_ensure,
+        repo_intel_query,
+        repo_intel_serve,
+        repo_intel_status,
+        repo_intel_update,
+    )
     from .lib.research import run_research
     from .lib.self_check import build_self_check, print_self_check, wrapper_version
     from .lib.skill_map import print_skill_map_human, write_skill_map_docs
@@ -63,6 +79,12 @@ except ImportError:
         print_status_human,
     )
     from lib.common import print_json, save_json
+    from lib.computer_intel import (
+        computer_intel_refresh,
+        computer_intel_search,
+        computer_intel_status,
+        print_computer_intel_human,
+    )
     from lib.config_layers import (
         config_path_payload,
         config_snapshot,
@@ -73,6 +95,7 @@ except ImportError:
         unset_config_value,
     )
     from lib.guidance import load_guidance_snapshot
+    from lib.overview import build_overview_report, print_overview_human
     from lib.inventory import (
         filter_inventory_items,
         inventory_item,
@@ -88,6 +111,15 @@ except ImportError:
         print_maintenance_human,
     )
     from lib.paths import CAPABILITIES_PATH, DOCTOR_REPORT_PATH
+    from lib.repo_intel import (
+        print_repo_intel_human,
+        repo_intel_audit,
+        repo_intel_ensure,
+        repo_intel_query,
+        repo_intel_serve,
+        repo_intel_status,
+        repo_intel_update,
+    )
     from lib.research import run_research
     from lib.self_check import build_self_check, print_self_check, wrapper_version
     from lib.skill_map import print_skill_map_human, write_skill_map_docs
@@ -160,7 +192,7 @@ def add_inventory_subcommands(inventory_parser: argparse.ArgumentParser) -> None
     refresh_parser.add_argument("--json", action="store_true", help="Emit JSON")
 
     show_parser = inventory_subparsers.add_parser("show", help="Show the raw autodetected inventory")
-    show_parser.add_argument("--kind", choices=("tools", "skills", "plugins", "mcp", "all"), default="all")
+    show_parser.add_argument("--kind", choices=("tools", "skills", "plugins", "apps", "mcp", "all"), default="all")
     show_parser.add_argument("--scope", choices=("user", "repo", "all"), default="all")
     show_parser.add_argument("--repo", help="Repo root for repo-local inventory resolution")
     show_parser.add_argument("--json", action="store_true", help="Emit JSON")
@@ -176,6 +208,60 @@ def add_skill_map_subcommands(skill_map_parser: argparse.ArgumentParser) -> None
     skill_map_parser.add_argument("--json", action="store_true", help="Emit JSON")
 
 
+def add_repo_intel_subcommands(repo_intel_parser: argparse.ArgumentParser) -> None:
+    repo_intel_subparsers = repo_intel_parser.add_subparsers(dest="repo_intel_command", required=True)
+
+    status_parser = repo_intel_subparsers.add_parser("status", help="Inspect repo-intel health for one repo")
+    status_parser.add_argument("--repo", help="Repo root. Defaults to the current working directory.")
+    status_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    ensure_parser = repo_intel_subparsers.add_parser("ensure", help="Create or refresh repo-intel artifacts for one repo")
+    ensure_parser.add_argument("--repo", help="Repo root. Defaults to the current working directory.")
+    ensure_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    update_parser = repo_intel_subparsers.add_parser("update", help="Refresh repo-intel artifacts using the lightest valid Graphify path")
+    update_parser.add_argument("--repo", help="Repo root. Defaults to the current working directory.")
+    mode_group = update_parser.add_mutually_exclusive_group()
+    mode_group.add_argument("--code-only", action="store_true", help="Run the code-only update path")
+    mode_group.add_argument("--semantic", action="store_true", help="Run the semantic/full rebuild path")
+    mode_group.add_argument("--full", action="store_true", help="Run a full rebuild")
+    update_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    query_parser = repo_intel_subparsers.add_parser("query", help="Query the local repo graph through Graphify")
+    query_parser.add_argument("question", nargs="+", help="Natural-language graph query")
+    query_parser.add_argument("--repo", help="Repo root. Defaults to the current working directory.")
+    query_parser.add_argument("--budget", type=int, default=1500, help="Token budget to pass through to Graphify")
+    query_parser.add_argument("--dfs", action="store_true", help="Use Graphify's DFS traversal instead of BFS")
+    query_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    audit_parser = repo_intel_subparsers.add_parser("audit", help="Audit repo-intel state for one repo, all trusted repos, or all discovered repos")
+    audit_parser.add_argument("--repo", help="Repo root. Defaults to the current working directory.")
+    audit_parser.add_argument("--all-trusted", action="store_true", help="Audit every trusted repo from the user config")
+    audit_parser.add_argument("--all-discovered", action="store_true", help="Audit every discovered repo from the machine-wide computer-intel registry")
+    audit_parser.add_argument("--fix", action="store_true", help="Run ensure for each audited repo instead of read-only status")
+    audit_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    serve_parser = repo_intel_subparsers.add_parser("serve", help="Prepare or launch the local Graphify MCP server for the current repo graph")
+    serve_parser.add_argument("--repo", help="Repo root. Defaults to the current working directory.")
+    serve_parser.add_argument("--json", action="store_true", help="Emit JSON instead of launching the server")
+
+
+def add_computer_intel_subcommands(computer_intel_parser: argparse.ArgumentParser) -> None:
+    computer_intel_subparsers = computer_intel_parser.add_subparsers(dest="computer_intel_command", required=True)
+
+    status_parser = computer_intel_subparsers.add_parser("status", help="Inspect machine-wide computer-intel state")
+    status_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    refresh_parser = computer_intel_subparsers.add_parser("refresh", help="Refresh the machine-wide laptop discovery index")
+    refresh_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    search_parser = computer_intel_subparsers.add_parser("search", help="Search the machine-wide laptop discovery surface")
+    search_parser.add_argument("query", nargs="+", help="Natural-language or path-fragment query")
+    search_parser.add_argument("--kind", choices=("all", "repo", "vault", "graph", "service", "root", "path"), default="all")
+    search_parser.add_argument("--limit", type=int, default=40, help="Maximum number of registry matches to keep")
+    search_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=f"{PUBLIC_DISPLAY_NAME} is the capability-first Codex control plane for workflows, research, and installable agent tooling.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -186,6 +272,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     capabilities_parser = subparsers.add_parser("capabilities", help="Emit the machine-readable capability inventory")
     capabilities_parser.add_argument("--json", action="store_true", help="Emit JSON")
+
+    overview_parser = subparsers.add_parser("overview", help="Show a compact names-first overview of capabilities and local surface")
+    overview_parser.add_argument("--repo", help="Repo root for repo-local inventory resolution")
+    overview_parser.add_argument("--json", action="store_true", help="Emit JSON")
 
     capability_parser = subparsers.add_parser("capability", help="Show the drill-down page for a single capability")
     capability_parser.add_argument("key", help="Capability key, e.g. github-workflows")
@@ -241,6 +331,12 @@ def build_parser() -> argparse.ArgumentParser:
     inventory_parser = subparsers.add_parser("inventory", help="Inspect the raw autodetected inventory behind the curated capability menu")
     add_inventory_subcommands(inventory_parser)
 
+    repo_intel_parser = subparsers.add_parser("repo-intel", help="Manage per-repo Graphify health, ensure/update flows, and workspace repo-intel audits")
+    add_repo_intel_subcommands(repo_intel_parser)
+
+    computer_intel_parser = subparsers.add_parser("computer-intel", help="Manage the machine-wide laptop discovery index without replacing per-repo Graphify graphs")
+    add_computer_intel_subcommands(computer_intel_parser)
+
     skill_map_parser = subparsers.add_parser("skill-map", help="Generate the human-facing menu and skill map, plus a matching one-page PDF")
     add_skill_map_subcommands(skill_map_parser)
 
@@ -262,17 +358,22 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.command in {"doctor", "capabilities", "capability"}:
+    if args.command in {"doctor", "capabilities", "capability", "overview"}:
         repair_summary = None
         if args.command == "doctor" and getattr(args, "fix", False):
             repair_summary = {
                 "install": repair_install(default_codex_home()),
                 "config": repair_user_config(),
             }
-        inventory = refresh_inventory_snapshot() if args.command == "doctor" else load_inventory_snapshot()
-        report = build_capabilities_report(inventory_snapshot=inventory)
-        save_json(CAPABILITIES_PATH, report)
         if args.command == "doctor":
+            inventory = refresh_inventory_snapshot()
+        elif args.command == "overview":
+            inventory = refresh_inventory_snapshot(args.repo)
+        else:
+            inventory = load_inventory_snapshot()
+        report = build_capabilities_report(inventory_snapshot=inventory)
+        if args.command == "doctor":
+            save_json(CAPABILITIES_PATH, report)
             guidance = load_guidance_snapshot(refresh=True)
             doctor_summary = dict(report.get("summary", {}))
             if not guidance.get("summary", {}).get("within_budget", True) and doctor_summary.get("status") == "ok":
@@ -284,12 +385,18 @@ def main() -> int:
                 doctor_report["repair"] = repair_summary
             save_json(DOCTOR_REPORT_PATH, doctor_report)
             print_doctor_human(doctor_report, as_json=args.json)
+        elif args.command == "overview":
+            overview = build_overview_report(capabilities_report=report, inventory_snapshot=inventory, repo=args.repo)
+            print_overview_human(overview, as_json=args.json)
+            return 0 if overview["summary"]["status"] != "error" else 1
         elif args.command == "capability":
+            save_json(CAPABILITIES_PATH, report)
             detail = capability_detail(report, args.key)
             if detail is None:
                 parser.error(f"unknown capability: {args.key}")
             print_capability_human(detail, as_json=args.json)
         else:
+            save_json(CAPABILITIES_PATH, report)
             print_capabilities_human(report, as_json=args.json)
         return 0 if report["summary"]["status"] != "error" else 1
 
@@ -325,6 +432,53 @@ def main() -> int:
             parser.error(f"unknown inventory command: {args.inventory_command}")
         print_inventory_human(result, as_json=getattr(args, "json", False))
         return 0
+
+    if args.command == "repo-intel":
+        if args.repo_intel_command == "status":
+            result = repo_intel_status(args.repo)
+            print_repo_intel_human(result, as_json=args.json)
+            return 0 if result["status"] != "broken" else 1
+        if args.repo_intel_command == "ensure":
+            result = repo_intel_ensure(args.repo)
+            print_repo_intel_human(result, as_json=args.json)
+            return 0 if result["status"] in {"fresh", "disabled"} else 1
+        if args.repo_intel_command == "update":
+            mode = "auto"
+            if args.code_only:
+                mode = "code"
+            elif args.semantic:
+                mode = "semantic"
+            elif args.full:
+                mode = "full"
+            result = repo_intel_update(args.repo, mode=mode)
+            print_repo_intel_human(result, as_json=args.json)
+            return 0 if result["status"] in {"fresh", "disabled"} else 1
+        if args.repo_intel_command == "query":
+            result = repo_intel_query(" ".join(args.question).strip(), repo=args.repo, budget=args.budget, dfs=args.dfs)
+            print_repo_intel_human(result, as_json=args.json)
+            return 0 if result.get("query_result", {}).get("ok", result["status"] not in {"broken", "missing", "disabled"}) else 1
+        if args.repo_intel_command == "audit":
+            result = repo_intel_audit(repo=args.repo, all_trusted=args.all_trusted, all_discovered=args.all_discovered, fix=args.fix)
+            print_repo_intel_human(result, as_json=args.json)
+            return 0 if result["summary"]["status"] == "ok" else 1
+        if args.repo_intel_command == "serve":
+            result = repo_intel_serve(args.repo, launch=not args.json)
+            print_repo_intel_human(result, as_json=args.json)
+            return 0 if result["status"] not in {"broken", "missing"} and result.get("action") != "blocked" else 1
+        parser.error(f"unknown repo-intel command: {args.repo_intel_command}")
+
+    if args.command == "computer-intel":
+        if args.computer_intel_command == "status":
+            result = computer_intel_status()
+        elif args.computer_intel_command == "refresh":
+            result = computer_intel_refresh()
+        elif args.computer_intel_command == "search":
+            result = computer_intel_search(" ".join(args.query).strip(), kind=args.kind, limit=args.limit)
+        else:  # pragma: no cover
+            parser.error(f"unknown computer-intel command: {args.computer_intel_command}")
+        print_computer_intel_human(result, as_json=args.json)
+        status = result.get("summary", {}).get("status", result.get("status", "ok"))
+        return 0 if status not in {"error", "broken"} else 1
 
     if args.command == "skill-map":
         inventory = refresh_inventory_snapshot(args.repo)

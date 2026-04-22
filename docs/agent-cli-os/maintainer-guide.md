@@ -22,6 +22,9 @@ Do not hand-maintain those. Change the code and rerun maintenance.
 Hand-maintained docs:
 
 - `README.md`
+- `docs/agent-cli-os/repo-intel.md`
+- `docs/agent-cli-os/computer-intel.md`
+- `docs/agent-cli-os/repo-intel-automation.md`
 - `docs/agent-cli-os/zero-touch-setup.md`
 - `docs/agent-cli-os/install-on-another-computer.md`
 - `docs/agent-cli-os/unattended-worker-setup.md`
@@ -89,6 +92,34 @@ If autodetection, menu budgets, or guidance snippets change:
 - `agentctl/lib/maintenance.py`
 - generated docs via `agentcli maintenance audit`
 - related tests
+- if app-aware inventory or health wording changes, refresh `README.md`, `docs/agent-cli-os/overview.md`, `docs/agent-cli-os/inventory.md`, and the generated skill map together so the user-facing story stays aligned
+
+If repo-intel changes:
+
+- `agentctl/lib/repo_intel.py`
+- `agentctl/agentctl.py`
+- `agentctl/lib/inventory.py`
+- `agentctl/lib/capabilities.py`
+- `agentctl/lib/config_layers.py`
+- `agentctl/lib/maintenance.py`
+- `agentctl/references/state-schema.md`
+- `agentctl/references/capability-registry.md`
+- `README.md`
+- `docs/agent-cli-os/repo-intel.md`
+- `docs/agent-cli-os/computer-intel.md`
+- `docs/agent-cli-os/repo-intel-automation.md`
+- generated docs via `agentcli maintenance audit`
+- related tests
+
+Keep Graphify as the engine underneath the contract. Do not let Graphify’s own installer or AGENTS mutation become the primary product contract for Agent CLI OS.
+Keep the local git posture repo-first for solo work: the current local branch is canonical, Codex-managed worktrees are temporary isolation, and local commits or pushes should not require merging a worktree branch back by default.
+
+If naming or machine-wide discovery changes:
+
+- keep the public surface on `Agent CLI OS`, `agentcli`, `repo-intel`, and `computer-intel`
+- keep `agentctl` references internal or explicitly compatibility-only
+- update `README.md`, `AGENTS.md`, `docs/agent-cli-os/computer-intel.md`, and generated docs together
+- keep the machine-wide registry metadata-first; do not collapse repo-local Graphify graphs into one laptop-wide repo substitute
 
 If skill files stop appearing in the official skills list:
 

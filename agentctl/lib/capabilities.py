@@ -131,6 +131,56 @@ CAPABILITY_SPECS: list[dict[str, Any]] = [
         ],
     },
     {
+        "key": "repo-intelligence",
+        "label": "Repo intelligence",
+        "group": "core",
+        "required": False,
+        "front_door": f"{PUBLIC_COMMAND} repo-intel",
+        "entrypoints": [
+            f"{PUBLIC_COMMAND} repo-intel status",
+            f"{PUBLIC_COMMAND} repo-intel ensure",
+            f"{PUBLIC_COMMAND} repo-intel update",
+            f"{PUBLIC_COMMAND} repo-intel query",
+            f"{PUBLIC_COMMAND} repo-intel audit",
+            f"{PUBLIC_COMMAND} repo-intel serve",
+        ],
+        "skills": [],
+        "interfaces": ["tool:graphify"],
+        "availability_mode": "any",
+        "overlap_policy": "Keep repo intelligence as a CLI-first subsystem. Graphify is the indexing engine, Obsidian is a secondary export/view layer, and AGENTS guidance should stay a tiny routing hint only.",
+        "summary": "Use for per-repo graph health, repo-first graph routing, managed `.gitignore` hygiene, ensure/update flows, graph-backed repo queries, and workspace-wide trusted-repo audits.",
+        "routing_notes": [
+            f"When the agent is already inside a repo, keep that repo as the working universe and start with `{PUBLIC_COMMAND} repo-intel status` or `{PUBLIC_COMMAND} repo-intel ensure` before broad raw-file search.",
+            f"Trusted repos should default to `{PUBLIC_COMMAND} repo-intel ensure` when repo-intel, repo hygiene, or graph freshness drift appears so graph-first retrieval stays the normal path.",
+            f"Use `{PUBLIC_COMMAND} repo-intel query` for focused graph traversal and `{PUBLIC_COMMAND} repo-intel serve` when an MCP client should talk to the local graph directly.",
+            f"Use `{PUBLIC_COMMAND} computer-intel ...` only when the target repo is unknown or the task is explicitly cross-repo.",
+            "Do not treat the workspace registry as the repo graph itself; it is an index-of-indexes over trusted repos.",
+        ],
+    },
+    {
+        "key": "computer-intelligence",
+        "label": "Computer intelligence",
+        "group": "core",
+        "required": False,
+        "front_door": f"{PUBLIC_COMMAND} computer-intel",
+        "entrypoints": [
+            f"{PUBLIC_COMMAND} computer-intel status",
+            f"{PUBLIC_COMMAND} computer-intel refresh",
+            f"{PUBLIC_COMMAND} computer-intel search",
+        ],
+        "skills": [],
+        "interfaces": [],
+        "availability_mode": "all",
+        "overlap_policy": "Keep the machine-wide laptop discovery layer separate from per-repo Graphify graphs. Use the global index for whole-computer discovery and repo selection, then drop into repo-intel for repo-specific graph work.",
+        "summary": "Use for machine-wide discovery of repos, vaults, Graphify outputs, services, and laptop-wide path search without replacing repo-local graph traversal.",
+        "routing_notes": [
+            f"Treat `{PUBLIC_COMMAND} computer-intel ...` as the exception path, not the default repo workflow.",
+            f"Start with `{PUBLIC_COMMAND} computer-intel status` or `{PUBLIC_COMMAND} computer-intel refresh` only when the task is about the whole laptop rather than one repo.",
+            f"Use `{PUBLIC_COMMAND} computer-intel search` for laptop-wide discovery, then switch to `{PUBLIC_COMMAND} repo-intel ...` once the target repo is known.",
+            "The machine-wide index is metadata-first and should not replace per-repo Graphify graphs for architecture questions.",
+        ],
+    },
+    {
         "key": "context-workflows",
         "label": "Repo context workflows",
         "group": "workflows",
@@ -514,6 +564,8 @@ CAPABILITY_CLOUD_READINESS = {
     "skills-management": ["skills wrapper layer"],
     "agentcli-maintenance": ["agent-cli-os core"],
     "plugin-evaluation": ["plugin-eval"],
+    "repo-intelligence": ["agent-cli-os core"],
+    "computer-intelligence": ["agent-cli-os core"],
     "research": ["research web", "research github", "research scout"],
     "code-review": ["coderabbit"],
     "browser-automation": ["Playwright CLI", "Playwright MCP"],
@@ -1131,6 +1183,10 @@ def _inventory_plugins_map(payload: dict[str, Any]) -> dict[str, Any]:
     return {item["name"]: item for item in _inventory_items(payload, "plugin")}
 
 
+def _inventory_apps_map(payload: dict[str, Any]) -> dict[str, Any]:
+    return {item["name"]: item for item in _inventory_items(payload, "app")}
+
+
 def _inventory_mcp_map(payload: dict[str, Any]) -> dict[str, Any]:
     return {item["name"]: item for item in _inventory_items(payload, "mcp")}
 
@@ -1140,6 +1196,7 @@ def build_capabilities_report(*, inventory_snapshot: dict[str, Any] | None = Non
     tools = inventory.get("tool_map", {})
     installed_skills = _inventory_skills(inventory)
     plugins = _inventory_plugins_map(inventory)
+    apps = _inventory_apps_map(inventory)
     mcp_servers = _inventory_mcp_map(inventory)
     local_skill_names = _inventory_local_skill_names(inventory)
     capabilities = [
@@ -1196,6 +1253,12 @@ def build_capabilities_report(*, inventory_snapshot: dict[str, Any] | None = Non
             "installed_skill_count": len(installed_skills["items"]),
             "local_skill_count": len(local_skill_names),
             "enabled_plugin_count": sum(1 for item in plugins.values() if item.get("enabled")),
+            "configured_app_count": sum(
+                1
+                for item in apps.values()
+                if item.get("configured") or item.get("status") in {"ok", "configured", "degraded"}
+            ),
+            "app_item_count": len(apps),
             "configured_mcp_count": len(mcp_servers),
             "global_skills_dir": str(SKILLS_DIR),
             "required_capability_count": required_capability_count,
@@ -1212,6 +1275,10 @@ def build_capabilities_report(*, inventory_snapshot: dict[str, Any] | None = Non
         "plugins": {
             "status": "ok",
             "items": sorted(plugins.values(), key=lambda item: item["name"]),
+        },
+        "apps": {
+            "status": "ok",
+            "items": sorted(apps.values(), key=lambda item: item["name"]),
         },
         "mcp_servers": {
             "status": "ok",

@@ -43,6 +43,12 @@ Cloud support is explicit, not assumed. A plugin install is not enough without a
 - `ghas-cli`: `cloud-ready-with-setup`
   - Requirements: Python 3.9+, callable ghas-cli build, GitHub token or auth context
   - Notes: Useful for GHAS enablement and rollout at scale, but local Windows packaging should be verified before you rely on it as the primary path.
+- `graphify`: `cloud-ready-with-setup`
+  - Requirements: Graphify CLI, repo-local write access, model/API access when semantic extraction is required
+  - Notes: Repo-intel uses Graphify as an optional engine. Base Agent CLI OS install and CI should still work when Graphify is absent.
+- `obsidian`: `optional-local-only`
+  - Requirements: Local Obsidian install or vault path
+  - Notes: Obsidian is a secondary repo-intel export/view layer, not the canonical repo graph store.
 - `vercel`: `cloud-ready-with-setup`
   - Requirements: Vercel CLI, Vercel auth
   - Notes: Detected now and suitable for later richer adapters once usage patterns are stable.

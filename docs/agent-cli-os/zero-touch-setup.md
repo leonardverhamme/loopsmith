@@ -96,4 +96,22 @@ They do not belong in:
 - `skills/`
 - `plugins/*/skills/`
 
+## Optional Repo Intel Runtime
+
+Base bootstrap does not require Graphify or Obsidian.
+
+If you want repo-intel after bootstrap:
+
+```powershell
+agentcli repo-intel status --repo C:\path\to\repo
+agentcli repo-intel ensure --repo C:\path\to\repo
+agentcli repo-intel audit --all-trusted
+```
+
+That keeps the contract clean:
+
+- Graphify is optional and detected as an external runtime
+- Agent CLI OS owns the repo-intel manifest and workspace registry
+- Obsidian export is optional and does not block the base install
+
 
